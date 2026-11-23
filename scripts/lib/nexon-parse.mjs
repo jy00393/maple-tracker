@@ -301,6 +301,28 @@ export function findResetNotes(text) {
 
 const SKIP_HEADINGS = /^(table of contents|back to top|contents|rewards?|notes?|faq|how to participate|details?|event details)$/i;
 
+// Nexon's rankings answer: { totalCount, pageIndex, ranks: [{ characterName, level, exp, jobName, worldID,
+// characterImgURL, rank, gap, legionLevel, raidPower, tierID, starSum }] }. Field names confirmed against a live
+// response on 23 Nov 2026; they are still undocumented, so anything missing or oddly typed is treated as no result.
+export function findRanked(data, name) {
+  const ranks = data && Array.isArray(data.ranks) ? data.ranks : [];
+  const want = String(name || '').trim().toLowerCase();
+  if (!want) return null;
+  const hit = ranks.find((r) => r && String(r.characterName || '').toLowerCase() === want);
+  if (!hit) return null;
+  const level = Number(hit.level);
+  if (!Number.isFinite(level) || level < 1 || level > 300) return null;
+  const exp = Number(hit.exp);
+  return {
+    name: String(hit.characterName),
+    level,
+    exp: Number.isFinite(exp) && exp >= 0 ? exp : 0,
+    jobName: typeof hit.jobName === 'string' ? hit.jobName : null,
+    worldID: Number.isFinite(Number(hit.worldID)) ? Number(hit.worldID) : null,
+    imageUrl: typeof hit.characterImgURL === 'string' && hit.characterImgURL.startsWith('https://') ? hit.characterImgURL : null
+  };
+}
+
 export function slugify(text) {
   return String(text).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'item';
 }

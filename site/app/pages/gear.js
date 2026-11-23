@@ -2,9 +2,12 @@ import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Bar, Seg, NumberInput, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
 import { gearSummary, gearProjection } from '../calc/progress.js';
-import { starPlan, maxStarsFor } from '../calc/starforce.js';
+import { maxStarsFor } from '../calc/starforce.js';
+import { itemLevel, slotOutlook } from '../calc/advice.js';
 import { cubePlan, lineOptions, defaultValue, lineTotals, lineLabel, lineKind, hasPotential, MAIN_STATS, LINE_TYPES } from '../calc/upgrades.js';
 import { dayKey, fmtDate } from '../time.js';
+
+export { itemLevel, slotOutlook };
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
 const GROUPS = [
@@ -41,34 +44,6 @@ function clearSlot(charId, slotId, gearData) {
     delete g.slots[slotId];
     snapshot(g, gearData);
   });
-}
-
-export function itemLevel(slot, entry) {
-  if (entry.ilvl) return entry.ilvl;
-  return slot.type === 'ring' && (entry.tier || 0) <= 1 ? 120 : 160;
-}
-
-// Expected cost to bring a slot to its target: Star Force (normal day and Sunny Sunday) and Bright Cube tier-ups.
-export function slotOutlook(slot, entry, target, up) {
-  const out = { temporary: Boolean(entry.temporary) };
-  if (!entry.tier || out.temporary) return out;
-  if (entry.tier < (target.tier || 0)) {
-    out.replace = true;
-    return out;
-  }
-  const lvl = itemLevel(slot, entry);
-  if (slot.sf) {
-    const max = maxStarsFor(up.starforce, lvl);
-    const to = Math.min(target.stars || 0, max);
-    const from = entry.stars || 0;
-    if (to > from) {
-      out.sf = { from, to, max, plain: starPlan(up.starforce, lvl, from, to, {}), sunny: starPlan(up.starforce, lvl, from, to, { discount: true, lessBoom: true }) };
-    }
-  }
-  if (hasPotential(slot) && (target.pot || 0) > (entry.pot || 0)) {
-    out.cube = { from: entry.pot || 0, to: target.pot, bright: cubePlan(up.cubes.types.bright, entry.pot || 1, target.pot), glowing: cubePlan(up.cubes.types.glowing, entry.pot || 1, target.pot) };
-  }
-  return out;
 }
 
 function Spark({ history }) {

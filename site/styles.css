@@ -290,3 +290,13 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .equip-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } .equip:hover { transform: none; } }
+
+/* Today: reset warnings, best next upgrade, quick setup; Settings: pairing QR */
+.reset-warn { margin-bottom: 10px; }
+.insight.best { margin-bottom: 14px; border-color: rgba(254, 172, 66, .35); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+.iconbtn.mini { width: 22px; height: 22px; font-size: 13px; border-radius: 7px; margin-left: 6px; vertical-align: middle; }
+.chipbox { display: flex; flex-wrap: wrap; gap: 6px; max-height: 190px; overflow-y: auto; padding: 8px; background: var(--inset); border-radius: 12px; }
+.qr-wrap { display: grid; grid-template-columns: 180px 1fr; gap: 14px; align-items: center; }
+.qr { width: 180px; height: 180px; border-radius: 10px; display: block; }
+@media (max-width: 520px) { .qr-wrap { grid-template-columns: 1fr; justify-items: center; } }

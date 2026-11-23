@@ -12,7 +12,7 @@ import { ProgressPage } from './pages/progress.js';
 import { GearPage } from './pages/gear.js';
 import { CharactersPage } from './pages/characters.js';
 import { SettingsPage } from './pages/settings.js';
-import { startSync } from './sync.js';
+import { startSync, connect, tokenFromHash } from './sync.js';
 
 // [route, tab label, page, hidden from the tab row]
 const ROUTES = [
@@ -92,11 +92,15 @@ function App({ data }) {
 
 async function boot() {
   const root = document.getElementById('app');
+  // A pairing link from another device (Settings → Sync → Show QR). Take the token out of the address bar at once.
+  const pairToken = tokenFromHash(location.hash);
+  if (pairToken) history.replaceState(null, '', location.pathname + location.search + '#settings');
   try {
     const data = await loadData();
     root.textContent = '';
     render(html`<${App} data=${data} />`, root);
-    startSync();
+    if (pairToken) connect(pairToken).catch(() => {});
+    else startSync();
   } catch (err) {
     root.innerHTML = '';
     const p = document.createElement('p');

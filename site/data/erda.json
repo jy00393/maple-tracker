@@ -1,5 +1,9 @@
 {
  "note": "Upgrade order is a community estimate (Mapler House / class Discord via the 23 Nov 2026 research). Costs aren't included because Erda Link costs weren't confirmed.",
+ "review": {
+  "after": "2026-12-16T00:00:00Z",
+  "note": "A third set of 6th Job HEXA Skill Nodes arrives on 16 Dec 2026 (Nexon, Inkwell's Note: Maplayer One, 17 Oct 2026; checked 23 Nov 2026). Nexon has announced no cost changes and nothing for Erda Link. The upgrade order and costs here were set before that patch."
+ },
  "templates": {
   "erel": {
    "name": "Erel Light: Erda Link",

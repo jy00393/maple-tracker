@@ -138,3 +138,19 @@ test('parsePost falls back to the first window in the post', () => {
   assert.equal(events.length, 1);
   assert.equal(events[0].title, 'Sale');
 });
+
+test('rankings lookup reads the confirmed fields and rejects odd answers', async () => {
+  const { findRanked } = await import('../lib/nexon-parse.mjs');
+  // Shape of a live answer on 23 Nov 2026 (values shortened).
+  const live = { totalCount: 2, pageIndex: 1, ranks: [
+    { characterName: 'Ozark', exp: 711384464309328, gap: 1, level: 299, rank: 1, worldID: 19, characterImgURL: 'https://msavatar1.nexon.net/Character/ABC.png', jobName: 'Ren', legionLevel: 0, raidPower: 0, tierID: 0, starSum: 0 },
+    { characterName: 'Nauseous', exp: 0, gap: 2, level: 300, rank: 2, worldID: 1, characterImgURL: 'https://msavatar1.nexon.net/Character/DEF.png', jobName: 'Hero' }
+  ] };
+  assert.deepEqual(findRanked(live, 'ozark'), { name: 'Ozark', level: 299, exp: 711384464309328, jobName: 'Ren', worldID: 19, imageUrl: 'https://msavatar1.nexon.net/Character/ABC.png' });
+  assert.equal(findRanked(live, 'Nobody'), null);
+  assert.equal(findRanked({}, 'Ozark'), null);
+  assert.equal(findRanked({ ranks: 'nope' }, 'Ozark'), null);
+  assert.equal(findRanked({ ranks: [{ characterName: 'Ozark', level: 'abc' }] }, 'Ozark'), null);
+  const odd = findRanked({ ranks: [null, { characterName: 'Ozark', level: '264', exp: 'x', characterImgURL: 'javascript:alert(1)' }] }, 'Ozark');
+  assert.deepEqual(odd, { name: 'Ozark', level: 264, exp: 0, jobName: null, worldID: null, imageUrl: null });
+});

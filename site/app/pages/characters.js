@@ -4,7 +4,7 @@ import { Card, PageHead, NumberInput, Empty } from '../ui.js';
 import { worldLabel } from '../calc/income.js';
 import { fmtKst } from '../time.js';
 
-const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
+export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
   'Night Lord', 'Shadower', 'Dual Blade', 'Buccaneer', 'Corsair', 'Cannoneer', 'Dawn Warrior', 'Blaze Wizard', 'Wind Archer', 'Night Walker',
   'Thunder Breaker', 'Mihile', 'Aran', 'Evan', 'Mercedes', 'Phantom', 'Luminous', 'Shade', 'Battle Mage', 'Wild Hunter', 'Mechanic', 'Blaster',
   'Demon Slayer', 'Demon Avenger', 'Xenon', 'Kaiser', 'Angelic Buster', 'Cadena', 'Kain', 'Hayato', 'Kanna', 'Beast Tamer', 'Adele', 'Khali',

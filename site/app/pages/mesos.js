@@ -15,7 +15,7 @@ export function weeklyIncome(data, state, now) {
   const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
   const m = state.mesos;
   const bosses = income.worlds.reduce((a, w) => a + (w.plannedTotal || 0), 0);
-  const ursus = (m.ursus || 0) * (m.ursusRuns || 1) * 7;
+  const ursus = (m.ursus || 0) * 7; // one run a day since v.272 (Nexon patch notes)
   const farming = (m.farmPerHour || 0) * (m.farmHours || 0);
   const other = m.other || 0;
   return { bosses, ursus, farming, other, total: bosses + ursus + farming + other };
@@ -98,13 +98,12 @@ function Planner({ data, state, now }) {
       <label class="field"><span>Mesos you have now</span><${MesoInput} label="Mesos held" value=${m.held} onChange=${(v) => setM((x) => { x.held = v || 0; })} /></label>
       <div class="field"><span>Boss crystals (from Bosses, all characters)</span><b>${fmtBig(inc.bosses)} a week</b></div>
       <div class="form-grid">
-        <label class="field"><span>Ursus mesos per run</span><${MesoInput} label="Ursus mesos per run" placeholder="e.g. 36m" value=${m.ursus} onChange=${(v) => setM((x) => { x.ursus = v; })} /></label>
-        <label class="field"><span>Ursus runs a day</span><${NumberInput} className="input" label="Ursus runs per day" value=${m.ursusRuns || 1} min=${0} max=${3} onChange=${(v) => setM((x) => { x.ursusRuns = v ?? 1; })} /></label>
+        <label class="field"><span>Ursus mesos per run (1 run a day)</span><${MesoInput} label="Ursus mesos per run" placeholder="e.g. 36m" value=${m.ursus} onChange=${(v) => setM((x) => { x.ursus = v; })} /></label>
         <label class="field"><span>Farming mesos per hour</span><${MesoInput} label="Farming mesos per hour" placeholder="e.g. 250m" value=${m.farmPerHour} onChange=${(v) => setM((x) => { x.farmPerHour = v; })} /></label>
         <label class="field"><span>Farming hours a week</span><${NumberInput} className="input" label="Farming hours per week" value=${m.farmHours || 0} max=${100} onChange=${(v) => setM((x) => { x.farmHours = v || 0; })} /></label>
         <label class="field"><span>Other mesos a week</span><${MesoInput} label="Other weekly mesos" value=${m.other} onChange=${(v) => setM((x) => { x.other = v; })} /></label>
       </div>
-      <p class="note">Ursus on Heroic pays 5× Interactive, doubled in Golden Time; community estimates for Lv. 264 are about 36M (S rank) to 56M (SSS) a run. Measure your own farming for an hour and enter it.</p>
+      <p class="note">Ursus is one run a day since v.272, with Golden Time always on and meso rewards tripled to make up for it (Nexon v.272 patch notes, 10 Nov 2026). Older community figures (about 36M to 56M a run at Lv. 264) are from before that change, so enter what your own run pays. Measure your own farming for an hour and enter it.</p>
     <//>
   </div>`;
 }

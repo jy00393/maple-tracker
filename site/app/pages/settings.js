@@ -1,5 +1,6 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
-import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull } from '../sync.js';
+import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink } from '../sync.js';
+import { qrEncode, qrPath } from '../calc/qr.js';
 import { getState, replaceState, isStorageOk, blankState } from '../store.js';
 import { Card, PageHead } from '../ui.js';
 import { fmtKst } from '../time.js';
@@ -20,6 +21,7 @@ function SyncCard() {
   const [st, setSt] = useState(syncStatus());
   const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showQr, setShowQr] = useState(false);
   useEffect(() => onSyncStatus(setSt), []);
   const cfg = syncConfig();
   const run = async (fn) => {
@@ -31,9 +33,11 @@ function SyncCard() {
     ${cfg ? html`<p class=${st.state === 'error' ? 'warnbox' : 'okbox'} role="status">${st.message || 'Connected'}${st.at ? ` · ${fmtKst(st.at)}` : ''}</p>
       <div class="toolbar">
         <button type="button" class="btn primary" disabled=${busy} onClick=${() => run(pull)}>Sync now</button>
-        <button type="button" class="btn danger" onClick=${() => { disconnect(); setToken(''); }}>Disconnect this device</button>
+        <button type="button" class="btn" aria-expanded=${String(showQr)} onClick=${() => setShowQr(!showQr)}>${showQr ? 'Hide QR code' : 'Connect my phone (QR code)'}</button>
+        <button type="button" class="btn danger" onClick=${() => { disconnect(); setToken(''); setShowQr(false); }}>Disconnect this device</button>
       </div>
-      <p class="note">Changes save to your secret gist a few seconds after you make them, and each device checks for newer entries when you open it. The newest copy wins.</p>`
+      ${showQr ? html`<${PairQr} />` : null}
+      <p class="note">Changes save to your secret gist a few seconds after you make them, and each device checks for newer entries when you open it. Entries from both devices are merged; if both changed the same thing, the newer edit wins.</p>`
     : html`<p class="note">Keeps your ticks and entries the same on every device, using a secret (unlisted) gist on your own GitHub account.</p>
       <ol class="note" style=${{ paddingLeft: '18px', margin: 0 }}>
         <li>On GitHub: Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token. Tick only <b>gist</b>, and pick an expiry.</li>
@@ -46,6 +50,17 @@ function SyncCard() {
       ${st.state === 'error' ? html`<p class="warnbox" role="alert">${st.message}</p>` : null}
       <p class="note">The token is stored only in this browser and never goes into backups. Anyone with access to this browser profile could read it, so keep its scope to gists.</p>`}
   <//>`;
+}
+
+function PairQr() {
+  const link = pairLink();
+  const qr = link ? qrEncode(link) : null;
+  if (!qr) return html`<p class="warnbox">This token is too long for a QR code. Paste it on your phone instead.</p>`;
+  const { d, box } = qrPath(qr);
+  return html`<div class="qr-wrap">
+    <svg class="qr" viewBox=${`0 0 ${box} ${box}`} role="img" aria-label="QR code that connects another device to your sync"><rect width=${box} height=${box} fill="#fff" /><path d=${d} fill="#000" /></svg>
+    <p class="note">Point your phone's camera at this and open the link. It opens the tracker and connects it with the same token. <b>Treat this code like a password:</b> anyone who scans it can read and change your synced entries, so don't screenshot or share it.</p>
+  </div>`;
 }
 
 function InstallCard() {

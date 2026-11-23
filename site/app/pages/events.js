@@ -38,7 +38,7 @@ function urgency(e, now) {
   return '';
 }
 
-export function EventRow({ e, now, showPost }) {
+export function EventRow({ e, now, showPost, onHide }) {
   const start = e.start ? Date.parse(e.start) : null;
   const end = Date.parse(e.end);
   const upcoming = start && start > now;
@@ -51,7 +51,7 @@ export function EventRow({ e, now, showPost }) {
       ${showPost ? html`<div class="from"><a href=${e.url} target="_blank" rel="noopener">${e.postName}</a></div>` : null}
       ${e.alsoIn && e.alsoIn.length ? html`<div class="from">Also in ${e.alsoIn.map((p, i) => html`${i ? ', ' : ''}<a href=${p.url} target="_blank" rel="noopener">${p.postName}</a>`)}</div>` : null}
     </div>
-    <div class="left">${left}</div>
+    <div class="left">${left}${onHide ? html` <button type="button" class="iconbtn mini" aria-label=${'Hide from Today: ' + e.title} title="Not for me: hide from Today" onClick=${onHide}>×</button>` : null}</div>
     ${e.resets && e.resets.length ? html`<div class="resets">${e.resets[0]}</div>` : null}
   </div>`;
 }

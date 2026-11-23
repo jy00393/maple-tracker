@@ -2,14 +2,14 @@
 
 A personal MapleStory (GMS) tracker that runs free on GitHub Pages and refreshes itself from Nexon's public news feed every 6 hours.
 
-- **Today**: a 30/60/90-minute session plan from what's still unticked, your dailies streak, this week's crystals, the date you reach the next level gate, and events ending this week.
+- **Today**: a one-minute first-run setup, a warning when a reset is close and something is still open, the best next upgrade (most gear score per meso, with its cost and the date you can afford it), a 30/60/90-minute session plan, your dailies streak, this week's crystals, the next level gate, and gameplay events ending this week (Cash Shop sales are hidden until you ask; × hides an event that isn't for you).
 - **Events**: a timeline of every live and upcoming event (overlaps at a glance, Thursday reset ticks, today line), plus Live now / Starting soon / Maintenance / All posts lists, all parsed from Nexon's posts. **Reminders on your phone**: subscribe to the calendar feed the job publishes (event ends with a day-before alert, maintenance, weekly resets).
 - **Checklist**: dailies and weeklies that clear themselves at the right reset, and a 16-week streak calendar.
 - **Bosses**: pick bosses, tick clears, see Heroic (×5) crystal income with the 14-per-character and 180-per-world caps.
 - **Mesos**: a planner (weekly income from bosses, Ursus, farming vs goals like 200 Bright Cubes, with the date each is affordable), a GMS v.272 Star Force calculator (expected cost, typical and bad-luck cost, boom odds, Sunny Sunday and Safeguard), a cube tier-up calculator, and a 12-week income chart.
 - **Gear**: an equipment grid; tap a slot for an item editor with real potential lines per slot and tier (Meso Obtained and Item Drop Rate +20% on Legendary accessories, cooldown on hats, crit damage on gloves), totals for STR %, boss, meso and drop, and the expected mesos to reach each slot's target.
 - **Progress**: level gates with dates (Beyond Burning aware), symbols, Genesis/Destiny liberation, 6th job order with a Sol Erda planner, Item Burning Plus.
-- **Settings**: sync between PC and phone through a secret gist, install as a phone app, backup and restore.
+- **Settings**: sync between PC and phone through a secret gist (entries from both devices are merged; a QR code connects the phone), install as a phone app, backup and restore.
 
 Everything you enter stays in your browser (localStorage). Use **Settings → Export backup** to move it to another device.
 
@@ -31,7 +31,7 @@ Then, on the site:
 
 - **Phone app**: on iPhone open the link in Safari → Share → Add to Home Screen; on Android Chrome → menu → Install app.
 - **Reminders**: Events → Reminders on your phone → Subscribe (or Add to Google Calendar).
-- **Same data on PC and phone**: Settings → Sync. Make a classic GitHub token with only the `gist` scope, paste it on each device. Your entries go to a secret gist on your account; the token stays in that browser. All your GitHub Pages sites share one origin (`<you>.github.io`), so keep the token's scope to gists.
+- **Same data on PC and phone**: Settings → Sync. Make a classic GitHub token with only the `gist` scope, paste it on each device. After the first device is connected, **Connect my phone (QR code)** shows a code the phone can scan instead of pasting the token; treat that code like a password. Your entries go to a secret gist on your account; the token stays in that browser. All your GitHub Pages sites share one origin (`<you>.github.io`), so keep the token's scope to gists.
 - **Level dates**: Progress → Level, log your level and EXP % now and then (or list the character in `config/characters.json` and the job records it from Nexon's rankings).
 
 Two things that can look wrong but aren't:

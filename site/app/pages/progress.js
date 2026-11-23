@@ -74,7 +74,15 @@ function Liberation({ which, def, char, entry, bossById }) {
   <//>`;
 }
 
+// A dated note in a data file: a heads-up before the date, a warning to re-check after it.
+export function reviewNotice(review, now) {
+  if (!review || !review.after) return null;
+  const due = now >= Date.parse(review.after);
+  return { due, text: `${due ? 'Check these numbers in game: ' : 'Coming up: '}${review.note}` };
+}
+
 function SixthJob({ data, char, entry }) {
+  const notice = reviewNotice(data.erda.review, Date.now());
   const templateId = entry.template || 'erel';
   const template = data.erda.templates[templateId];
   const levels = entry.levels || {};
@@ -88,6 +96,7 @@ function SixthJob({ data, char, entry }) {
   const next = erdaNextSteps(template, entry, 4);
   return html`<div class="grid two">
     <${Card} title="6th job levels" meta=${template.name}>
+      ${notice ? html`<p class=${notice.due ? 'warnbox' : 'note'}>${notice.text}</p>` : null}
       <div class="toolbar">
         <${Seg} label="6th job system" value=${templateId} onChange=${(v) => set((e) => { e.template = v; })}
           options=${Object.entries(data.erda.templates).map(([id, t]) => [id, id === 'erel' ? 'Erda Link (Erel)' : 'HEXA Matrix'])} />

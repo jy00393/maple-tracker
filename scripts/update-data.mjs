@@ -5,7 +5,7 @@
 // On any network error it keeps the previous files and records the error in meta.json.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { parsePost, postUrl } from './lib/nexon-parse.mjs';
+import { parsePost, postUrl, findRanked } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
 
 const LIST_URL = 'https://g.nexonstatic.com/maplestory/cms/v1/news';
@@ -159,7 +159,7 @@ async function updateCharacters(errors) {
     try {
       await sleep(400);
       const data = await getJson(RANK_URL(region, name));
-      const hit = (data.ranks || []).find((r) => String(r.characterName).toLowerCase() === name.toLowerCase());
+      const hit = findRanked(data, name);
       if (!hit) {
         errors.push(`character ${name}: not found in Nexon rankings`);
         if (byName.has(name.toLowerCase())) out.push(byName.get(name.toLowerCase()));
@@ -170,15 +170,15 @@ async function updateCharacters(errors) {
       const history = Array.isArray(prev?.history) ? prev.history.slice(-499) : [];
       const last = history[history.length - 1];
       const changedPoint = !last || last.level !== hit.level || last.exp !== hit.exp;
-      if (changedPoint && Number.isFinite(Number(hit.level))) history.push({ t: Date.now(), level: Number(hit.level), exp: Number(hit.exp) || 0 });
+      if (changedPoint) history.push({ t: Date.now(), level: hit.level, exp: hit.exp });
       out.push({
-        name: hit.characterName,
+        name: hit.name,
         region,
         level: hit.level,
         exp: hit.exp,
         jobName: hit.jobName,
         worldID: hit.worldID,
-        imageUrl: hit.characterImgURL || null,
+        imageUrl: hit.imageUrl,
         checkedAt: changedPoint || !prev ? new Date().toISOString() : prev.checkedAt,
         history
       });
