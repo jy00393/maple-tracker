@@ -1,0 +1,75 @@
+{
+ "source": "Nexon 'Maplayer One Challenger World and Burning Events' notice (v.272) via the 23 Nov 2026 research report. Item Burning Plus missions reset Thursday 00:00 UTC (Nexon).",
+ "endsAt": "2027-02-09T23:59:00Z",
+ "weeklyCrests": 500,
+ "stages": [
+  {
+   "id": "s1",
+   "boss": "Normal Lotus",
+   "level": 225,
+   "crests": 0,
+   "reward": "18\u2605 armor and weapon, Unique armor Potential, 2 Challenger Keys"
+  },
+  {
+   "id": "s2",
+   "boss": "Easy Lucid",
+   "level": 250,
+   "crests": 0
+  },
+  {
+   "id": "s3",
+   "boss": "Easy Will",
+   "level": 255,
+   "crests": 250
+  },
+  {
+   "id": "s4",
+   "boss": "Normal Kai",
+   "level": 260,
+   "crests": 750
+  },
+  {
+   "id": "s5",
+   "boss": "Normal Lucid",
+   "level": 265,
+   "crests": 1500
+  },
+  {
+   "id": "s6",
+   "boss": "Normal Darknell",
+   "level": 265,
+   "crests": 2250
+  },
+  {
+   "id": "s7",
+   "boss": "Hard Damien",
+   "level": 270,
+   "crests": 3000
+  },
+  {
+   "id": "s8",
+   "boss": "Normal Verus Hilla",
+   "level": 270,
+   "crests": 3750
+  },
+  {
+   "id": "s9",
+   "boss": "Chaos Guardian Angel Slime",
+   "level": 275,
+   "crests": 4500
+  },
+  {
+   "id": "s10",
+   "boss": "Chaos Gloom",
+   "level": 275,
+   "crests": 5500
+  },
+  {
+   "id": "s11",
+   "boss": "Normal Mayrin",
+   "level": 280,
+   "crests": 6500,
+   "reward": "22\u2605 armor"
+  }
+ ]
+}

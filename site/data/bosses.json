@@ -1,0 +1,613 @@
+{
+ "source": "MapleStory Wiki, Intense Power Crystal, GMS v.272 tab (page edited 15 Nov 2026; checked 23 Nov 2026). Prices are the Interactive-world solo values; Heroic worlds pay 5x.",
+ "sourceUrl": "https://maplestorywiki.net/w/Intense_Power_Crystal",
+ "heroicMultiplier": 5,
+ "limits": {
+  "weeklyPerCharacter": 14,
+  "perWorldPerWeek": 180,
+  "note": "Limit of 180 per world per week, 14 weekly crystals per character per week (GMS)."
+ },
+ "bosses": [
+  {
+   "id": "zakum-easy",
+   "boss": "Zakum",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 200000
+  },
+  {
+   "id": "zakum-normal",
+   "boss": "Zakum",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 612500
+  },
+  {
+   "id": "papulatus-easy",
+   "boss": "Papulatus",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 684500
+  },
+  {
+   "id": "magnus-easy",
+   "boss": "Magnus",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 722000
+  },
+  {
+   "id": "yakuza-boss-normal",
+   "boss": "Yakuza Boss",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 722000
+  },
+  {
+   "id": "hilla-normal",
+   "boss": "Hilla",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 800000
+  },
+  {
+   "id": "mori-ranmaru-normal",
+   "boss": "Mori Ranmaru",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 840500
+  },
+  {
+   "id": "horntail-easy",
+   "boss": "Horntail",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 882000
+  },
+  {
+   "id": "gigatoad-normal",
+   "boss": "Gigatoad",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 882000
+  },
+  {
+   "id": "pierre-normal",
+   "boss": "Pierre",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 968000
+  },
+  {
+   "id": "von-bon-normal",
+   "boss": "Von Bon",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 968000
+  },
+  {
+   "id": "crimson-queen-normal",
+   "boss": "Crimson Queen",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 968000
+  },
+  {
+   "id": "vellum-normal",
+   "boss": "Vellum",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 968000
+  },
+  {
+   "id": "horntail-normal",
+   "boss": "Horntail",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 1012500
+  },
+  {
+   "id": "von-leon-easy",
+   "boss": "Von Leon",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 1058000
+  },
+  {
+   "id": "arkarium-easy",
+   "boss": "Arkarium",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 1152000
+  },
+  {
+   "id": "frenzied-gigatoad-normal",
+   "boss": "Frenzied Gigatoad",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 1153000
+  },
+  {
+   "id": "omni-cln-normal",
+   "boss": "OMNI-CLN",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 1250000
+  },
+  {
+   "id": "horntail-chaos",
+   "boss": "Horntail",
+   "difficulty": "Chaos",
+   "reset": "daily",
+   "price": 1352000
+  },
+  {
+   "id": "pink-bean-normal",
+   "boss": "Pink Bean",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 1404500
+  },
+  {
+   "id": "von-leon-normal",
+   "boss": "Von Leon",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 1458000
+  },
+  {
+   "id": "von-leon-hard",
+   "boss": "Von Leon",
+   "difficulty": "Hard",
+   "reset": "daily",
+   "price": 1960000
+  },
+  {
+   "id": "arkarium-normal",
+   "boss": "Arkarium",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 2016400
+  },
+  {
+   "id": "magnus-normal",
+   "boss": "Magnus",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 2073600
+  },
+  {
+   "id": "papulatus-normal",
+   "boss": "Papulatus",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 2131600
+  },
+  {
+   "id": "hilla-hard",
+   "boss": "Hilla",
+   "difficulty": "Hard",
+   "reset": "daily",
+   "price": 2250000
+  },
+  {
+   "id": "pink-bean-chaos",
+   "boss": "Pink Bean",
+   "difficulty": "Chaos",
+   "reset": "daily",
+   "price": 2560000
+  },
+  {
+   "id": "mori-ranmaru-hard",
+   "boss": "Mori Ranmaru",
+   "difficulty": "Hard",
+   "reset": "daily",
+   "price": 2664500
+  },
+  {
+   "id": "cygnus-normal",
+   "boss": "Cygnus",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 2890000
+  },
+  {
+   "id": "zakum-chaos",
+   "boss": "Zakum",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 16200000
+  },
+  {
+   "id": "pierre-chaos",
+   "boss": "Pierre",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 16200000
+  },
+  {
+   "id": "von-bon-chaos",
+   "boss": "Von Bon",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 16200000
+  },
+  {
+   "id": "crimson-queen-chaos",
+   "boss": "Crimson Queen",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 16200000
+  },
+  {
+   "id": "princess-no-normal",
+   "boss": "Princess No",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 16200000
+  },
+  {
+   "id": "magnus-hard",
+   "boss": "Magnus",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 19012500
+  },
+  {
+   "id": "vellum-chaos",
+   "boss": "Vellum",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 21012500
+  },
+  {
+   "id": "papulatus-chaos",
+   "boss": "Papulatus",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 26450000
+  },
+  {
+   "id": "akechi-mitsuhide-normal",
+   "boss": "Akechi Mitsuhide",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 28800000
+  },
+  {
+   "id": "lotus-normal",
+   "boss": "Lotus",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 32512500
+  },
+  {
+   "id": "damien-normal",
+   "boss": "Damien",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 33800000
+  },
+  {
+   "id": "guardian-angel-slime-normal",
+   "boss": "Guardian Angel Slime",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 46334700
+  },
+  {
+   "id": "lucid-easy",
+   "boss": "Lucid",
+   "difficulty": "Easy",
+   "reset": "weekly",
+   "price": 47401875
+  },
+  {
+   "id": "will-easy",
+   "boss": "Will",
+   "difficulty": "Easy",
+   "reset": "weekly",
+   "price": 49348950
+  },
+  {
+   "id": "lucid-normal",
+   "boss": "Lucid",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 50765625
+  },
+  {
+   "id": "will-normal",
+   "boss": "Will",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 55815000
+  },
+  {
+   "id": "gloom-normal",
+   "boss": "Gloom",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 59535000
+  },
+  {
+   "id": "darknell-normal",
+   "boss": "Darknell",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 63375000
+  },
+  {
+   "id": "damien-hard",
+   "boss": "Damien",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 84375000
+  },
+  {
+   "id": "lotus-hard",
+   "boss": "Lotus",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 88935000
+  },
+  {
+   "id": "lucid-hard",
+   "boss": "Lucid",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 100800000
+  },
+  {
+   "id": "gloom-chaos",
+   "boss": "Gloom",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 112789000
+  },
+  {
+   "id": "verus-hilla-normal",
+   "boss": "Verus Hilla",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 116376000
+  },
+  {
+   "id": "guardian-angel-slime-chaos",
+   "boss": "Guardian Angel Slime",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 120115625
+  },
+  {
+   "id": "will-hard",
+   "boss": "Will",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 124362000
+  },
+  {
+   "id": "darknell-hard",
+   "boss": "Darknell",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 133584000
+  },
+  {
+   "id": "verus-hilla-hard",
+   "boss": "Verus Hilla",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 152421000
+  },
+  {
+   "id": "chosen-seren-normal",
+   "boss": "Chosen Seren",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 177804375
+  },
+  {
+   "id": "kalos-the-guardian-easy",
+   "boss": "Kalos the Guardian",
+   "difficulty": "Easy",
+   "reset": "weekly",
+   "price": 187500000
+  },
+  {
+   "id": "first-adversary-easy",
+   "boss": "First Adversary",
+   "difficulty": "Easy",
+   "reset": "weekly",
+   "price": 197000000
+  },
+  {
+   "id": "kaling-easy",
+   "boss": "Kaling",
+   "difficulty": "Easy",
+   "reset": "weekly",
+   "price": 206250000
+  },
+  {
+   "id": "chosen-seren-hard",
+   "boss": "Chosen Seren",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 219312000
+  },
+  {
+   "id": "kalos-the-guardian-normal",
+   "boss": "Kalos the Guardian",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 260000000
+  },
+  {
+   "id": "first-adversary-normal",
+   "boss": "First Adversary",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 273000000
+  },
+  {
+   "id": "lotus-extreme",
+   "boss": "Lotus",
+   "difficulty": "Extreme",
+   "reset": "weekly",
+   "price": 279500000
+  },
+  {
+   "id": "malefic-star-normal",
+   "boss": "Malefic Star",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 290400000
+  },
+  {
+   "id": "kaling-normal",
+   "boss": "Kaling",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 301300000
+  },
+  {
+   "id": "limbo-normal",
+   "boss": "Limbo",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 420000000
+  },
+  {
+   "id": "kalos-the-guardian-chaos",
+   "boss": "Kalos the Guardian",
+   "difficulty": "Chaos",
+   "reset": "weekly",
+   "price": 520000000
+  },
+  {
+   "id": "baldrix-normal",
+   "boss": "Baldrix",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 560000000
+  },
+  {
+   "id": "first-adversary-hard",
+   "boss": "First Adversary",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 588000000
+  },
+  {
+   "id": "jupiter-normal",
+   "boss": "Jupiter",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 593000000
+  },
+  {
+   "id": "kaling-hard",
+   "boss": "Kaling",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 598000000
+  },
+  {
+   "id": "limbo-hard",
+   "boss": "Limbo",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 749000000
+  },
+  {
+   "id": "malefic-star-hard",
+   "boss": "Malefic Star",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 798000000
+  },
+  {
+   "id": "baldrix-hard",
+   "boss": "Baldrix",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 840000000
+  },
+  {
+   "id": "chosen-seren-extreme",
+   "boss": "Chosen Seren",
+   "difficulty": "Extreme",
+   "reset": "weekly",
+   "price": 847000000
+  },
+  {
+   "id": "black-mage-hard",
+   "boss": "Black Mage",
+   "difficulty": "Hard",
+   "reset": "monthly",
+   "price": 900000000
+  },
+  {
+   "id": "kalos-the-guardian-extreme",
+   "boss": "Kalos the Guardian",
+   "difficulty": "Extreme",
+   "reset": "weekly",
+   "price": 1040000000
+  },
+  {
+   "id": "first-adversary-extreme",
+   "boss": "First Adversary",
+   "difficulty": "Extreme",
+   "reset": "weekly",
+   "price": 1176000000
+  },
+  {
+   "id": "jupiter-hard",
+   "boss": "Jupiter",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 1190600000
+  },
+  {
+   "id": "kaling-extreme",
+   "boss": "Kaling",
+   "difficulty": "Extreme",
+   "reset": "weekly",
+   "price": 1205200000
+  },
+  {
+   "id": "black-mage-extreme",
+   "boss": "Black Mage",
+   "difficulty": "Extreme",
+   "reset": "monthly",
+   "price": 3600000000
+  },
+  {
+   "id": "kai-normal",
+   "boss": "Kai",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 0,
+   "noCrystal": true,
+   "note": "No crystal. Once a week per account."
+  },
+  {
+   "id": "mayrin-normal",
+   "boss": "Mayrin",
+   "difficulty": "Normal",
+   "reset": "weekly",
+   "price": 0,
+   "noCrystal": true,
+   "note": "No crystal; drops Golden Meso Pouches. Lv. 270+, once a week per account."
+  },
+  {
+   "id": "mayrin-hard",
+   "boss": "Mayrin",
+   "difficulty": "Hard",
+   "reset": "weekly",
+   "price": 0,
+   "noCrystal": true,
+   "note": "No crystal; drops Golden Meso Pouches. Lv. 280+, once a week per account."
+  }
+ ]
+}

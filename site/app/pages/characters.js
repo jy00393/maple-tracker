@@ -1,0 +1,86 @@
+import { html, useState } from '../../vendor/htm-preact.mjs';
+import { update, newId } from '../store.js';
+import { Card, PageHead, NumberInput, Empty } from '../ui.js';
+import { worldLabel } from '../calc/income.js';
+import { fmtKst } from '../time.js';
+
+const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
+  'Night Lord', 'Shadower', 'Dual Blade', 'Buccaneer', 'Corsair', 'Cannoneer', 'Dawn Warrior', 'Blaze Wizard', 'Wind Archer', 'Night Walker',
+  'Thunder Breaker', 'Mihile', 'Aran', 'Evan', 'Mercedes', 'Phantom', 'Luminous', 'Shade', 'Battle Mage', 'Wild Hunter', 'Mechanic', 'Blaster',
+  'Demon Slayer', 'Demon Avenger', 'Xenon', 'Kaiser', 'Angelic Buster', 'Cadena', 'Kain', 'Hayato', 'Kanna', 'Beast Tamer', 'Adele', 'Khali',
+  'Illium', 'Ark', 'Lara', 'Hoyoung', 'Ren', 'Lynn', 'Mo Xuan', 'Sia Astelle', 'Erel Light', 'Zero', 'Kinesis', 'Lethe'];
+
+const blankForm = () => ({ name: '', cls: '', level: null, region: 'na', world: 'heroic', challenger: false, quanah: false, mainStat: 'STR', beyondBurning: false });
+
+function CharacterForm({ initial, onSave, onCancel, saveLabel }) {
+  const [f, setF] = useState(initial);
+  const set = (patch) => setF((prev) => ({ ...prev, ...patch }));
+  const valid = f.name.trim().length > 0;
+  return html`<form class="card-b" onSubmit=${(e) => { e.preventDefault(); if (valid) onSave({ ...f, name: f.name.trim() }); }}>
+    <div class="form-grid">
+      <label class="field"><span>Name (in-game)</span><input id="char-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
+      <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => set({ cls: e.currentTarget.value })} /></label>
+      <label class="field"><span>Level</span><${NumberInput} id="char-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
+      <label class="field"><span>Region</span><select id="char-region" class="select" value=${f.region} onChange=${(e) => set({ region: e.currentTarget.value })}><option value="na">North America</option><option value="eu">Europe</option></select></label>
+      <label class="field"><span>World type</span><select id="char-world" class="select" value=${f.world} onChange=${(e) => set({ world: e.currentTarget.value })}><option value="heroic">Heroic (no trading)</option><option value="interactive">Interactive</option></select></label>
+      <label class="field"><span>Main stat</span><select id="char-stat" class="select" value=${f.mainStat || 'STR'} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${['STR', 'DEX', 'INT', 'LUK'].map((m) => html`<option value=${m}>${m}</option>`)}</select></label>
+    </div>
+    <div class="toolbar">
+      <label class="small"><input id="char-challenger" type="checkbox" checked=${f.challenger} onChange=${(e) => set({ challenger: e.currentTarget.checked })} /> Challenger World character</label>
+      <label class="small"><input id="char-quanah" type="checkbox" checked=${f.quanah} onChange=${(e) => set({ quanah: e.currentTarget.checked })} /> Quanah World Leap (can't sell crystals)</label>
+      <label class="small"><input id="char-beyond" type="checkbox" checked=${Boolean(f.beyondBurning)} onChange=${(e) => set({ beyondBurning: e.currentTarget.checked })} /> Beyond Burning (extra level per level-up to 280)</label>
+    </div>
+    <div class="toolbar">
+      <button type="submit" class="btn primary" disabled=${!valid}>${saveLabel}</button>
+      ${onCancel ? html`<button type="button" class="btn" onClick=${onCancel}>Cancel</button>` : null}
+    </div>
+    <datalist id="class-list">${CLASSES.map((c) => html`<option value=${c} />`)}</datalist>
+  </form>`;
+}
+
+export function CharactersPage({ data, state }) {
+  const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const nexon = data.nexonCharacters.characters || [];
+  const nexonFor = (c) => nexon.find((n) => n.name.toLowerCase() === c.name.toLowerCase());
+  return html`
+    <${PageHead} title="Characters">Each character keeps its own bosses, symbols, liberation and gear. The one picked at the top is the one every page shows.<//>
+    <div class="grid two">
+      <${Card} title="Your characters" meta=${state.characters.length + ' saved'} bodyClass="card-b tight">
+        ${state.characters.length === 0 ? html`<${Empty}>None yet. Add one on the right.<//>` : state.characters.map((c) => {
+          const n = nexonFor(c);
+          if (editing === c.id) {
+            return html`<${CharacterForm} initial=${c} saveLabel="Save" onCancel=${() => setEditing(null)}
+              onSave=${(f) => { update((s) => { const i = s.characters.findIndex((x) => x.id === c.id); s.characters[i] = { ...c, ...f }; }); setEditing(null); }} />`;
+          }
+          return html`<div class="row">
+            <input type="radio" name="active-char" id=${'act-' + c.id} checked=${state.activeId === c.id} aria-label=${'Show ' + c.name}
+              onChange=${() => update((s) => { s.activeId = c.id; })} />
+            <label class="lbl" for=${'act-' + c.id}>${c.name} <span class="small muted">${c.cls || ''}${c.level ? ' · Lv. ' + c.level : ''}</span></label>
+            <div class="right">
+              <button type="button" class="btn" onClick=${() => setEditing(c.id)}>Edit</button>
+              ${confirmDelete === c.id
+                ? html`<button type="button" class="btn danger" onClick=${() => { update((s) => {
+                    s.characters = s.characters.filter((x) => x.id !== c.id);
+                    for (const k of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear']) delete s[k][c.id];
+                    if (s.activeId === c.id) s.activeId = s.characters[0]?.id ?? null;
+                  }); setConfirmDelete(null); }}>Delete for good</button>
+                  <button type="button" class="btn" onClick=${() => setConfirmDelete(null)}>Keep</button>`
+                : html`<button type="button" class="btn" onClick=${() => setConfirmDelete(c.id)}>Delete</button>`}
+            </div>
+            <p class="note">${worldLabel(c)}${c.quanah ? ' · Quanah' : ''}
+              ${n ? html` · Nexon: Lv. ${n.level}${n.jobName ? ' ' + n.jobName : ''}, checked ${fmtKst(Date.parse(n.checkedAt), false)}
+                ${n.level !== c.level ? html` <button type="button" class="btn" onClick=${() => update((s) => { const x = s.characters.find((y) => y.id === c.id); x.level = n.level; })}>Use Lv. ${n.level}</button>` : null}` : null}</p>
+          </div>`;
+        })}
+      <//>
+      <${Card} title="Add a character" bodyClass="">
+        <${CharacterForm} key=${state.characters.length} initial=${blankForm()} saveLabel="Add character"
+          onSave=${(f) => update((s) => { const id = newId(); s.characters.push({ id, ...f }); s.activeId = id; })} />
+      <//>
+      <${Card} title="Automatic level updates" className="span2">
+        <p class="note">To have your level and class refreshed from Nexon's rankings every 6 hours, list the character in <code>config/characters.json</code> in your GitHub repo, like <code>[{"name": "YourName", "region": "na"}]</code>. The next run adds it here with a button to copy the level across. Names you list there are visible to anyone who can see the repo; Nexon's own rankings already show them publicly.</p>
+        ${nexon.length ? html`<p class="note">Found on Nexon: ${nexon.map((n) => `${n.name} (Lv. ${n.level})`).join(', ')}.</p>` : null}
+      <//>
+    </div>`;
+}

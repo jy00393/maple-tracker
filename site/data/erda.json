@@ -1,0 +1,264 @@
+{
+ "note": "Upgrade order is a community estimate (Mapler House / class Discord via the 23 Nov 2026 research). Costs aren't included because Erda Link costs weren't confirmed.",
+ "templates": {
+  "erel": {
+   "name": "Erel Light: Erda Link",
+   "steps": [
+    {
+     "id": "shinestone3",
+     "label": "Boost Stones up to Shinestone 3 unlocked"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "lugh",
+     "name": "SHINE Spear of Lugh (Ultimate)"
+    },
+    {
+     "id": "origin",
+     "name": "Origin Stone (Fall of Melin, Radiant Spear)"
+    },
+    {
+     "id": "sentinel",
+     "name": "Sentinel Rise (Skill Stone)"
+    },
+    {
+     "id": "guardian",
+     "name": "Eternal Guardian (Skill Stone)"
+    },
+    {
+     "id": "fury",
+     "name": "SHINE Fury of Roan (Ultimate)"
+    },
+    {
+     "id": "sting",
+     "name": "SHINE Sting of Roan (Ultimate)"
+    },
+    {
+     "id": "tree",
+     "name": "SHINE Tree of Stars (Skill Stone)"
+    },
+    {
+     "id": "light",
+     "name": "Eternal Light (Skill Stone)"
+    },
+    {
+     "id": "roan",
+     "name": "Destruction of Roan (Skill Stone)"
+    }
+   ],
+   "order": [
+    [
+     "step",
+     "shinestone3"
+    ],
+    [
+     "lugh",
+     10
+    ],
+    [
+     "origin",
+     10
+    ],
+    [
+     "sentinel",
+     10
+    ],
+    [
+     "guardian",
+     10
+    ],
+    [
+     "fury",
+     10
+    ],
+    [
+     "sting",
+     10
+    ],
+    [
+     "lugh",
+     20
+    ],
+    [
+     "origin",
+     20
+    ],
+    [
+     "sentinel",
+     20
+    ],
+    [
+     "guardian",
+     20
+    ],
+    [
+     "fury",
+     20
+    ],
+    [
+     "sting",
+     20
+    ],
+    [
+     "tree",
+     20
+    ],
+    [
+     "lugh",
+     30
+    ],
+    [
+     "origin",
+     30
+    ],
+    [
+     "sentinel",
+     30
+    ],
+    [
+     "guardian",
+     30
+    ],
+    [
+     "fury",
+     30
+    ],
+    [
+     "sting",
+     30
+    ],
+    [
+     "tree",
+     30
+    ],
+    [
+     "light",
+     30
+    ],
+    [
+     "roan",
+     30
+    ]
+   ],
+   "lockedNote": "Sol Janus stays at the Challenger-supported Lv. 30; don't spend Sol Erda on it in Challenger World."
+  },
+  "hexa": {
+   "name": "Other classes: HEXA Matrix",
+   "steps": [],
+   "nodes": [
+    {
+     "id": "origin",
+     "name": "Origin skill"
+    },
+    {
+     "id": "m1",
+     "name": "Mastery core 1"
+    },
+    {
+     "id": "m2",
+     "name": "Mastery core 2"
+    },
+    {
+     "id": "m3",
+     "name": "Mastery core 3"
+    },
+    {
+     "id": "m4",
+     "name": "Mastery core 4"
+    },
+    {
+     "id": "e1",
+     "name": "Enhancement core 1"
+    },
+    {
+     "id": "e2",
+     "name": "Enhancement core 2"
+    },
+    {
+     "id": "e3",
+     "name": "Enhancement core 3"
+    },
+    {
+     "id": "e4",
+     "name": "Enhancement core 4"
+    },
+    {
+     "id": "stat",
+     "name": "HEXA Stat"
+    }
+   ],
+   "order": [
+    [
+     "origin",
+     10
+    ],
+    [
+     "m1",
+     10
+    ],
+    [
+     "e1",
+     10
+    ],
+    [
+     "e2",
+     10
+    ],
+    [
+     "origin",
+     20
+    ],
+    [
+     "m1",
+     20
+    ],
+    [
+     "m2",
+     10
+    ],
+    [
+     "e3",
+     10
+    ],
+    [
+     "e4",
+     10
+    ],
+    [
+     "origin",
+     30
+    ],
+    [
+     "m1",
+     30
+    ],
+    [
+     "m2",
+     20
+    ],
+    [
+     "m3",
+     20
+    ],
+    [
+     "m4",
+     20
+    ],
+    [
+     "e1",
+     20
+    ],
+    [
+     "e2",
+     20
+    ],
+    [
+     "stat",
+     10
+    ]
+   ],
+   "lockedNote": "A generic order; check your class Discord for the exact one."
+  }
+ }
+}

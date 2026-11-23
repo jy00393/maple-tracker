@@ -1,0 +1,141 @@
+{
+ "source": "MapleStory Wiki, Genesis Weapon (edited 15 Oct 2026) and Destiny Weapon (edited 9 Nov 2026), checked 23 Nov 2026. The Genesis Pass triples Traces of Darkness.",
+ "genesis": {
+  "name": "Genesis (Traces of Darkness)",
+  "passMultiplier": 3,
+  "stages": [
+   {
+    "id": "vonleon",
+    "name": "III. Von Leon",
+    "need": 500,
+    "quest": "Defeat Hard Von Leon alone"
+   },
+   {
+    "id": "arkarium",
+    "name": "IV. Arkarium",
+    "need": 500,
+    "quest": "Defeat Normal Arkarium alone"
+   },
+   {
+    "id": "magnus",
+    "name": "VI. Magnus",
+    "need": 500,
+    "quest": "Defeat Hard Magnus alone"
+   },
+   {
+    "id": "lotus",
+    "name": "VII. Lotus",
+    "need": 1000,
+    "quest": "Defeat Hard Lotus (party of 2 or less)"
+   },
+   {
+    "id": "damien",
+    "name": "IX. Damien",
+    "need": 1000,
+    "quest": "Defeat Hard Damien (party of 2 or less)"
+   },
+   {
+    "id": "will",
+    "name": "X. Will",
+    "need": 1000,
+    "quest": "Defeat Hard Will (party of 2 or less)"
+   },
+   {
+    "id": "lucid",
+    "name": "XI. Lucid",
+    "need": 1000,
+    "quest": "Defeat Hard Lucid (party of 2 or less)"
+   },
+   {
+    "id": "verus",
+    "name": "XII. Verus Hilla",
+    "need": 1000,
+    "quest": "Defeat Hard Verus Hilla (party of 2 or less)"
+   }
+  ],
+  "sources": {
+   "lotus-normal": 10,
+   "damien-normal": 10,
+   "lucid-easy": 15,
+   "will-easy": 15,
+   "lucid-normal": 20,
+   "gloom-normal": 20,
+   "will-normal": 25,
+   "darknell-normal": 25,
+   "verus-hilla-normal": 45,
+   "damien-hard": 50,
+   "lotus-hard": 50,
+   "lotus-extreme": 50,
+   "lucid-hard": 65,
+   "gloom-chaos": 65,
+   "will-hard": 75,
+   "darknell-hard": 75,
+   "verus-hilla-hard": 90,
+   "black-mage-hard": 600,
+   "black-mage-extreme": 600
+  }
+ },
+ "destiny": {
+  "name": "Destiny (Adversary's Determination)",
+  "passMultiplier": 1,
+  "stages": [
+   {
+    "id": "seren",
+    "name": "I-III. Hard Seren",
+    "need": 2000,
+    "quest": "Defeat Hard Seren alone"
+   },
+   {
+    "id": "kalos",
+    "name": "IV. Chaos Kalos",
+    "need": 2500,
+    "quest": "Defeat Chaos Kalos alone"
+   },
+   {
+    "id": "kaling",
+    "name": "V. Hard Kaling",
+    "need": 3000,
+    "quest": "Defeat Hard Kaling alone"
+   },
+   {
+    "id": "adversary",
+    "name": "II-I. Hard First Adversary",
+    "need": 10000,
+    "quest": "Defeat Hard First Adversary alone"
+   },
+   {
+    "id": "limbo",
+    "name": "II-II. Hard Limbo",
+    "need": 12500,
+    "quest": "Defeat Hard Limbo alone"
+   },
+   {
+    "id": "baldrix",
+    "name": "II-III. Hard Baldrix",
+    "need": 15000,
+    "quest": "Defeat Hard Baldrix alone"
+   }
+  ],
+  "sources": {
+   "chosen-seren-hard": 6,
+   "kalos-the-guardian-normal": 10,
+   "first-adversary-normal": 15,
+   "malefic-star-normal": 20,
+   "kaling-normal": 20,
+   "kalos-the-guardian-chaos": 70,
+   "chosen-seren-extreme": 80,
+   "limbo-normal": 120,
+   "first-adversary-hard": 120,
+   "baldrix-normal": 150,
+   "jupiter-normal": 160,
+   "kaling-hard": 160,
+   "limbo-hard": 360,
+   "malefic-star-hard": 380,
+   "kalos-the-guardian-extreme": 400,
+   "baldrix-hard": 450,
+   "first-adversary-extreme": 500,
+   "jupiter-hard": 500,
+   "kaling-extreme": 1200
+  }
+ }
+}

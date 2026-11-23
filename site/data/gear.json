@@ -1,0 +1,308 @@
+{
+ "note": "Tiers are a simple ladder per slot so progress can be compared; pick the closest match. Targets are editable presets, not official numbers. Heroic worlds have no bonus potential, so it isn't counted.",
+ "potTiers": [
+  "None",
+  "Rare",
+  "Epic",
+  "Unique",
+  "Legendary"
+ ],
+ "slotTypes": {
+  "weapon": [
+   "Event / Challenger",
+   "Absolab",
+   "Arcane Umbra",
+   "Genesis",
+   "Destiny"
+  ],
+  "secondary": [
+   "Event / starter",
+   "Princess No / class secondary",
+   "Upgraded secondary",
+   "Astra",
+   ""
+  ],
+  "emblem": [
+   "Event emblem",
+   "Gold Maple Leaf / class emblem",
+   "Mitra's Rage (pitched)",
+   "",
+   ""
+  ],
+  "hat": [
+   "Event / Challenger",
+   "Chaos Root Abyss",
+   "Absolab",
+   "Arcane Umbra",
+   "Eternal"
+  ],
+  "topbottom": [
+   "Event / Challenger",
+   "Chaos Root Abyss",
+   "Eternal",
+   "",
+   ""
+  ],
+  "armor": [
+   "Event / Challenger",
+   "Absolab",
+   "Arcane Umbra",
+   "Eternal",
+   ""
+  ],
+  "accessory": [
+   "Event / starter",
+   "Superior Gollux / Dawn / Meister",
+   "Pitched boss",
+   "Brilliant boss",
+   ""
+  ],
+  "ring": [
+   "Event ring",
+   "Superior Gollux / Dawn / Meister",
+   "Pitched boss",
+   "Brilliant boss / seed ring",
+   ""
+  ],
+  "misc": [
+   "Starter",
+   "Mid (boss drop)",
+   "Pitched boss",
+   "",
+   ""
+  ]
+ },
+ "slots": [
+  {
+   "id": "weapon",
+   "name": "Weapon",
+   "type": "weapon",
+   "weight": 3,
+   "sf": true
+  },
+  {
+   "id": "secondary",
+   "name": "Secondary",
+   "type": "secondary",
+   "weight": 2,
+   "sf": false
+  },
+  {
+   "id": "emblem",
+   "name": "Emblem",
+   "type": "emblem",
+   "weight": 2,
+   "sf": false
+  },
+  {
+   "id": "hat",
+   "name": "Hat",
+   "type": "hat",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "top",
+   "name": "Top",
+   "type": "topbottom",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "bottom",
+   "name": "Bottom",
+   "type": "topbottom",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "shoes",
+   "name": "Shoes",
+   "type": "armor",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "gloves",
+   "name": "Gloves",
+   "type": "armor",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "cape",
+   "name": "Cape",
+   "type": "armor",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "shoulder",
+   "name": "Shoulder",
+   "type": "armor",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "belt",
+   "name": "Belt",
+   "type": "accessory",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "pendant1",
+   "name": "Pendant 1",
+   "type": "accessory",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "pendant2",
+   "name": "Pendant 2",
+   "type": "accessory",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "earrings",
+   "name": "Earrings",
+   "type": "accessory",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "face",
+   "name": "Face",
+   "type": "accessory",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "eye",
+   "name": "Eye",
+   "type": "accessory",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "ring1",
+   "name": "Ring 1",
+   "type": "ring",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "ring2",
+   "name": "Ring 2",
+   "type": "ring",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "ring3",
+   "name": "Ring 3",
+   "type": "ring",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "ring4",
+   "name": "Ring 4",
+   "type": "ring",
+   "weight": 1,
+   "sf": true
+  },
+  {
+   "id": "pocket",
+   "name": "Pocket",
+   "type": "misc",
+   "weight": 0.5,
+   "sf": false,
+   "noPot": true
+  },
+  {
+   "id": "badge",
+   "name": "Badge",
+   "type": "misc",
+   "weight": 0.5,
+   "sf": false,
+   "noPot": true
+  },
+  {
+   "id": "heart",
+   "name": "Heart",
+   "type": "misc",
+   "weight": 0.5,
+   "sf": true
+  }
+ ],
+ "presets": {
+  "mid": {
+   "name": "Heroic mid-game",
+   "tier": 2,
+   "stars": {
+    "weapon": 22,
+    "armor": 22,
+    "accessory": 17,
+    "misc": 8
+   },
+   "pot": {
+    "wse": 4,
+    "other": 3
+   },
+   "lines": {
+    "wse": 2,
+    "other": 2
+   },
+   "bpot": {
+    "wse": 0,
+    "other": 0
+   }
+  },
+  "late": {
+   "name": "Heroic late game",
+   "tier": 3,
+   "stars": {
+    "weapon": 22,
+    "armor": 22,
+    "accessory": 22,
+    "misc": 8
+   },
+   "pot": {
+    "wse": 4,
+    "other": 4
+   },
+   "lines": {
+    "wse": 3,
+    "other": 2
+   },
+   "bpot": {
+    "wse": 0,
+    "other": 0
+   }
+  },
+  "end": {
+   "name": "Endgame",
+   "tier": 4,
+   "stars": {
+    "weapon": 25,
+    "armor": 25,
+    "accessory": 22,
+    "misc": 8
+   },
+   "pot": {
+    "wse": 4,
+    "other": 4
+   },
+   "lines": {
+    "wse": 3,
+    "other": 3
+   },
+   "bpot": {
+    "wse": 0,
+    "other": 0
+   }
+  }
+ }
+}

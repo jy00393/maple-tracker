@@ -1,0 +1,6 @@
+node_modules/
+site/data/meta.json
+.DS_Store
+
+# Personal project brief: stays on this computer, never in the repo
+CLAUDE.md

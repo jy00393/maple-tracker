@@ -1,0 +1,242 @@
+{
+ "source": "Built from the v.272 research (21–23 Nov 2026) and Nexon's Challenger World notice. Items marked unconfirmed have a reset pill you can switch.",
+ "groups": [
+  {
+   "key": "daily",
+   "title": "Daily",
+   "hint": "about 60–70 min",
+   "reset": "daily",
+   "items": [
+    {
+     "id": "d-claim",
+     "label": "Claim the Ultima Supply Report and Challenger rewards",
+     "min": "3 min",
+     "note": "One Supply Report claim per account per day. Take the day's three 3x EXP coupons too; 15 of them trade for one 4x.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "d-coupon",
+     "label": "Pop a 3x EXP coupon, then start the grind",
+     "min": "1 min",
+     "note": "Stack a 4x coupon or VIP buff if you have one."
+    },
+    {
+     "id": "d-cernium",
+     "label": "Cernium daily: 30 Cernium symbols",
+     "min": "35–40 min",
+     "note": "Your grind block. The same kills fill Shadow Supplies and the weekly hunts. Heroic gives 30 a day (MapleStory Wiki)."
+    },
+    {
+     "id": "d-shadow",
+     "label": "Shadow Supplies activations",
+     "type": "count",
+     "target": 10,
+     "note": "Each needs 500 kills near your level and summons a box of EXP.",
+     "until": "2026-12-15T23:59:00Z"
+    },
+    {
+     "id": "d-arcus",
+     "label": "Hotel Arcus daily: 15 Arcus symbols",
+     "min": "8–10 min",
+     "gate": "arcus",
+     "note": "Opens at Lv. 265 after the Arcus questline."
+    },
+    {
+     "id": "d-ursus",
+     "label": "Ursus: one run",
+     "min": "5 min",
+     "note": "About 90M a day on Heroic (community estimate). Golden Time is always on since v.272."
+    },
+    {
+     "id": "d-bosses",
+     "label": "Daily bosses",
+     "type": "chips",
+     "chips": [
+      [
+       "cyg",
+       "Cygnus (Normal)"
+      ],
+      [
+       "hilla",
+       "Hilla (Hard)"
+      ],
+      [
+       "pb",
+       "Pink Bean (Chaos)"
+      ]
+     ],
+     "note": "Daily since v.272. Track their crystals on the Bosses page too."
+    },
+    {
+     "id": "d-seal",
+     "label": "Use 3 Arcane Seal wands",
+     "min": "2 min",
+     "note": "Resets daily at 00:00 UTC (Nexon). Up to 20 wands can be held.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "d-cards",
+     "label": "Spend new Training Cards",
+     "min": "2 min",
+     "note": "Combat: Normal Enemy Damage, then Boss Damage, IED and ATT. Special: Grandis daily rewards, Monster Park clear EXP.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "d-sauna",
+     "label": "Start Luxe Sauna when you log off",
+     "min": "1 min",
+     "note": "Coupons only: 30 min of AFK EXP each, up to 48 h a week; the weekly limit resets Wednesday 00:00 UTC (v.272 notes)."
+    }
+   ]
+  },
+  {
+   "key": "daily-opt",
+   "title": "Daily, optional",
+   "hint": "when there's time",
+   "reset": "daily",
+   "optional": true,
+   "items": [
+    {
+     "id": "d-gollux",
+     "label": "Gollux",
+     "note": "Long-term source of Superior Gollux accessories."
+    },
+    {
+     "id": "d-mp",
+     "label": "Monster Park Sweep with leftover free tickets",
+     "note": "EXP only. Read the prompt so the Sweep doesn't spend Maple Points."
+    },
+    {
+     "id": "d-arcane",
+     "label": "Arcane River dailies",
+     "note": "Only while your Arcane symbols need levels and you have the mesos to fuse them."
+    }
+   ]
+  },
+  {
+   "key": "mon",
+   "title": "Monday reset",
+   "hint": "Mon 09:00 KST",
+   "reset": "mon",
+   "items": [
+    {
+     "id": "w-sunny",
+     "label": "Sunny Sunday: read the perk before spending mesos",
+     "note": "Sunday 09:00 KST to Monday 08:59 KST. Hold big cube or Star Force spends for a discount Sunday."
+    }
+   ]
+  },
+  {
+   "key": "wed",
+   "title": "Wednesday reset",
+   "hint": "Wed 09:00 KST",
+   "reset": "wed",
+   "items": [
+    {
+     "id": "w-cwprog",
+     "label": "Challenger World weekly progression missions",
+     "note": "Progress resets every Wednesday at 00:00 UTC (Nexon's Challenger World notice).",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-specter",
+     "label": "Specter Blast",
+     "optional": true,
+     "note": "2-player weekly EXP. Its weekly EXP limit resets Wednesday 00:00 UTC (v.272 notes). Skip it if matchmaking is slow.",
+     "until": "2026-12-15T23:59:00Z"
+    }
+   ]
+  },
+  {
+   "key": "thu",
+   "title": "Thursday reset",
+   "hint": "Thu 09:00 KST",
+   "reset": "thu",
+   "items": [
+    {
+     "id": "w-crystals",
+     "label": "Weekly bosses",
+     "type": "link",
+     "href": "#bosses",
+     "note": "Tick clears on the Bosses page; it tracks your 14-crystal cap and income."
+    },
+    {
+     "id": "w-pass",
+     "label": "Challenger Pass weekly missions",
+     "note": "Up to 500 points a week; resets Thursday 00:00 UTC (Nexon).",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-crest",
+     "label": "Item Burning Plus hunt: 2,000 kills for 100 crests",
+     "type": "count",
+     "target": 5,
+     "note": "Monsters within 20 levels. Resets Thursday 00:00 UTC (Nexon).",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-kai",
+     "label": "Normal Kai",
+     "note": "Challenger World only, solo. No crystal.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-mayrin",
+     "label": "Mayrin (from Lv. 270)",
+     "note": "Season boss, once a week per account. Golden Meso Pouches, +3% ATT soul.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-bounty",
+     "label": "Shadow Bounties shop",
+     "note": "4x EXP coupons (500 Basic, 2 a week), Symbol Selector Coupons (100 Basic), then Karma Bright Cubes (Heroic gets no Bonus Bright).",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-arthur",
+     "label": "Arthur's Equipment Rental before a real boss attempt",
+     "note": "Lasts 2 days, up to 3 a week, paid in mesos first.",
+     "until": "2027-02-09T23:59:00Z"
+    }
+   ]
+  },
+  {
+   "key": "custom",
+   "title": "Reset day unconfirmed",
+   "hint": "tap the pill to match the in-game timer",
+   "reset": "custom",
+   "items": [
+    {
+     "id": "w-mp",
+     "label": "Extreme Monster Parker: 5 Monster Park clears",
+     "type": "count",
+     "target": 5,
+     "def": "mon",
+     "note": "Sweep with free tickets only. Up to 2 characters per world."
+    },
+    {
+     "id": "w-ultima",
+     "label": "Ultima weekly hunt: 2,000 kills",
+     "type": "count",
+     "target": 5,
+     "def": "thu",
+     "note": "800 Alliance Credit plus Training Cards each.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-etherion",
+     "label": "Etherion Relics: 10,000 kills",
+     "def": "wed",
+     "note": "Probably Wednesday; one more completion unlocks each week, up to 12.",
+     "until": "2027-02-09T23:59:00Z"
+    },
+    {
+     "id": "w-high",
+     "label": "Epic Dungeon: High Mountain at base reward",
+     "def": "mon",
+     "note": "Skip the 5x and 9x multipliers (7,500 and 30,000 Maple Points)."
+    }
+   ]
+  }
+ ]
+}
