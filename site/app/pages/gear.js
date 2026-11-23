@@ -186,6 +186,7 @@ function Outlook({ outlook, entry, target }) {
 
 function SlotModal({ row, data, char, onClose }) {
   const { slot, entry, target } = row;
+  const [flameOpen, setFlameOpen] = useState(Boolean(cleanFlame(entry.flame)));
   const up = data.upgrades;
   const tiers = data.gear.slotTypes[slot.type].filter(Boolean);
   const set = (patch) => setSlot(char.id, slot.id, patch, data.gear);
@@ -236,7 +237,7 @@ function SlotModal({ row, data, char, onClose }) {
             <select class="select" value=${String(entry.bpot || 0)} onChange=${(e) => set({ bpot: Number(e.currentTarget.value) })}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>` : null}
         </div>
         <${LineEditor} slot=${slot} entry=${entry} set=${set} pot=${data.potential} mainStat=${mainStat} />
-        <details open=${Boolean(cleanFlame(entry.flame))}>
+        <details open=${flameOpen} onToggle=${(e) => setFlameOpen(e.currentTarget.open)}>
           <summary class="small muted">Bonus stats (flame)${cleanFlame(entry.flame) ? `: ${flameLabel(entry.flame, mainStat)}` : ': none entered'}</summary>
           <div class="form-grid" style=${{ marginTop: '10px' }}>
             ${FLAME_FIELDS.map(([key, label, unit]) => html`<label class="field"><span>${key === 'main' ? mainStat : label}${unit ? ` ${unit}` : ''}</span><${NumberInput} className="input" label=${`Flame ${label}`} value=${(entry.flame || {})[key] ?? null} max=${999} onChange=${(v) => set({ flame: cleanFlame({ ...(entry.flame || {}), [key]: v }) })} /></label>`)}

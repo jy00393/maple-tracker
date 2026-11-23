@@ -3,6 +3,7 @@ import { update, activeCharacter } from '../store.js';
 import { Card, Seg } from '../ui.js';
 import { itemStatus, setRecord, dailyProgress } from './checklist.js';
 import { DAY, dayKey, nextReset } from '../time.js';
+import { knownLevel } from './level.js';
 
 export function minutesOf(item, fallback) {
   const m = /(\d+)(?:\s*[–-]\s*(\d+))?\s*min/.exec(item.min || '');
@@ -42,7 +43,7 @@ export function planSession(checklistData, cs, now, minutes, level) {
 export function SessionPlanner({ data, state, now }) {
   const mins = state.ui.sessionMins || 60;
   const cs = state.checklist;
-  const level = activeCharacter(state)?.level;
+  const level = knownLevel(data, state, activeCharacter(state));
   const plan = planSession(data.checklist, cs, now, mins, level);
   return html`<${Card} title="Plan a session" meta=${`${plan.used} of ${mins} min planned`}>
     <${Seg} label="Session length" value=${mins} onChange=${(v) => update((s) => { s.ui.sessionMins = v; })} options=${[[30, '30 min'], [60, '60 min'], [90, '90 min']]} />
@@ -60,7 +61,7 @@ export function SessionPlanner({ data, state, now }) {
 
 // Saves today's core-daily progress for the streak calendar (one entry per UTC day, the game's day).
 export function StreakRecorder({ data, state, now }) {
-  const prog = dailyProgress(data.checklist, state.checklist, now, activeCharacter(state)?.level);
+  const prog = dailyProgress(data.checklist, state.checklist, now, knownLevel(data, state, activeCharacter(state)));
   const key = dayKey(now);
   useEffect(() => {
     const h = (state.checklist.history || {})[key];

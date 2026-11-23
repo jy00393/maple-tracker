@@ -327,8 +327,21 @@ export function findRanked(data, name) {
 // line ("November 29, 2026") followed by one perk per line. Returns [{ date: 'YYYY-MM-DD', perks: [...] }].
 const SUNNY_MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 export function findSunnySchedule(body) {
-  const block = htmlToBlocks(body).find((b) => b.heading && /^sunny sunday$/i.test(b.heading.trim()));
-  if (!block) return [];
+  const source = String(body || '')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<(style|script|noscript|svg)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  const headingRe = /<h([1-4])\b[^>]*>([\s\S]*?)<\/h\1>/gi;
+  let section = null;
+  let match;
+  while ((match = headingRe.exec(source))) {
+    if (section !== null) { section = source.slice(section, match.index); break; }
+    if (/^sunny sunday$/i.test(cleanText(match[2]).replace(/\s+/g, ' ').trim())) section = headingRe.lastIndex;
+  }
+  if (section === null) return [];
+  if (typeof section === 'number') section = source.slice(section);
+  // The schedule is a table; anything after it (closing notes, gift details) is not a perk of the last Sunday.
+  const table = /<table\b[\s\S]*?<\/table>/i.exec(section);
+  const block = { text: cleanText(table ? table[0] : section) };
   const out = [];
   let cur = null;
   for (const raw of block.text.split('\n')) {

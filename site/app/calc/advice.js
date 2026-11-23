@@ -73,7 +73,7 @@ export function upgradeOptions(gearData, gearState, up, gearStats, stats) {
 // damage per meso; potential tier-ups have no fixed damage value (it depends on the lines you roll), so they are
 // only suggested when no Star Force option has an estimate.
 export function bestUpgrade(options) {
-  const withDmg = (options || []).filter((o) => o.dmg > 0);
+  const withDmg = (options || []).filter((o) => o.dmg > 0 && Number.isFinite(o.cost) && o.cost > 0);
   if (withDmg.length) return { ...withDmg.slice().sort((a, b) => b.dmg / b.cost - a.dmg / a.cost)[0], by: 'damage' };
   return options && options.length ? { ...options[0], by: 'score' } : null;
 }

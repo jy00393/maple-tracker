@@ -555,7 +555,10 @@ test('status: a sync token close to its expiry date warns, an expired one is an 
   const now = Date.parse('2026-12-10T00:00:00Z');
   const base = { syncOn: true, sync: { state: 'ok', message: 'Up to date' }, meta: { checkedAt: '2026-12-09T20:00:00Z', ok: true, errors: [] }, news: [], tablesChecked: '2026-11-23T00:00:00Z', now };
   assert.equal(appStatus({ ...base, tokenExpires: '2027-03-01' }).label, 'All synced');
-  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-14' }).level, appStatus({ ...base, tokenExpires: '2026-12-14' }).label], ['warn', 'Sync token: 5 days left']);
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-14' }).level, appStatus({ ...base, tokenExpires: '2026-12-14' }).label], ['warn', 'Sync token: 4 days left']);
+  assert.equal(appStatus({ ...base, tokenExpires: '2026-12-18' }).label, 'All synced', '8 days out: no warning yet');
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-10' }).level, appStatus({ ...base, tokenExpires: '2026-12-10' }).label], ['error', 'Sync token expires today']);
+  assert.equal(appStatus({ ...base, now: Date.parse('2026-12-09T23:00:00Z'), meta: { checkedAt: '2026-12-09T20:00:00Z', ok: true, errors: [] }, tokenExpires: '2026-12-10' }).label, 'Sync token: 1 day left');
   assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-08' }).level, appStatus({ ...base, tokenExpires: '2026-12-08' }).label], ['error', 'Sync token expired']);
   assert.equal(appStatus({ ...base, syncOn: false, tokenExpires: '2026-12-08' }).level, 'ok', 'no warning when sync is off');
   assert.equal(appStatus({ ...base, tokenExpires: 'soon' }).label, 'All synced');
@@ -683,4 +686,45 @@ test('damage estimate: flat stat and ATT gains scale with your percentages, and 
   assert.equal(best.by, 'damage');
   assert.ok(sf.every((o) => best.dmg / best.cost >= o.dmg / o.cost));
   assert.equal(bestUpgrade([]), null);
+});
+
+// ---------- fixes from the 24 Nov 2026 review ----------
+test('sets: an item listed by name in one set is never counted in another by prefix', async () => {
+  const { detectSets } = await import('../../site/app/calc/gearstats.js');
+  const gs = load('gearstats');
+  const worn = (names) => ({ slots: Object.fromEntries(Object.entries(names).map(([id, note]) => [id, { tier: 2, note }])) });
+  const a = Object.fromEntries(detectSets(gs.sets, gear.slots, worn({ hat: 'Royal Warrior Helm', top: 'Eagle Eye Warrior Armor', bottom: 'Trixter Warrior Pants', shoulder: 'Royal Black Metal Shoulder' })).map((s) => [s.id, s]));
+  assert.equal(a.cra.count, 3, 'the Boss Accessory shoulder is not a Root Abyss piece');
+  assert.equal(a.cra.bonus.boss, 0);
+  assert.equal(a.bossAccessory.worn, 1);
+  const b = Object.fromEntries(detectSets(gs.sets, gear.slots, worn({ badge: 'Genesis Badge', hat: 'Eternal Knight Helm', weapon: 'Genesis Two-handed Sword' })).map((s) => [s.id, s]));
+  assert.equal(b.eternal.count, 2, 'Eternal hat plus Genesis weapon; the badge is a Pitched Boss piece');
+  assert.equal(b.pitchedBoss.worn, 1);
+});
+
+test('checklist: the level lock can be overridden by the player', async () => {
+  const { itemStatus } = await import('../../site/app/calc/checklist.js');
+  const thu = checklist.groups.find((g) => g.key === 'thu');
+  const mayrin = thu.items.find((i) => i.id === 'w-mayrin');
+  const now = Date.parse('2026-11-25T02:00:00Z');
+  const cs = { items: {}, resets: {}, flags: {}, history: {} };
+  assert.equal(itemStatus(mayrin, thu, cs, now, 264).locked, true);
+  cs.flags['lvl:w-mayrin'] = true;
+  assert.equal(itemStatus(mayrin, thu, cs, now, 264).locked, false);
+});
+
+test('Sunny Sunday: text after the schedule table is not a perk', async () => {
+  const { findSunnySchedule } = await import('../lib/nexon-parse.mjs');
+  const body = '<h2>Sunny Sunday</h2><p>Log in each Sunday.</p><table><tr><td>Date (UTC)</td><td>Perks</td></tr><tr><td>December 13, 2026</td><td><ul><li>Treasure Hunter EXP x3</li></ul></td></tr></table><p>Reminder: 30% off Star Force returns next month.</p><h2>Other</h2>';
+  assert.deepEqual(findSunnySchedule(body), [{ date: '2026-12-13', perks: ['Treasure Hunter EXP x3'] }]);
+  // A layout without a table still works, and the section still ends at the next heading.
+  const flat = '<h3>Sunny Sunday</h3><p>December 13, 2026</p><p>Combo Kill EXP +300%</p><h3>Next</h3><p>December 20, 2026</p><p>Not this</p>';
+  assert.deepEqual(findSunnySchedule(flat), [{ date: '2026-12-13', perks: ['Combo Kill EXP +300%'] }]);
+  assert.deepEqual(findSunnySchedule(null), []);
+});
+
+test('best upgrade ignores options without a usable cost', async () => {
+  const { bestUpgrade } = await import('../../site/app/calc/advice.js');
+  assert.equal(bestUpgrade([{ dmg: 0.01, cost: 0, label: 'free' }, { dmg: 0.5, cost: 100, label: 'real' }]).label, 'real');
+  assert.equal(bestUpgrade([{ dmg: 0.2, cost: NaN, label: 'nan' }, { dmg: 0.1, cost: 100, label: 'real' }]).label, 'real');
 });

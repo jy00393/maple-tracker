@@ -84,11 +84,14 @@ export function starDelta(sf, slot, itemLevel, from, to) {
 }
 
 // ---------- set effects ----------
-function inSet(set, name) {
+// named: every item name that some set lists explicitly. Such an item belongs to that set only, so a loose
+// prefix ("Royal ", "Genesis ") never pulls "Royal Black Metal Shoulder" or "Genesis Badge" into another set.
+function inSet(set, name, named) {
   const m = set.match || {};
+  if (m.names) return m.names.includes(name);
+  if (named.has(name)) return false;
   if (m.prefixes && m.prefixes.some((p) => name.startsWith(p))) return true;
   if (m.all && m.all.every((w) => name.includes(w))) return true;
-  if (m.names && m.names.includes(name)) return true;
   return false;
 }
 
@@ -96,11 +99,12 @@ function inSet(set, name) {
 // bonus sums every step at or below the pieces worn; IED multiplies. Each slot counts once.
 export function detectSets(setsData, slots, gearState) {
   const out = [];
+  const named = new Set(((setsData && setsData.list) || []).flatMap((s) => (s.match && s.match.names) || []));
   for (const set of (setsData && setsData.list) || []) {
     let count = 0;
     for (const slot of slots || []) {
       const e = ((gearState && gearState.slots) || {})[slot.id];
-      if (e && e.tier && e.note && inSet(set, String(e.note).trim())) count++;
+      if (e && e.tier && e.note && inSet(set, String(e.note).trim(), named)) count++;
     }
     if (!count) continue;
     const bonus = { allStats: 0, att: 0, boss: 0, ied: 0, critDmg: 0 };

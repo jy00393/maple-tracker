@@ -123,6 +123,7 @@ export function setTokenExpiry(date) {
   if (!c) return;
   const d = /^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) ? String(date) : null;
   saveConfig({ ...c, expires: d });
+  status = { ...status }; // a new object, so every listener re-renders
   listeners.forEach((fn) => fn(status));
 }
 

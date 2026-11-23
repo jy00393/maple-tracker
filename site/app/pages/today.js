@@ -14,7 +14,7 @@ import { sunnyDays, starForceTiming, isStarForcePerk } from '../calc/sunny.js';
 import { seasonOutlook } from '../calc/season.js';
 import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps } from '../calc/progress.js';
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
-import { levelOutlook } from './level.js';
+import { levelOutlook, knownLevel } from './level.js';
 
 function nextSymbolLevels(data, state, charId) {
   const entries = state.symbols[charId] || {};
@@ -80,7 +80,8 @@ function hideEvent(e, now) {
 export function TodayPage({ data, state }) {
   const now = useNow(30000);
   const char = activeCharacter(state);
-  const prog = dailyProgress(data.checklist, state.checklist, now, char?.level);
+  const charLevel = knownLevel(data, state, char);
+  const prog = dailyProgress(data.checklist, state.checklist, now, charLevel);
   const { streak } = streakInfo(state.checklist.history || {}, now);
   const soon = endingSoon(liveEvents(data, state, now), now, { showSales: state.ui.todaySales, hidden: state.ui.hiddenEvents });
   const ending = soon.shown;
@@ -97,7 +98,7 @@ export function TodayPage({ data, state }) {
   const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, (state.gear[char.id] || {}).stats)) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
-  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { level: char?.level });
+  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { level: charLevel });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
 

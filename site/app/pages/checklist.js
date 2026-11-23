@@ -4,6 +4,7 @@ import { Card, Counter, PageHead, useNow, Bar } from '../ui.js';
 import { periodKey } from '../time.js';
 import { StreakRecorder, StreakCard } from './session.js';
 import { itemStatus, resetOf, RESET_CYCLE } from '../calc/checklist.js';
+import { knownLevel } from './level.js';
 
 export { itemStatus, resetOf };
 
@@ -61,7 +62,10 @@ function Item({ item, group, cs, now, level }) {
         s.checklist.resets[item.id] = next;
       })}>${names[0]} reset</button>`);
   }
-  if (item.minLevel && st.locked && Number.isFinite(level) && level < item.minLevel) right.push(html`<span class="pill">from Lv. ${item.minLevel}</span>`);
+  if (item.minLevel && st.locked && Number.isFinite(level) && level < item.minLevel) {
+    right.push(html`<span class="pill">from Lv. ${item.minLevel}</span>`);
+    right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[`lvl:${item.id}`] = true; })}>Mark unlocked</button>`);
+  }
   if (item.gate && st.locked) {
     right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[item.gate] = true; })}>Mark unlocked</button>`);
   }
@@ -79,7 +83,7 @@ function Item({ item, group, cs, now, level }) {
 export function ChecklistPage({ data, state }) {
   const now = useNow(15000);
   const cs = state.checklist;
-  const level = activeCharacter(state)?.level;
+  const level = knownLevel(data, state, activeCharacter(state));
   const prog = dailyProgress(data.checklist, cs, now, level);
   return html`
     <${PageHead} title="Checklist">Ticks clear themselves at each reset: dailies at 09:00 KST, weeklies on their own day. Event items disappear once the event ends.<//>
