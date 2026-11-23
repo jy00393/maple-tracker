@@ -89,7 +89,7 @@ function ItemIcon({ entry, size = 36 }) {
 }
 
 // Name box with suggestions from the item list for this slot. Picking one fills the name, level and picture.
-function ItemPicker({ slot, entry, tiers, hints, set, pot }) {
+function ItemPicker({ slot, entry, tiers, hints, set, pot, mainStat }) {
   const doc = useItems();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -97,7 +97,7 @@ function ItemPicker({ slot, entry, tiers, hints, set, pot }) {
   const hits = open && doc ? searchItems(doc.items, itemSlotKey(slot.id), text, 8) : [];
   const pick = (h) => {
     const patch = { note: h.name, ilvl: h.level, itemId: h.id, iconVer: doc.version };
-    if (entry.pot && Array.isArray(entry.potLines) && entry.potLines.length) patch.potLines = refreshLines(pot, slot.id, entry.pot, h.level, entry.potLines);
+    if (entry.pot && Array.isArray(entry.potLines) && entry.potLines.length) patch.potLines = refreshLines(pot, slot.id, entry.pot, h.level, entry.potLines, { mainStat, keepMissing: true });
     const tier = tierFromName(h.name, tiers, hints);
     if (tier) patch.tier = tier;
     else if (!entry.tier) patch.tier = 1;
@@ -128,7 +128,7 @@ function LineEditor({ slot, entry, set, pot, mainStat }) {
   if (!tier) return html`<p class="note">Pick a potential tier to add its lines.</p>`;
   const lines = Array.isArray(entry.potLines) ? entry.potLines : [];
   const lvl = itemLevel(slot, entry);
-  const choices = lineChoices(pot, slot.id, tier, lvl);
+  const choices = lineChoices(pot, slot.id, tier, lvl, mainStat);
   const prime = choices.filter((c) => c.prime);
   const nonPrime = choices.filter((c) => !c.prime);
   const keyOf = (c) => `${c.prime ? 'p' : 'n'}${c.pid}`;
@@ -151,7 +151,7 @@ function LineEditor({ slot, entry, set, pot, mainStat }) {
           if (!v) return setLine(i, null);
           if (v === 'legacy') return;
           const c = choices.find((x) => keyOf(x) === v);
-          if (c) setLine(i, makeLine(pot, c, lvl));
+          if (c) setLine(i, makeLine(pot, c, lvl, mainStat));
         }}>
           <option value="">— none —</option>
           ${legacy ? html`<option value="legacy">${lineLabel(l, mainStat)} (entered earlier)</option>` : null}
@@ -212,19 +212,20 @@ function SlotModal({ row, data, char, onClose }) {
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
       <div class="grid" style=${{ gap: '14px' }}>
-        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} pot=${data.potential} />
+        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} pot=${data.potential} mainStat=${mainStat} />
         <div class="form-grid">
           <label class="field"><span>Item tier</span>
             <select class="select" value=${String(entry.tier || 0)} onChange=${(e) => set({ tier: Number(e.currentTarget.value) })}>
               <option value="0">Empty</option>
               ${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}
             </select></label>
-          <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${lvl} min=${0} max=${300} onChange=${(v) => set({ ilvl: v || null, ...(entry.pot && (entry.potLines || []).length ? { potLines: refreshLines(data.potential, slot.id, entry.pot, itemLevel(slot, { ...entry, ilvl: v || null }), entry.potLines) } : {}) })} /></label>
+          <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${lvl} min=${0} max=${300} onChange=${(v) => set({ ilvl: v || null, ...(entry.pot && (entry.potLines || []).length ? { potLines: refreshLines(data.potential, slot.id, entry.pot, itemLevel(slot, { ...entry, ilvl: v || null }), entry.potLines, { mainStat, keepMissing: true }) } : {}) })} /></label>
           ${slot.sf ? html`<label class="field"><span>Stars (max ${max})</span><${NumberInput} className="input" label=${slot.name + ' stars'} value=${entry.stars || 0} max=${max || 30} onChange=${(v) => set({ stars: v || 0 })} /></label>` : null}
           ${hasPotential(slot) ? html`<label class="field"><span>Potential tier</span>
             <select class=${'select pot-' + (entry.pot || 0)} value=${String(entry.pot || 0)} onChange=${(e) => {
               const pot = Number(e.currentTarget.value);
-              const kept = refreshLines(data.potential, slot.id, pot, lvl, entry.potLines).map((l) => (l.type && (l.pid === undefined || l.pid === null) ? { type: '' } : l));
+              // Lines entered before the real tables existed are kept; only table lines the new tier can't have are dropped.
+              const kept = refreshLines(data.potential, slot.id, pot, lvl, entry.potLines, { mainStat });
               set({ pot, potLines: pot && kept.some((l) => l.type) ? kept : [] });
             }}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>` : null}
           ${!heroic && hasPotential(slot) ? html`<label class="field"><span>Bonus potential</span>

@@ -1,7 +1,7 @@
 // Optional sync between devices through a secret GitHub Gist. The token and gist id stay in this browser only
 // (never in exported backups). The two copies are merged part by part; for each part the newer edit wins.
 import { getState, replaceState, subscribe } from './store.js';
-import { mergeStates, sameEntries } from './calc/merge.js';
+import { mergeStates, sameEntries, sameStamps } from './calc/merge.js';
 
 const KEY = 'maple-tracker:sync';
 const FILE = 'maple-tracker.json';
@@ -82,19 +82,21 @@ async function syncOnce() {
   }
   const merged = mergeStates(local, remote);
   const gotNew = !sameEntries(merged, local);
-  if (gotNew) {
+  // Also adopt the merged change times when only those differ, so removal markers are never lost on the way through.
+  if (gotNew || !sameStamps(merged, local)) {
     applying = true;
     try { replaceState(merged, true); } finally { applying = false; }
   }
   const sentNew = !sameEntries(merged, remote);
-  if (sentNew) await writeRemote(c);
+  if (sentNew || !sameStamps(merged, remote)) await writeRemote(c);
   setStatus('ok', gotNew && sentNew ? 'Merged entries from both devices' : gotNew ? 'Loaded newer entries from your other device' : sentNew ? 'Saved to your gist' : 'Up to date');
 }
 
 // Runs are queued so a save and a check never overlap.
 let queue = Promise.resolve();
 export function syncNow() {
-  const run = queue.then(syncOnce);
+  // A failure is recorded in the shared status, so the top-bar pill never sticks on "Syncing…".
+  const run = queue.then(syncOnce).catch((e) => { setStatus('error', e.message); throw e; });
   queue = run.catch(() => {});
   return run;
 }
@@ -119,12 +121,17 @@ export async function connect(token) {
   const t = String(token || '').trim();
   if (!t) throw new Error('Paste a token first.');
   setStatus('busy', 'Connecting…');
-  const gists = await gh('/gists?per_page=100', t);
-  let gist = gists.find((g) => g.files && g.files[FILE]);
-  if (!gist) {
-    gist = await gh('/gists', t, { method: 'POST', body: JSON.stringify({ description: 'Maple Tracker sync (your entries)', public: false, files: { [FILE]: { content: JSON.stringify(getState()) } } }) });
+  try {
+    const gists = await gh('/gists?per_page=100', t);
+    let gist = gists.find((g) => g.files && g.files[FILE]);
+    if (!gist) {
+      gist = await gh('/gists', t, { method: 'POST', body: JSON.stringify({ description: 'Maple Tracker sync (your entries)', public: false, files: { [FILE]: { content: JSON.stringify(getState()) } } }) });
+    }
+    saveConfig({ token: t, gistId: gist.id });
+  } catch (e) {
+    setStatus(syncConfig() ? 'error' : 'off', e.message);
+    throw e;
   }
-  saveConfig({ token: t, gistId: gist.id });
   listen();
   await pull();
 }
@@ -142,6 +149,12 @@ export function tokenFromHash(hash) {
   if (!m) return null;
   try { return decodeURIComponent(m[1]).trim() || null; } catch { return null; }
 }
+
+// A pairing link never connects by itself: the token waits here until the person confirms on the Settings page.
+// (Otherwise any link someone sends could attach this device to their gist.)
+let pendingToken = null;
+export function setPendingPair(token) { pendingToken = token || null; }
+export function pendingPair() { return pendingToken; }
 
 export function disconnect() {
   saveConfig(null);

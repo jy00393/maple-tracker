@@ -5,6 +5,8 @@ export const WZ_URL = 'https://maplestory.io/api/wz';
 export const ITEMS_URL = (version, minLevel) =>
   `https://maplestory.io/api/GMS/${version}/item?overallCategoryFilter=Equip&minLevelFilter=${minLevel}&count=20000`;
 export const MIN_LEVEL = 100;
+// Raise this when the way rows are built changes, so the job rebuilds the list even if the game version is the same.
+export const ITEMS_SCHEMA = 2;
 
 // Newest GMS data version the API says is ready, as a string ("270"), or null.
 export function latestGmsVersion(wzList) {
@@ -18,7 +20,7 @@ export function latestGmsVersion(wzList) {
 const BLOCKS = {
   100: 'hat', 101: 'face', 102: 'eye', 103: 'earrings', 104: 'top', 105: 'top', 106: 'bottom', 107: 'shoes', 108: 'gloves',
   109: 'secondary', 110: 'cape', 111: 'ring', 112: 'pendant', 113: 'belt', 115: 'shoulder', 116: 'pocket', 118: 'badge',
-  135: 'secondary', 167: 'heart'
+  134: 'secondary', 135: 'secondary', 167: 'heart'
 };
 export function slotOfItem(id) {
   const n = Number(id);

@@ -7,7 +7,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { parsePost, postUrl, findRanked } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
-import { WZ_URL, ITEMS_URL, MIN_LEVEL, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
+import { WZ_URL, ITEMS_URL, MIN_LEVEL, ITEMS_SCHEMA, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
 
 const LIST_URL = 'https://g.nexonstatic.com/maplestory/cms/v1/news';
 const POST_URL = (id) => `https://g.nexonstatic.com/maplestory/cms/v1/news/${id}`;
@@ -196,7 +196,7 @@ async function updateCharacters(errors) {
 // One small request a day to see which GMS version it has; the full list (about 2 MB) only when that changes.
 async function updateItems() {
   const prev = await readJson('items.json', null);
-  const fresh = prev && Array.isArray(prev.items) && prev.items.length > 0;
+  const fresh = prev && prev.schema === ITEMS_SCHEMA && Array.isArray(prev.items) && prev.items.length > 0;
   if (fresh && Date.now() - Date.parse(prev.checkedAt) < DAY) return { items: prev.items.length, itemsVersion: prev.version };
   const version = latestGmsVersion(await getJson(WZ_URL));
   if (!version) throw new Error('maplestory.io lists no ready GMS version');
@@ -212,6 +212,7 @@ async function updateItems() {
   await writeTextIfChanged('items.json', serialiseItems({
     source: `maplestory.io community API, GMS v.${version} game data: non-cash equipment Lv. ${MIN_LEVEL}+. Unofficial; it can lag behind the live game, so newer items may be missing.`,
     sourceUrl: 'https://maplestory.io',
+    schema: ITEMS_SCHEMA,
     version,
     fetchedAt,
     checkedAt: new Date().toISOString(),

@@ -421,3 +421,96 @@ test('potential lines: saved lines feed the totals and survive tier and level ch
   const old = { type: 'main', stat: 'STR', value: 13 };
   assert.deepEqual(P.refreshLines(pot, 'hat', 4, 160, [old, null]), [old, { type: '' }]);
 });
+
+// ---------- fixes from the 23 Nov 2026 review ----------
+test('merge: characters are merged one by one, so a phone set up before pairing keeps the PC characters', () => {
+  const pc = edit(blank(), 100, (s) => { s.characters.push({ id: 'A', name: 'Main' }, { id: 'B', name: 'Mule' }); s.activeId = 'A'; s.gear.A = { slots: { hat: { tier: 2 } } }; });
+  const phone = edit(blank(), 900, (s) => { s.characters.push({ id: 'P', name: 'Phone' }); s.activeId = 'P'; });
+  for (const merged of [mergeStates(phone, pc, 1000), mergeStates(pc, phone, 1000)]) {
+    assert.deepEqual(merged.characters.map((c) => c.id).sort(), ['A', 'B', 'P']);
+    assert.equal(merged.gear.A.slots.hat.tier, 2);
+  }
+  // Editing one character on each device keeps both edits; deleting one travels.
+  const base = pc;
+  const d1 = edit(base, 200, (s) => { s.characters[0].level = 265; });
+  const d2 = edit(base, 300, (s) => { s.characters[1].name = 'Renamed'; });
+  const both = mergeStates(d1, d2, 1000);
+  assert.equal(both.characters.find((c) => c.id === 'A').level, 265);
+  assert.equal(both.characters.find((c) => c.id === 'B').name, 'Renamed');
+  const gone = edit(base, 400, (s) => { s.characters = s.characters.filter((c) => c.id !== 'B'); });
+  assert.deepEqual(mergeStates(d1, gone, 1000).characters.map((c) => c.id), ['A']);
+  // A copy stamped while characters were still one unit ("characters": t) is read correctly.
+  const legacy = structuredClone(pc);
+  legacy.stamps = { characters: 100, activeId: 100, 'gear/A': 100 };
+  assert.deepEqual(mergeStates(phone, legacy, 1000).characters.map((c) => c.id).sort(), ['A', 'B', 'P']);
+});
+
+test('merge: stamps from the future cannot wipe a device', () => {
+  const now = Date.parse('2026-11-24T00:00:00Z');
+  const pc = edit(blank(), now - 5000, (s) => { s.characters.push({ id: 'A', name: 'Main' }); s.gear.A = { slots: { hat: { tier: 2 } } }; s.mesos.held = 9e9; });
+  const far = now + 400 * 86400000;
+  const evil = { ...blank(), updatedAt: far, stamps: { 'characters/A': far, 'gear/A': far, mesos: far } };
+  evil.mesos = { held: 0, goals: [] };
+  // Far-future stamps are not trusted, so the doctored copy changes nothing, whichever side it is on.
+  for (const merged of [mergeStates(pc, evil, now), mergeStates(evil, pc, now)]) {
+    assert.deepEqual(merged.characters.map((c) => c.id), ['A']);
+    assert.equal(merged.gear.A.slots.hat.tier, 2);
+    assert.equal(merged.mesos.held, 9e9);
+    assert.ok(Object.values(merged.stamps).every((t) => t <= now + 86400000), 'no far-future stamp survives a merge');
+    assert.ok(merged.updatedAt <= now + 86400000);
+  }
+  // A clock that is only a little fast (under a day) still works normally.
+  const slightlyFast = edit(pc, now + 3600000, (s) => { s.mesos.held = 1e9; });
+  assert.equal(mergeStates(pc, slightlyFast, now).mesos.held, 1e9);
+});
+
+test('merge: removal markers count as a difference, so they are passed on', async () => {
+  const { sameStamps } = await import('../../site/app/calc/merge.js');
+  const base = edit(blank(), 100, (s) => { s.gear.c1 = { slots: {} }; });
+  const removed = edit(base, 200, (s) => { delete s.gear.c1; });
+  const neverHad = edit(blank(), 300, (s) => { s.mesos.held = 5; });
+  const merged = mergeStates(neverHad, removed, 1000);
+  assert.ok(sameEntries(merged, neverHad), 'no entry changes for the device that never had it');
+  assert.ok(!sameStamps(merged, neverHad), 'but the removal marker is new to it and must be saved');
+  assert.equal(merged.stamps['gear/c1'], 200);
+  // With the marker carried along, the old copy cannot bring the part back.
+  assert.ok(!('c1' in mergeStates(merged, base, 1000).gear));
+  assert.ok(sameStamps(merged, structuredClone(merged)));
+});
+
+test('potential lines: a half-typed item level never deletes a line; off-stat lines are not useful', async () => {
+  const P = await import('../../site/app/calc/potential.js');
+  const { usefulLines, lineTotals, lineKind } = await import('../../site/app/calc/upgrades.js');
+  const pot = load('potential');
+  const choose = (slotId, tier, lvl, text, prime, mainStat) => P.makeLine(pot, P.lineChoices(pot, slotId, tier, lvl, mainStat).find((c) => c.text === text && c.prime === prime), lvl, mainStat);
+  const boss = choose('weapon', 4, 200, 'Damage to Boss Monsters +40%', true, 'STR');
+  const att = choose('weapon', 4, 200, 'Weapon ATT +13%', true, 'STR');
+  // Typing 250 over 200 passes through "2" and "25".
+  for (const lvl of [2, 25, 250]) {
+    const kept = P.refreshLines(pot, 'weapon', 4, lvl, [boss, att], { mainStat: 'STR', keepMissing: true });
+    assert.equal(kept[0].text, 'Damage to Boss Monsters +40%', 'level ' + lvl);
+    assert.ok(kept[1].text.startsWith('Weapon ATT +'), 'level ' + lvl);
+  }
+  assert.equal(P.refreshLines(pot, 'weapon', 4, 250, [boss, att], { keepMissing: true })[1].text, 'Weapon ATT +13%');
+  // Without keepMissing (a tier change) an impossible line is still dropped.
+  assert.equal(P.refreshLines(pot, 'weapon', 2, 200, [boss])[0].type, '');
+
+  const str = choose('hat', 4, 160, 'STR +13%', true, 'STR');
+  const int = choose('hat', 4, 160, 'INT +13%', true, 'STR');
+  const all = choose('hat', 4, 160, 'All Stats +10%', true, 'STR');
+  assert.deepEqual([str.type, int.type, all.type], ['main', 'offstat', 'allstat']);
+  const hat = gear.slots.find((s) => s.id === 'hat');
+  assert.equal(lineKind(hat, int), 'other');
+  assert.equal(usefulLines(hat, { potLines: [str, int, all] }), 2);
+  const totals = lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: [str, int, all] } } }, 'STR');
+  assert.deepEqual([totals.main, totals.damageLines], [23, 2]);
+  const order = P.lineChoices(pot, 'hat', 4, 160, 'STR').filter((c) => c.prime);
+  assert.equal(order[0].text, 'STR +13%');
+  assert.ok(!order.find((c) => c.text === 'INT +13%').useful);
+});
+
+test('item list: a katara is a secondary', async () => {
+  const { slotOfItem } = await import('../lib/items.mjs');
+  assert.equal(slotOfItem(1342101), 'secondary');
+  assert.equal(slotOfItem(1332225), 'weapon');
+});

@@ -1,5 +1,5 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
-import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink } from '../sync.js';
+import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink, pendingPair, setPendingPair } from '../sync.js';
 import { qrEncode, qrPath } from '../calc/qr.js';
 import { appStatus } from '../calc/status.js';
 import { getState, replaceState, isStorageOk, blankState } from '../store.js';
@@ -23,6 +23,8 @@ function SyncCard() {
   const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [pending, setPending] = useState(pendingPair());
+  const dropPending = () => { setPendingPair(null); setPending(null); };
   useEffect(() => onSyncStatus(setSt), []);
   const cfg = syncConfig();
   const run = async (fn) => {
@@ -30,6 +32,16 @@ function SyncCard() {
     try { await fn(); } catch (err) { setSt({ state: 'error', message: err.message }); }
     setBusy(false);
   };
+  if (pending) {
+    return html`<${Card} title="Connect this device to Sync?" meta="from a pairing link">
+      <p class="warnbox">You opened a pairing link. Connect only if you just scanned the QR code from <b>your own</b> PC. Connecting merges the entries saved with that sync token into this device, and sends this device's entries there.${cfg ? ' This device is already connected to Sync; connecting replaces that connection.' : ''}</p>
+      <div class="toolbar">
+        <button type="button" class="btn primary" disabled=${busy} onClick=${() => { const t = pending; run(() => connect(t)).then(dropPending); }}>Connect</button>
+        <button type="button" class="btn" disabled=${busy} onClick=${dropPending}>Cancel</button>
+      </div>
+      ${st.state === 'error' ? html`<p class="warnbox" role="alert">${st.message}</p>` : null}
+    <//>`;
+  }
   return html`<${Card} title="Sync between PC and phone" meta=${cfg ? 'connected' : 'off'}>
     ${cfg ? html`<p class=${st.state === 'error' ? 'warnbox' : 'okbox'} role="status">${st.message || 'Connected'}${st.at ? ` · ${fmtKst(st.at)}` : ''}</p>
       <div class="toolbar">
@@ -132,10 +144,10 @@ export function SettingsPage({ data }) {
         ${message ? html`<p class="note" role="status">${message}</p>` : null}
       <//>
       <${Card} title="Start over">
-        <p class="note">Clears every character, tick and entry in this browser. Export a backup first if you might want them back.</p>
+        <p class="note">Clears every character, tick and entry in this browser. Export a backup first if you might want them back.${syncConfig() ? ' This device is disconnected from Sync first, so your other devices and the synced copy keep their data.' : ''}</p>
         <div class="toolbar">
           ${confirmReset
-            ? html`<button type="button" class="btn danger" onClick=${() => { replaceState(blankState()); setConfirmReset(false); setMessage('Everything was cleared.'); }}>Yes, clear everything</button>
+            ? html`<button type="button" class="btn danger" onClick=${() => { const wasSynced = Boolean(syncConfig()); if (wasSynced) disconnect(); replaceState(blankState()); setConfirmReset(false); setMessage(wasSynced ? 'Everything was cleared here, and this device was disconnected from Sync.' : 'Everything was cleared.'); }}>Yes, clear everything</button>
                 <button type="button" class="btn" onClick=${() => setConfirmReset(false)}>Keep my data</button>`
             : html`<button type="button" class="btn danger" onClick=${() => setConfirmReset(true)}>Clear all data</button>`}
         </div>

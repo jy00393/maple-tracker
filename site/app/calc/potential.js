@@ -49,33 +49,42 @@ const USEFUL = new Set(['main', 'allstat', 'att', 'matt', 'dmg', 'boss', 'ied', 
 
 // Choices for one line of an item: prime lines of its tier, then non-prime lines (the tier below's pool).
 // Each is { pid, prime, text, useful }, with lines the item level can't roll left out and useful lines first.
-export function lineChoices(pot, slotId, tier, itemLevel) {
+export function lineChoices(pot, slotId, tier, itemLevel, mainStat) {
   const group = groupOf(pot, slotId);
   const pools = group && pot.pools[group];
   if (!pools || !(tier >= 1 && tier <= 4)) return [];
   const build = (poolIndex, prime) => (pools[poolIndex] || [])
     .filter((pid) => pot.lines[pid] && lineAvailable(pot.lines[pid], itemLevel))
-    .map((pid) => ({ pid, prime, text: lineText(pot.lines[pid], itemLevel), useful: USEFUL.has(classify(pot.lines[pid], itemLevel).type) }))
+    .map((pid) => {
+      const c = classify(pot.lines[pid], itemLevel);
+      // With the character's main stat known, the other three stat lines are not useful ones.
+      const useful = USEFUL.has(c.type) && (c.type !== 'main' || !mainStat || c.stat === mainStat);
+      return { pid, prime, text: lineText(pot.lines[pid], itemLevel), useful };
+    })
     .sort((a, b) => Number(b.useful) - Number(a.useful));
   return [...build(tier, true), ...build(tier - 1, false)];
 }
 
 // The saved form of a choice.
-export function makeLine(pot, choice, itemLevel) {
+export function makeLine(pot, choice, itemLevel, mainStat) {
   const c = classify(pot.lines[choice.pid], itemLevel);
-  const out = { pid: choice.pid, prime: choice.prime, text: choice.text, type: c.type, value: c.value };
+  // A stat line for a stat other than the character's is saved as 'offstat', which no total or score counts.
+  const type = c.type === 'main' && mainStat && c.stat !== mainStat ? 'offstat' : c.type;
+  const out = { pid: choice.pid, prime: choice.prime, text: choice.text, type, value: c.value };
   if (c.stat) out.stat = c.stat;
   return out;
 }
 
-// After the item level or tier changes: refresh each data-backed line's text and value, dropping lines the item
-// can no longer have. Lines saved before the real tables existed (no pid) are kept as they are.
-export function refreshLines(pot, slotId, tier, itemLevel, potLines) {
-  const choices = lineChoices(pot, slotId, tier, itemLevel);
+// After the item level or tier changes: refresh each data-backed line's text and value. Lines saved before the
+// real tables existed (no pid) are kept as they are. A line the item can no longer have is dropped, unless
+// keepMissing is set: the level box saves on every keystroke, so a half-typed level must never delete a line.
+export function refreshLines(pot, slotId, tier, itemLevel, potLines, opts = {}) {
+  const choices = lineChoices(pot, slotId, tier, itemLevel, opts.mainStat);
   return (potLines || []).map((l) => {
     if (!l || !l.type) return { type: '' };
     if (l.pid === undefined || l.pid === null) return l;
     const hit = choices.find((c) => c.pid === l.pid && c.prime === Boolean(l.prime)) || choices.find((c) => c.pid === l.pid);
-    return hit ? makeLine(pot, hit, itemLevel) : { type: '' };
+    if (hit) return makeLine(pot, hit, itemLevel, opts.mainStat);
+    return opts.keepMissing ? l : { type: '' };
   });
 }
