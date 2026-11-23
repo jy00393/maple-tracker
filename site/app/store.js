@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from '../vendor/htm-preact.mjs';
 import { changedPaths, seedStamps, units } from './calc/merge.js';
+import { addBackup } from './calc/backups.js';
 
 // Everything you enter lives in this browser (localStorage). Export a backup from Settings to move it.
 const KEY = 'maple-tracker:v1';
@@ -21,7 +22,7 @@ export function blankState() {
     level: {},
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},
-    ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {} },
+    ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },
     // When each part last changed, so sync can merge two devices part by part (see calc/merge.js).
     stamps: {},
     updatedAt: 0
@@ -35,6 +36,7 @@ function normalise(raw) {
   for (const key of ['checklist', 'ui', 'mesos']) out[key] = { ...base[key], ...(raw[key] || {}) };
   if (!Array.isArray(out.mesos.goals)) out.mesos.goals = [];
   if (!out.ui.hiddenEvents || typeof out.ui.hiddenEvents !== 'object') out.ui.hiddenEvents = {};
+  if (!out.ui.seasonDone || typeof out.ui.seasonDone !== 'object') out.ui.seasonDone = {};
   for (const key of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'incomeHistory']) {
     out[key] = raw[key] && typeof raw[key] === 'object' ? raw[key] : {};
   }
@@ -61,6 +63,31 @@ function load() {
 
 let state = load();
 let saveTimer = null;
+
+// Safety copies: one snapshot per game day, kept in this browser only (see calc/backups.js). Never synced.
+const BACKUPS_KEY = 'maple-tracker:backups';
+function readBackups() {
+  try { return addBackup(JSON.parse(localStorage.getItem(BACKUPS_KEY) || '[]'), null, Date.now()); } catch { return []; }
+}
+function writeBackups(list) {
+  try { localStorage.setItem(BACKUPS_KEY, JSON.stringify(list)); return true; } catch { return false; }
+}
+export function listBackups() {
+  return readBackups().slice().reverse();
+}
+export function snapshotNow(label = null) {
+  const next = addBackup(readBackups(), state, Date.now(), label);
+  // If the browser is out of room, keep fewer copies rather than none.
+  return writeBackups(next) || writeBackups(next.slice(-3)) || writeBackups(next.slice(-1));
+}
+export function restoreBackup(at) {
+  const b = readBackups().find((x) => x.at === at);
+  if (!b) return false;
+  snapshotNow('before restore');
+  replaceState(structuredClone(b.state));
+  return true;
+}
+try { snapshotNow(); } catch { /* a failed safety copy must never stop the app */ }
 
 function save() {
   clearTimeout(saveTimer);

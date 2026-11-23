@@ -1,0 +1,146 @@
+{
+ "source": "Nexon, 'Maplayer One Challenger World and Burning Events!' (news id 47305, 11 Nov 2026), cross-checked with the v.272 patch notes (id 47132); read 23 Nov 2026. Every item below is from that notice; the quote is Nexon's wording.",
+ "sourceUrl": "https://www.nexon.com/maplestory/news/events/47305",
+ "checked": "2026-11-23",
+ "name": "Challenger World Season 4",
+ "ends": "2027-02-09T23:59:00Z",
+ "leapWindows": [
+  {
+   "label": "1st World Leap",
+   "from": "2026-12-16T00:00:00Z",
+   "fromNote": "after maintenance",
+   "to": "2027-02-09T23:59:00Z"
+  },
+  {
+   "label": "End-of-season World Leap",
+   "from": "2027-02-10T00:00:00Z",
+   "fromNote": "after maintenance",
+   "to": "2027-02-23T23:59:00Z"
+  }
+ ],
+ "unknown": "Nexon has not published this season's World Leap rules yet: which worlds you can leap to, what transfers and what is deleted are not stated. Check again once the notice appears (the first leap window opens on 16 Dec 2026).",
+ "actions": [
+  {
+   "id": "tier-rewards",
+   "label": "Claim every Challenger tier reward",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Bronze to Platinum rewards can only be claimed inside Challenger World; Emerald and above can also be claimed in the main world via the Event List.",
+   "quote": "Bronze, Silver, Gold, Platinum Tier Rewards: Claimable only in Challenger World."
+  },
+  {
+   "id": "spend-coins",
+   "label": "Spend all Challenger Coins and Advanced Challenger Coins",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "The Challenger World Shop runs only until season end; the notice does not say leftover coins are kept or converted.",
+   "quote": "Spend Challenger Coins earned from completing missions in the Challenger World Shop"
+  },
+  {
+   "id": "pass-claim",
+   "label": "Claim all Challenger Pass rewards",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Pass rewards can be claimed once, by any Challenger World character, only until the season ends.",
+   "quote": "Rewards can be claimed until February 9, 2027 at 11:59 PM UTC."
+  },
+  {
+   "id": "tier-target",
+   "label": "Reach target Challenger Points tier before the season ends",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Tiers: Bronze 5,000; Silver 10,000; Gold 15,000; Platinum 20,000; Emerald 30,000; Sapphire 40,000; Diamond 50,000; Master 70,000 plus Normal Mayrin solo; Challenger 90,000 plus Hard Mayrin solo.",
+   "quote": "Earn Challenger Points through missions to increase your Tier, unlock rewards, and strengthen your Challenger Buff skill."
+  },
+  {
+   "id": "mayrin-claim",
+   "label": "Claim Defeat Mayrin Event rewards inside Challenger World",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Clear rewards must be claimed from the Event List in the Challenger World where the mission was completed.",
+   "quote": "Rewards can only be claimed in the Challenger World where the mission was completed."
+  },
+  {
+   "id": "ibp-stages",
+   "label": "Finish Item Burning Plus stage missions before World Leaping",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Stage missions and further Challenger Equipment enhancement stop once the character World Leaps, and the event ends with the season.",
+   "quote": "Item Burning Plus Missions can no longer be completed after a World Leap."
+  },
+  {
+   "id": "replace-gear",
+   "label": "Prepare replacement gear for the Challenger Equipment set",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "The Item Burning Plus Challenger Equipment set stops being usable at season end.",
+   "quote": "All Challenger Equipment is untradable and can be used until February 9, 2027 11:59 PM UTC."
+  },
+  {
+   "id": "beyond-claim",
+   "label": "Claim Beyond Burning level rewards and use them",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Beyond Burning rewards are claimable until season end and usable until 2027-02-10 02:00 UTC.",
+   "quote": "Rewards are untradable and can be used until February 10, 2027 at 2:00 AM UTC."
+  },
+  {
+   "id": "tera-boxes",
+   "label": "Open Tera Burning Gift boxes and use the title coupon",
+   "by": "2027-02-09T23:59:00Z",
+   "detail": "Tera Burning Gift chests, equipment boxes and the Eternal Flame Title Coupon expire at season end.",
+   "quote": "Eternal Flame Title Coupon: Untradable, expires February 9, 2027 at 11:59 PM UTC."
+  },
+  {
+   "id": "use-shop-items",
+   "label": "Use time-limited shop items before they expire",
+   "by": "2027-02-10T02:00:00Z",
+   "detail": "Most shop items (cubes, flames, Sol Erda, Star Force enhancement, potential scrolls) expire shortly after season end; only Sol Erda Fragments are listed as permanent for Heroic.",
+   "quote": "Karma Solid Cube: Tradable within world, expires February 10, 2027 at 2:00 AM UTC."
+  },
+  {
+   "id": "use-pass-rewards",
+   "label": "Use claimed Challenger Pass rewards",
+   "by": "2027-02-10T02:00:00Z",
+   "detail": "Claimed pass rewards expire about two hours after season end, except Sol Erda Fragments which are permanent.",
+   "quote": "All claimed Challenger Pass rewards are tradable within world and expire February 10, 2027 at 2:00 AM UTC."
+  },
+  {
+   "id": "mayrin-coupons",
+   "label": "Use Mayrin reward coupons before they expire",
+   "by": "2027-02-10T02:00:00Z",
+   "detail": "The face/hair voucher, outfit set coupon, label/chat ring coupon, soul box, background coupon and finishing effect coupon all expire shortly after season end.",
+   "quote": "Guide of Fate Outfit Set Coupon: Tradable within world, expires February 10, 2027 at 2:00 AM UTC."
+  },
+  {
+   "id": "mayrin-fragments",
+   "label": "Turn in Fragments of Altered Fate (10 per Eternal armor piece)",
+   "by": "2027-02-10T02:00:00Z",
+   "detail": "Mayrin fragments expire shortly after season end, so leftover fragments below a multiple of 10 are lost.",
+   "quote": "Collect 10 Fragments to obtain one Eternal Armor piece (Hat, Top, Bottom, or Shoulder)."
+  },
+  {
+   "id": "hyper-rewards",
+   "label": "Use Hyper Burning MAX reward boxes and coupons",
+   "by": "2027-02-10T02:00:00Z",
+   "detail": "Hyper Burning MAX reward items (symbol selector coupons, ring coupons, nodestones, flames) expire shortly after season end; unclaimed rewards can still be claimed after a leap.",
+   "quote": "Arcane Symbol Selector Coupon (x400): Untradable, expires February 10, 2027 at 2:00 AM UTC."
+  },
+  {
+   "id": "world-leap",
+   "label": "World Leap the character out of Challenger World",
+   "by": "2027-02-23T23:59:00Z",
+   "detail": "Two leap windows are stated: 2026-12-16 (after maintenance) to 2027-02-09, then a final window 2027-02-10 (after maintenance) to 2027-02-23; what happens to characters that never leap is not stated.",
+   "quote": "Challenger World End of World Leap: February 10, 2027 (after maintenance) - February 23, 2027 11:59 PM UTC"
+  }
+ ],
+ "notes": [
+  {
+   "label": "Open 7-day Mayrin boxes within 7 days of obtaining them",
+   "detail": "Eternal armor boxes, Sol Erda Fragment boxes and the Pitched accessory box from Mayrin are 7-day items.",
+   "quote": "Fated Eternal Armor Box Untradable, 7-day duration"
+  },
+  {
+   "label": "Do not rely on season-only power after leaving",
+   "detail": "The Challenger buff skill, supported Sol Janus level and Arcane Core stats do not carry over after a World Leap.",
+   "quote": "stats obtained from equipping an Arcane Core will not apply if you World Leap from Challenger World to another world"
+  },
+  {
+   "label": "Use Straight to Lv. 200 / Lv. 250 Potions outside Challenger World",
+   "detail": "Emerald and Master tier level potions cannot be used in Challenger World, so plan to use them in the main world; no expiry date is given in the notice.",
+   "quote": "Cannot be used in Challenger World."
+  }
+ ]
+}

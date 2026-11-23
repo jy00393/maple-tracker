@@ -14,9 +14,10 @@ const FILES = {
   news: 'data/news.json',
   nexonCharacters: 'data/characters.json',
   meta: 'data/meta.json',
-  tables: 'data/tables.json'
+  tables: 'data/tables.json',
+  season: 'data/season.json'
 };
-const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables']);
+const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season']);
 
 export async function loadData(base = '') {
   const entries = await Promise.all(
@@ -34,6 +35,7 @@ export async function loadData(base = '') {
   const data = Object.fromEntries(entries);
   data.events = data.events || { events: [] };
   data.events.events = dedupeEvents(data.events.events);
+  data.events.sunny = Array.isArray(data.events.sunny) ? data.events.sunny : [];
   data.news = data.news || { items: [] };
   data.nexonCharacters = data.nexonCharacters || { characters: [] };
   data.bossById = Object.fromEntries(data.bosses.bosses.map((b) => [b.id, b]));

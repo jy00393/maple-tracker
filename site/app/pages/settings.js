@@ -1,8 +1,9 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
-import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink, pendingPair, setPendingPair } from '../sync.js';
+import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink, pendingPair, setPendingPair, setTokenExpiry } from '../sync.js';
 import { qrEncode, qrPath } from '../calc/qr.js';
 import { appStatus } from '../calc/status.js';
-import { getState, replaceState, isStorageOk, blankState } from '../store.js';
+import { getState, replaceState, isStorageOk, blankState, listBackups, restoreBackup } from '../store.js';
+import { describeBackup } from '../calc/backups.js';
 import { Card, PageHead } from '../ui.js';
 import { fmtKst } from '../time.js';
 
@@ -21,6 +22,7 @@ function download(name, text) {
 function SyncCard() {
   const [st, setSt] = useState(syncStatus());
   const [token, setToken] = useState('');
+  const [expires, setExpires] = useState('');
   const [busy, setBusy] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [pending, setPending] = useState(pendingPair());
@@ -50,6 +52,7 @@ function SyncCard() {
         <button type="button" class="btn danger" onClick=${() => { disconnect(); setToken(''); setShowQr(false); }}>Disconnect this device</button>
       </div>
       ${showQr ? html`<${PairQr} />` : null}
+      <label class="field"><span>Token expiry date (optional). The top bar warns you a week before.</span><input class="input" type="date" value=${cfg.expires || ''} onInput=${(e) => { setTokenExpiry(e.currentTarget.value); setSt({ ...syncStatus() }); }} /></label>
       <p class="note">Changes save to your secret gist a few seconds after you make them, and each device checks for newer entries when you open it. Entries from both devices are merged; if both changed the same thing, the newer edit wins.</p>`
     : html`<p class="note">Keeps your ticks and entries the same on every device, using a secret (unlisted) gist on your own GitHub account.</p>
       <ol class="note" style=${{ paddingLeft: '18px', margin: 0 }}>
@@ -58,7 +61,8 @@ function SyncCard() {
       </ol>
       <div class="form-grid">
         <label class="field"><span>GitHub token (gist scope only)</span><input class="input" type="password" autocomplete="off" value=${token} onInput=${(e) => setToken(e.currentTarget.value)} placeholder="ghp_…" /></label>
-        <button type="button" class="btn primary" disabled=${busy || !token.trim()} onClick=${() => run(() => connect(token))}>Connect</button>
+        <label class="field"><span>Token expiry date (optional, for a reminder)</span><input class="input" type="date" value=${expires} onInput=${(e) => setExpires(e.currentTarget.value)} /></label>
+        <button type="button" class="btn primary" disabled=${busy || !token.trim()} onClick=${() => run(() => connect(token, expires))}>Connect</button>
       </div>
       ${st.state === 'error' ? html`<p class="warnbox" role="alert">${st.message}</p>` : null}
       <p class="note">The token is stored only in this browser and never goes into backups. Anyone with access to this browser profile could read it, so keep its scope to gists.</p>`}
@@ -80,11 +84,30 @@ function PairQr() {
 function StatusCard({ data }) {
   const [sync, setSync] = useState(syncStatus());
   useEffect(() => onSyncStatus(setSync), []);
-  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now: Date.now() });
-  const names = { sync: 'Your devices', nexon: 'Nexon events and news', tables: 'Game tables' };
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now: Date.now(), tokenExpires: syncConfig()?.expires });
+  const names = { sync: 'Your devices', token: 'Sync token', nexon: 'Nexon events and news', tables: 'Game tables' };
   return html`<${Card} title="Status" meta=${st.label} className="span2">
     ${st.parts.map((p) => html`<p class=${p.level === 'error' || p.level === 'warn' ? 'warnbox' : 'note'}><b>${names[p.key]}:</b> ${p.text}${p.url ? html` <a href=${p.url} target="_blank" rel="noopener">Open the post</a>` : null}</p>`)}
     <p class="note">Events and news refresh from Nexon every 6 hours. The game tables were copied by hand from the sources below and only change with a patch, so they are checked, not refreshed.</p>
+  <//>`;
+}
+
+// Daily safety copies kept in this browser, with one-tap restore.
+function BackupsCard() {
+  const [list, setList] = useState(listBackups());
+  const [confirm, setConfirm] = useState(null);
+  const [msg, setMsg] = useState('');
+  return html`<${Card} title="Daily safety copies" meta=${list.length ? `${list.length} kept` : 'none yet'}>
+    <p class="note">Once a day, when you open the tracker, it keeps a copy of your entries in this browser (the last 7 days). Restore one if an edit or a sync goes wrong. Restoring first saves what you have now, so it can be undone.</p>
+    ${list.length === 0 ? html`<p class="note">The first copy is made the next time you open the tracker with entries saved.</p>` : list.map((b) => html`<div class="row">
+      <span class="lbl">${fmtKst(b.at)}${b.label ? html` <span class="pill">${b.label}</span>` : null}<span class="small muted"> · ${describeBackup(b)}</span></span>
+      <div class="right">${confirm === b.at
+        ? html`<button type="button" class="btn danger" onClick=${() => { const ok = restoreBackup(b.at); setConfirm(null); setList(listBackups()); setMsg(ok ? `Restored the copy from ${fmtKst(b.at)}.` : 'That copy is no longer there.'); }}>Yes, restore</button>
+            <button type="button" class="btn" onClick=${() => setConfirm(null)}>Cancel</button>`
+        : html`<button type="button" class="btn" onClick=${() => setConfirm(b.at)}>Restore</button>`}</div>
+    </div>`)}
+    ${msg ? html`<p class="okbox" role="status">${msg}</p>` : null}
+    ${syncConfig() ? html`<p class="note">With Sync on, a restored copy is sent to your other devices too.</p>` : null}
   <//>`;
 }
 
@@ -118,7 +141,8 @@ export function SettingsPage({ data }) {
       <${SyncCard} />
       <${InstallCard} />
       <${Card} title="Characters"><p class="note">Add, edit or remove characters, and set main stat, world and Beyond Burning.</p><div class="toolbar"><a class="btn" href="#characters">Manage characters</a></div><//>
-      <${Card} title="Backup">
+      <${BackupsCard} />
+      <${Card} title="Backup file">
         <div class="toolbar">
           <button type="button" class="btn primary" onClick=${() => {
             const stamp = new Date().toISOString().slice(0, 10);

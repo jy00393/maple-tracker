@@ -14,9 +14,11 @@ function record(checklistState, id, kind, now) {
   return r && r.p === periodKey(kind, now) ? r : null;
 }
 
-export function itemStatus(item, group, checklistState, now) {
+// level: the active character's level, if known. Items with a minLevel stay locked until it is reached.
+export function itemStatus(item, group, checklistState, now, level) {
   const kind = resetOf(item, group, checklistState);
-  const locked = Boolean(item.gate && !checklistState.flags[item.gate]);
+  const tooLow = Boolean(item.minLevel && Number.isFinite(level) && level < item.minLevel);
+  const locked = Boolean(item.gate && !checklistState.flags[item.gate]) || tooLow;
   const expired = item.until && Date.parse(item.until) < now;
   if (item.type === 'count') {
     const r = record(checklistState, item.id, kind, now);

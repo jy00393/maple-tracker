@@ -2218,5 +2218,66 @@
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/update/44597"
   }
+ ],
+ "sunny": [
+  {
+   "date": "2026-11-22",
+   "perks": [
+    "Shining Star Force Time",
+    "30% off Star Force enhancements",
+    "Mesos used to safeguard are not eligible for the 30% discount.",
+    "30% reduced chance of item destruction when enhancing items at 21 Stars or below",
+    "50% off Ability resets"
+   ]
+  },
+  {
+   "date": "2026-11-29",
+   "perks": [
+    "50% off Ability resets",
+    "Treasure Hunter EXP x3",
+    "50% off Spell Trace Enhancements",
+    "1+1 Star Force upon a successful enhancement at 10-Star or below.",
+    "Can reach up to 12 Stars. Excludes Superior Equipment.",
+    "+250% Monster Park Clear EXP",
+    "Does not apply to the Extreme Monster Parker quest.",
+    "[HEXA Matrix] When Main Stat is Lv. 5+, the enhancement chance is increased 20%.",
+    "Multiplied by the existing enhancement chance.",
+    "5x chance to get Magnificent Soul from Soul Shards",
+    "+100% chance to register a new monster in Monster Collection",
+    "Mysterious Monsterbloom (x3): Untradable, Permanent .",
+    "Can be claimed 1 time per account.",
+    "Select ‘Special Sunny Sunday Gifts for All’ from the Event List and click ‘Participate’ to claim. Can be claimed until November 29, 2026 at 11:59 PM UTC.",
+    "Cannot be claimed in Challenger World.",
+    "Elite monster appearance increase",
+    "Elite Monsters summoned by a Rune of Darkness or when an Elite Boss appears are not affected."
+   ]
+  },
+  {
+   "date": "2026-12-06",
+   "perks": [
+    "Shining Star Force Time",
+    "30% off Star Force enhancements",
+    "Mesos used to safeguard are not eligible for the 30% discount.",
+    "30% reduced chance of item destruction when enhancing items at 21 Stars or below",
+    "2x Sol Erda when hunting",
+    "Sol Erda obtained through other methods is not increased.",
+    "+250% Monster Park Clear EXP",
+    "Does not apply to the Extreme Monster Parker quest."
+   ]
+  },
+  {
+   "date": "2026-12-13",
+   "perks": [
+    "Treasure Hunter EXP x3",
+    "Rune Appearance Cooldown reduction",
+    "+100% Rune EXP buff effect",
+    "Combo Kill EXP +300%",
+    "+250% Monster Park Clear EXP",
+    "Does not apply to the Extreme Monster Parker quest.",
+    "2x Sol Erda when hunting",
+    "Sol Erda obtained through other methods is not increased.",
+    "Back to Top"
+   ]
+  }
  ]
 }

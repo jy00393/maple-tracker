@@ -514,3 +514,92 @@ test('item list: a katara is a secondary', async () => {
   assert.equal(slotOfItem(1342101), 'secondary');
   assert.equal(slotOfItem(1332225), 'weapon');
 });
+
+// ---------- batch 2 ----------
+test('backups: one automatic copy a day, newest seven kept, labelled copies kept apart', async () => {
+  const { addBackup, describeBackup } = await import('../../site/app/calc/backups.js');
+  const day = (n) => Date.parse('2026-11-01T03:00:00Z') + n * DAY;
+  const st = (n) => ({ ...blank(), updatedAt: day(n), characters: [{ id: 'a' }], gear: { a: { slots: { hat: {}, top: {} } } } });
+  let list = [];
+  list = addBackup(list, blank(), day(0));
+  assert.equal(list.length, 0, 'an untouched tracker is not worth a copy');
+  for (let n = 0; n < 10; n++) { list = addBackup(list, st(n), day(n)); list = addBackup(list, st(n), day(n) + 3600000); }
+  assert.equal(list.length, 7);
+  assert.deepEqual(list.map((b) => b.d), ['2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08', '2026-11-09', '2026-11-10']);
+  for (let n = 0; n < 5; n++) list = addBackup(list, st(10), day(10) + n, 'before restore');
+  assert.equal(list.filter((b) => b.label).length, 3);
+  assert.equal(list.filter((b) => !b.label).length, 7);
+  assert.equal(describeBackup(list[0]), '1 character, 2 gear slots filled');
+  assert.deepEqual(addBackup('junk', null, day(0)), []);
+});
+
+test('checklist: an item with a minimum level stays locked until the character reaches it', async () => {
+  const { itemStatus } = await import('../../site/app/calc/checklist.js');
+  const cs = { items: {}, resets: {}, flags: {}, history: {} };
+  const thu = checklist.groups.find((g) => g.key === 'thu');
+  const mayrin = thu.items.find((i) => i.id === 'w-mayrin');
+  const wed = Date.parse('2026-11-25T02:00:00Z');
+  assert.equal(mayrin.minLevel, 270);
+  assert.equal(itemStatus(mayrin, thu, cs, wed, 264).locked, true);
+  assert.equal(itemStatus(mayrin, thu, cs, wed, 270).locked, false);
+  assert.equal(itemStatus(mayrin, thu, cs, wed, undefined).locked, false, 'unknown level never hides anything');
+  const low = resetWarnings(checklist, cs, [], wed, { level: 264 })[0].items;
+  const high = resetWarnings(checklist, cs, [], wed, { level: 271 })[0].items;
+  assert.ok(!low.includes('Mayrin (from Lv. 270)'));
+  assert.ok(high.includes('Mayrin (from Lv. 270)'));
+  assert.ok(!high.some((l) => l.startsWith("Arthur's")), 'optional items are not warned about');
+});
+
+test('status: a sync token close to its expiry date warns, an expired one is an error', async () => {
+  const { appStatus } = await import('../../site/app/calc/status.js');
+  const now = Date.parse('2026-12-10T00:00:00Z');
+  const base = { syncOn: true, sync: { state: 'ok', message: 'Up to date' }, meta: { checkedAt: '2026-12-09T20:00:00Z', ok: true, errors: [] }, news: [], tablesChecked: '2026-11-23T00:00:00Z', now };
+  assert.equal(appStatus({ ...base, tokenExpires: '2027-03-01' }).label, 'All synced');
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-14' }).level, appStatus({ ...base, tokenExpires: '2026-12-14' }).label], ['warn', 'Sync token: 5 days left']);
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-08' }).level, appStatus({ ...base, tokenExpires: '2026-12-08' }).label], ['error', 'Sync token expired']);
+  assert.equal(appStatus({ ...base, syncOn: false, tokenExpires: '2026-12-08' }).level, 'ok', 'no warning when sync is off');
+  assert.equal(appStatus({ ...base, tokenExpires: 'soon' }).label, 'All synced');
+});
+
+test('Sunny Sunday: schedule is read from the patch notes table and drives Star Force timing', async () => {
+  const { findSunnySchedule } = await import('../lib/nexon-parse.mjs');
+  const { sunnyDays, starForceTiming } = await import('../../site/app/calc/sunny.js');
+  // Shape of the v.272 patch notes section (read 23 Nov 2026), shortened.
+  const body = '<h2>Other</h2><p>Text</p><h2 style="x"><span> Sunny Sunday</span></h2><p>Log in each Sunday to enjoy various perks!</p><table><tr><td>Date (UTC)</td><td>Perks</td></tr>'
+    + '<tr><td>November 29, 2026</td><td><ul><li>50% off Ability resets</li><li>Treasure Hunter EXP x3</li></ul></td></tr>'
+    + '<tr><td>December 6, 2026</td><td><ul><li>Shining Star Force Time<ul><li>30% off Star Force enhancements</li><li>Mesos used to safeguard are not eligible for the 30% discount.</li></ul></li><li>2x Sol Erda when hunting</li></ul></td></tr>'
+    + '<tr><td>December 8, 2026</td><td><ul><li>Not a Sunday</li></ul></td></tr></table><h2>Next section</h2><p>December 13, 2026</p><p>Unrelated</p>';
+  const sched = findSunnySchedule(body);
+  assert.deepEqual(sched.map((d) => d.date), ['2026-11-29', '2026-12-06']);
+  assert.deepEqual(sched[0].perks, ['50% off Ability resets', 'Treasure Hunter EXP x3']);
+  assert.ok(sched[1].perks.some((p) => p.includes('30% off Star Force enhancements')));
+  assert.deepEqual(findSunnySchedule('<h2>Events</h2><p>November 29, 2026</p>'), []);
+
+  const mon = Date.parse('2026-11-23T03:00:00Z');
+  assert.deepEqual(sunnyDays(sched, mon).map((d) => [d.date, d.starForce, d.active]), [['2026-11-29', false, false], ['2026-12-06', true, false]]);
+  const wait = starForceTiming(sched, 3e9, 2e9, mon);
+  assert.deepEqual([wait.kind, wait.day.date, wait.saves], ['wait', '2026-12-06', 1e9]);
+  assert.equal(starForceTiming(sched, 3e9, 2e9, Date.parse('2026-12-06T10:00:00Z')).kind, 'now');
+  assert.equal(starForceTiming(sched.slice(0, 1), 3e9, 2e9, mon).kind, 'none');
+  assert.equal(starForceTiming([], 3e9, 2e9, mon).kind, 'unknown');
+  assert.equal(starForceTiming(sched, 3e9, 2e9, Date.parse('2026-12-07T00:00:00Z')).kind, 'unknown', 'past Sundays are ignored');
+});
+
+test('season end: actions are grouped by Nexon deadline and counted until the last one passes', async () => {
+  const { seasonOutlook } = await import('../../site/app/calc/season.js');
+  const season = load('season');
+  assert.equal(season.ends, '2027-02-09T23:59:00Z');
+  assert.ok(season.actions.every((a) => a.id && a.label && a.detail && a.quote && Number.isFinite(Date.parse(a.by))), 'every action has a date and Nexon wording');
+  assert.equal(new Set(season.actions.map((a) => a.id)).size, season.actions.length);
+  const now = Date.parse('2026-11-24T00:00:00Z');
+  const o = seasonOutlook(season, { 'spend-coins': true }, now);
+  assert.equal(o.daysLeft, 78);
+  assert.deepEqual(o.groups.map((g) => new Date(g.at).toISOString()), ['2027-02-09T23:59:00.000Z', '2027-02-10T02:00:00.000Z', '2027-02-23T23:59:00.000Z']);
+  assert.equal(o.total, season.actions.length);
+  assert.equal(o.open, season.actions.length - 1);
+  assert.ok(o.groups[0].items.find((i) => i.id === 'spend-coins').done);
+  const after = seasonOutlook(season, {}, Date.parse('2027-02-10T01:00:00Z'));
+  assert.deepEqual([after.ended, after.over, after.groups[0].passed, after.groups[1].passed], [true, false, true, false]);
+  assert.equal(seasonOutlook(season, {}, Date.parse('2027-02-24T00:00:00Z')).over, true);
+  assert.equal(seasonOutlook(null, {}, now), null);
+});

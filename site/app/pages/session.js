@@ -1,5 +1,5 @@
 import { html, useEffect } from '../../vendor/htm-preact.mjs';
-import { update } from '../store.js';
+import { update, activeCharacter } from '../store.js';
 import { Card, Seg } from '../ui.js';
 import { itemStatus, setRecord, dailyProgress } from './checklist.js';
 import { DAY, dayKey, nextReset } from '../time.js';
@@ -11,7 +11,7 @@ export function minutesOf(item, fallback) {
 }
 
 // Fills the time you have: core dailies first, then weeklies that reset within two days, then optional dailies.
-export function planSession(checklistData, cs, now, minutes) {
+export function planSession(checklistData, cs, now, minutes, level) {
   const picks = [];
   const add = (item, group, mins, why) => picks.push({ item, group, mins, why });
   const groups = checklistData.groups;
@@ -22,7 +22,7 @@ export function planSession(checklistData, cs, now, minutes) {
   for (const item of core.items) candidates.push([item, core, minutesOf(item, 5), 'daily']);
   for (const g of weekly) {
     for (const item of g.items) {
-      const st = itemStatus(item, g, cs, now);
+      const st = itemStatus(item, g, cs, now, level);
       const resetIn = nextReset(st.kind, now) - now;
       if (resetIn <= 2 * DAY) candidates.push([item, g, minutesOf(item, 10), `resets in ${Math.ceil(resetIn / 3600000)}h`]);
     }
@@ -30,7 +30,7 @@ export function planSession(checklistData, cs, now, minutes) {
   for (const g of optional) for (const item of g.items) candidates.push([item, g, minutesOf(item, 10), 'optional']);
   let used = 0;
   for (const [item, group, mins, why] of candidates) {
-    const st = itemStatus(item, group, cs, now);
+    const st = itemStatus(item, group, cs, now, level);
     if (st.done || st.locked || st.expired || st.link || item.type === 'count' || item.type === 'chips') continue;
     if (used + mins > minutes) continue;
     used += mins;
@@ -42,11 +42,12 @@ export function planSession(checklistData, cs, now, minutes) {
 export function SessionPlanner({ data, state, now }) {
   const mins = state.ui.sessionMins || 60;
   const cs = state.checklist;
-  const plan = planSession(data.checklist, cs, now, mins);
+  const level = activeCharacter(state)?.level;
+  const plan = planSession(data.checklist, cs, now, mins, level);
   return html`<${Card} title="Plan a session" meta=${`${plan.used} of ${mins} min planned`}>
     <${Seg} label="Session length" value=${mins} onChange=${(v) => update((s) => { s.ui.sessionMins = v; })} options=${[[30, '30 min'], [60, '60 min'], [90, '90 min']]} />
     ${plan.picks.length ? html`<div>${plan.picks.map(({ item, group, mins: m, why }) => {
-      const st = itemStatus(item, group, cs, now);
+      const st = itemStatus(item, group, cs, now, level);
       return html`<div class=${'row' + (st.done ? ' done' : '')}>
         <input type="checkbox" id=${'plan-' + item.id} checked=${st.done} onChange=${(e) => setRecord(item.id, st.kind, { d: e.currentTarget.checked ? 1 : 0 })} />
         <label class="lbl" for=${'plan-' + item.id}>${item.label}</label>
@@ -59,7 +60,7 @@ export function SessionPlanner({ data, state, now }) {
 
 // Saves today's core-daily progress for the streak calendar (one entry per UTC day, the game's day).
 export function StreakRecorder({ data, state, now }) {
-  const prog = dailyProgress(data.checklist, state.checklist, now);
+  const prog = dailyProgress(data.checklist, state.checklist, now, activeCharacter(state)?.level);
   const key = dayKey(now);
   useEffect(() => {
     const h = (state.checklist.history || {})[key];

@@ -117,7 +117,16 @@ function listen() {
 }
 
 // Finds the existing sync gist for this token, or makes a secret one with the current entries.
-export async function connect(token) {
+// GitHub does not let a web page read a token's expiry, so the date is typed in by hand (optional).
+export function setTokenExpiry(date) {
+  const c = syncConfig();
+  if (!c) return;
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) ? String(date) : null;
+  saveConfig({ ...c, expires: d });
+  listeners.forEach((fn) => fn(status));
+}
+
+export async function connect(token, expires) {
   const t = String(token || '').trim();
   if (!t) throw new Error('Paste a token first.');
   setStatus('busy', 'Connecting…');
@@ -127,7 +136,7 @@ export async function connect(token) {
     if (!gist) {
       gist = await gh('/gists', t, { method: 'POST', body: JSON.stringify({ description: 'Maple Tracker sync (your entries)', public: false, files: { [FILE]: { content: JSON.stringify(getState()) } } }) });
     }
-    saveConfig({ token: t, gistId: gist.id });
+    saveConfig({ token: t, gistId: gist.id, expires: /^\d{4}-\d{2}-\d{2}$/.test(String(expires || '')) ? String(expires) : null });
   } catch (e) {
     setStatus(syncConfig() ? 'error' : 'off', e.message);
     throw e;

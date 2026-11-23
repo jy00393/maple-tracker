@@ -323,6 +323,31 @@ export function findRanked(data, name) {
   };
 }
 
+// Each Sunday's perks from a "Sunny Sunday" section: a "Date (UTC) | Perks" table where a row starts with a date
+// line ("November 29, 2026") followed by one perk per line. Returns [{ date: 'YYYY-MM-DD', perks: [...] }].
+const SUNNY_MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+export function findSunnySchedule(body) {
+  const block = htmlToBlocks(body).find((b) => b.heading && /^sunny sunday$/i.test(b.heading.trim()));
+  if (!block) return [];
+  const out = [];
+  let cur = null;
+  for (const raw of block.text.split('\n')) {
+    const line = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!line) continue;
+    const m = /^([A-Za-z]+) (\d{1,2}), (\d{4})$/.exec(line);
+    const month = m ? SUNNY_MONTHS.indexOf(m[1].toLowerCase()) : -1;
+    if (m && month >= 0) {
+      const t = Date.UTC(Number(m[3]), month, Number(m[2]));
+      // Only real Sundays count; anything else means the page layout changed.
+      cur = new Date(t).getUTCDay() === 0 ? { date: new Date(t).toISOString().slice(0, 10), perks: [] } : null;
+      if (cur) out.push(cur);
+    } else if (cur && line.length <= 200 && cur.perks.length < 30) {
+      cur.perks.push(line);
+    }
+  }
+  return out.filter((d) => d.perks.length > 0);
+}
+
 export function slugify(text) {
   return String(text).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'item';
 }
