@@ -1,5 +1,7 @@
 {
  "note": "Tiers are a simple ladder per slot so progress can be compared; pick the closest match. Targets are editable presets, not official numbers. Heroic worlds have no bonus potential, so it isn't counted.",
+ "tierHints": [["Destiny", "Destiny"], ["Genesis", "Genesis"], ["Eternal", "Eternal"], ["Arcane Umbra", "Arcane Umbra"], ["AbsoLab", "Absolab"], ["Fafnir", "Chaos Root Abyss"], ["Royal", "Chaos Root Abyss"], ["Eagle Eye", "Chaos Root Abyss"], ["Trixter", "Chaos Root Abyss"], ["Superior Gollux", "Superior Gollux"], ["Meister", "Meister"], ["Dawn", "Dawn"]],
+ "tierHintsNote": "Name keywords that pre-select a rung of the tier ladder when you pick an item from the list. A convenience only; change the tier if it guessed wrong.",
  "potTiers": [
   "None",
   "Rare",
