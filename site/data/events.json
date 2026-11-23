@@ -1,6 +1,25 @@
 {
  "events": [
   {
+   "id": "44597-go-go-sidekick",
+   "title": "Go Go Sidekick!",
+   "start": "2026-09-30T00:00:00.000Z",
+   "end": "2026-11-03T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "September 30, 2026 12:00 AM UTC - November 3, 2026 11:59 PM UTC",
+   "resets": [
+    "event records reset every Wednesday at 12:00 AM UTC."
+   ],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
    "id": "45330-go-go-sidekick",
    "title": "Go Go Sidekick!",
    "start": "2026-09-30T00:00:00.000Z",
@@ -35,6 +54,182 @@
    "category": "sale",
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/sale/46661"
+  },
+  {
+   "id": "42415-item-burning-plus",
+   "title": "Item Burning Plus",
+   "start": "2026-06-17T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": true,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "June 17, 2026 - November 10, 2026 11:59 PM UTC",
+   "resets": [
+    "Challenge Crest records reset every Thursday at 12:00 AM UTC ."
+   ],
+   "postId": 42415,
+   "postName": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
+   "liveDate": "2026-07-21T16:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/42415"
+  },
+  {
+   "id": "42415-arthur-s-equipment-rental",
+   "title": "Arthur’s Equipment Rental",
+   "start": "2026-06-17T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": true,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "June 17, 2026 - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 42415,
+   "postName": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
+   "liveDate": "2026-07-21T16:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/42415"
+  },
+  {
+   "id": "44597-mesotron-s-project",
+   "title": "Mesotron-S Project",
+   "start": "2026-09-30T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "September 30, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [
+    "Designer EXP resets every Wednesday at 12:00 AM UTC ."
+   ],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-jenny-s-meet-and-greet",
+   "title": "Jenny’s Meet and Greet",
+   "start": "2026-09-30T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "September 30, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-real-gains-in-virtual-training",
+   "title": "Real Gains in Virtual Training",
+   "start": "2026-09-30T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "September 30, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-surveillance-agent-gunny",
+   "title": "Surveillance Agent Gunny",
+   "start": "2026-10-14T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "October 14, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-overclock-mesotron-s",
+   "title": "Overclock Mesotron-S",
+   "start": "2026-10-14T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "October 14, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-festival-guardian",
+   "title": "Festival Guardian",
+   "start": "2026-10-14T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "October 14, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [
+    "We Are M-Force Chair Tradable within world, Permanent Participation records reset every Wednesday at 12:00 AM UTC ."
+   ],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-victory-pose-practice",
+   "title": "Victory Pose Practice",
+   "start": "2026-10-28T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "October 28, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": "44597-hello-world-hello-robot",
+   "title": "Hello World, Hello Robot",
+   "start": "2026-10-28T00:00:00.000Z",
+   "end": "2026-11-10T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "October 28, 2026 12:00 AM UTC - November 10, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
   },
   {
    "id": "45330-mesotron-s-project",
@@ -192,6 +387,25 @@
    "category": "maintenance",
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/maintenance/47826"
+  },
+  {
+   "id": "44597-night-of-the-yeti",
+   "title": "Night of the Yeti",
+   "start": "2026-10-14T00:00:00.000Z",
+   "end": "2026-11-11T23:59:00.000Z",
+   "startApprox": false,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "October 14, 2026 12:00 AM UTC - November 11, 2026 11:59 PM UTC",
+   "resets": [
+    "The weekly Hunting Point limit resets every Thursday at 12:00 AM UTC."
+   ],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
   },
   {
    "id": "45551-night-of-the-yeti",
@@ -364,6 +578,23 @@
    "category": "sale",
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/sale/47555"
+  },
+  {
+   "id": "44597-winter-countdown",
+   "title": "Winter Countdown",
+   "start": "2026-11-11T00:00:00.000Z",
+   "end": "2026-11-24T23:59:00.000Z",
+   "startApprox": true,
+   "endApprox": false,
+   "afterMaintenance": true,
+   "raw": "November 11, 2026 (after maintenance) - November 24, 2026 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
   },
   {
    "id": "45393-winter-countdown-event",
@@ -1969,6 +2200,23 @@
    "category": "update",
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/update/47132"
+  },
+  {
+   "id": "44597-special-skill-ring-changes",
+   "title": "Special Skill Ring Changes",
+   "start": null,
+   "end": "2027-09-08T23:59:00.000Z",
+   "startApprox": true,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "until September 8, 2027 at 11:59 PM UTC",
+   "resets": [],
+   "postId": 44597,
+   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "category": "update",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
   }
  ]
 }
