@@ -250,3 +250,33 @@ test('setup creates the character, its bosses and a first level reading', () => 
   const noLevel = applySetup(blank(), { name: 'X' }, [], 'z');
   assert.equal(noLevel.level.z, undefined);
 });
+
+// ---------- top-bar status ----------
+test('status: worst problem wins, and new patch notes flag the game tables', async () => {
+  const { appStatus, latestPatchNotes } = await import('../../site/app/calc/status.js');
+  const now = Date.parse('2026-11-24T00:00:00Z');
+  const meta = { checkedAt: '2026-11-23T19:39:38Z', ok: true, errors: [] };
+  const news = [
+    { name: 'v.272 - Maplayer One Patch Notes', category: 'update', liveDate: '2026-11-10T15:30:00Z' },
+    { name: 'Classic World Patch Notes', category: 'update', liveDate: '2026-11-30T00:00:00Z', isClassic: true },
+    { name: 'Cash Shop Update', category: 'sale', liveDate: '2026-11-22T00:00:00Z' }
+  ];
+  const base = { syncOn: true, sync: { state: 'ok', message: 'Up to date' }, meta, news, tablesChecked: '2026-11-23T00:00:00Z', now };
+  assert.equal(latestPatchNotes(news).name, 'v.272 - Maplayer One Patch Notes');
+  assert.deepEqual([appStatus(base).level, appStatus(base).label], ['ok', 'All synced']);
+  assert.equal(appStatus({ ...base, syncOn: false, sync: { state: 'off' } }).label, 'Data fresh · sync off');
+  assert.equal(appStatus({ ...base, sync: { state: 'busy' } }).label, 'Syncing…');
+
+  const stale = appStatus({ ...base, now: now + 40 * 3600000 });
+  assert.deepEqual([stale.level, stale.label], ['warn', 'Nexon data old']);
+  assert.equal(appStatus({ ...base, meta: null }).label, 'No Nexon data');
+  assert.equal(appStatus({ ...base, meta: { ...meta, ok: false, errors: ['news: HTTP 403'] } }).label, 'Nexon problem');
+
+  const patched = appStatus({ ...base, news: [...news, { name: 'v.273 - Maplayer One Part 2 Patch Notes', category: 'update', liveDate: '2026-12-15T16:00:00Z', url: 'https://example.test/p' }] });
+  assert.deepEqual([patched.level, patched.label], ['warn', 'New patch: check tables']);
+  assert.equal(patched.parts.find((p) => p.key === 'tables').url, 'https://example.test/p');
+
+  const broken = appStatus({ ...base, meta: null, sync: { state: 'error', message: 'GitHub answered 500' } });
+  assert.deepEqual([broken.level, broken.label], ['error', 'Sync error']);
+  assert.equal(broken.parts.length, 3);
+});

@@ -300,3 +300,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .qr-wrap { display: grid; grid-template-columns: 180px 1fr; gap: 14px; align-items: center; }
 .qr { width: 180px; height: 180px; border-radius: 10px; display: block; }
 @media (max-width: 520px) { .qr-wrap { grid-template-columns: 1fr; justify-items: center; } }
+
+/* Top bar status pill */
+.status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; background: #252C1F; border: 1px solid #323B2A; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.status-pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.status-pill.warn { color: var(--warn); border-color: rgba(255, 203, 61, .45); } .status-pill.warn i { background: var(--warn); }
+.status-pill.error { color: var(--crit); border-color: rgba(255, 107, 94, .5); } .status-pill.error i { background: var(--crit); }
+.status-pill.busy i { background: var(--info); }
+.status-pill:hover { border-color: var(--accent); }

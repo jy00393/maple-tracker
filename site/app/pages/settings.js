@@ -1,6 +1,7 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
 import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink } from '../sync.js';
 import { qrEncode, qrPath } from '../calc/qr.js';
+import { appStatus } from '../calc/status.js';
 import { getState, replaceState, isStorageOk, blankState } from '../store.js';
 import { Card, PageHead } from '../ui.js';
 import { fmtKst } from '../time.js';
@@ -63,6 +64,18 @@ function PairQr() {
   </div>`;
 }
 
+// The same status the top-bar pill shows, spelled out.
+function StatusCard({ data }) {
+  const [sync, setSync] = useState(syncStatus());
+  useEffect(() => onSyncStatus(setSync), []);
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now: Date.now() });
+  const names = { sync: 'Your devices', nexon: 'Nexon events and news', tables: 'Game tables' };
+  return html`<${Card} title="Status" meta=${st.label} className="span2">
+    ${st.parts.map((p) => html`<p class=${p.level === 'error' || p.level === 'warn' ? 'warnbox' : 'note'}><b>${names[p.key]}:</b> ${p.text}${p.url ? html` <a href=${p.url} target="_blank" rel="noopener">Open the post</a>` : null}</p>`)}
+    <p class="note">Events and news refresh from Nexon every 6 hours. The game tables were copied by hand from the sources below and only change with a patch, so they are checked, not refreshed.</p>
+  <//>`;
+}
+
 function InstallCard() {
   const [prompt, setPrompt] = useState(null);
   const [done, setDone] = useState(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
@@ -89,6 +102,7 @@ export function SettingsPage({ data }) {
     <${PageHead} title="Settings">Your ticks and entries are saved in this browser only. Export a backup to move them to another device.<//>
     ${!isStorageOk() ? html`<p class="warnbox">This browser isn't letting the page save. Changes will be lost when you close the tab.</p>` : null}
     <div class="grid two">
+      <${StatusCard} data=${data} />
       <${SyncCard} />
       <${InstallCard} />
       <${Card} title="Characters"><p class="note">Add, edit or remove characters, and set main stat, world and Beyond Burning.</p><div class="toolbar"><a class="btn" href="#characters">Manage characters</a></div><//>

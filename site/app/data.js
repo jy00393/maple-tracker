@@ -12,9 +12,10 @@ const FILES = {
   events: 'data/events.json',
   news: 'data/news.json',
   nexonCharacters: 'data/characters.json',
-  meta: 'data/meta.json'
+  meta: 'data/meta.json',
+  tables: 'data/tables.json'
 };
-const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters']);
+const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables']);
 
 export async function loadData(base = '') {
   const entries = await Promise.all(
