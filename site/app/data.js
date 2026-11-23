@@ -10,6 +10,7 @@ const FILES = {
   erda: 'data/erda.json',
   upgrades: 'data/upgrades.json',
   potential: 'data/potential.json',
+  gearStats: 'data/gearstats.json',
   events: 'data/events.json',
   news: 'data/news.json',
   nexonCharacters: 'data/characters.json',

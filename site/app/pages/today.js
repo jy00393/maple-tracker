@@ -7,7 +7,7 @@ import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
 import { computeIncome, fmtMesos } from '../calc/income.js';
 import { endingSoon, eventKey } from '../calc/events.js';
 import { resetWarnings } from '../calc/reminders.js';
-import { upgradeOptions, affordableAt } from '../calc/advice.js';
+import { upgradeOptions, affordableAt, bestUpgrade } from '../calc/advice.js';
 import { weeklyIncome } from './mesos.js';
 import { QuickSetup } from './setup.js';
 import { sunnyDays, starForceTiming, isStarForcePerk } from '../calc/sunny.js';
@@ -94,7 +94,7 @@ export function TodayPage({ data, state }) {
   const level = char ? levelOutlook(data, state, char, now) : null;
   const gate = level && level.gates[0];
   const gearGap = gear ? gear.gaps.find((r) => !r.entry.temporary) : null;
-  const best = char ? upgradeOptions(data.gear, state.gear[char.id], data.upgrades)[0] : null;
+  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, (state.gear[char.id] || {}).stats)) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
   const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { level: char?.level });
@@ -119,7 +119,9 @@ export function TodayPage({ data, state }) {
       ${timing && timing.kind === 'now' ? html`<span class="small" style=${{ color: 'var(--ok)' }}>A Star Force Sunny Sunday is on now, until ${fmtKst(timing.day.end)}. Do it today and save about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'wait' ? html`<span class="small" style=${{ color: 'var(--warn)' }}>Wait for the Star Force Sunny Sunday on ${fmtKst(timing.day.start)}: it saves about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'none' ? html`<span class="small muted">No Star Force Sunny Sunday is announced through ${fmtDate(timing.through)}, so there is no discount to wait for.</span>` : null}
-      <span class="small muted">Most gear score per meso among your permanent items (+${(best.gain * 100).toFixed(1)}% of your gear target). The score is this tracker's own, not a damage number. <a href="#gear">Gear</a> · <a href="#mesos">Mesos</a></span></div>` : null}
+      ${best.by === 'damage'
+        ? html`<span class="small muted">Most damage per meso among your Star Force upgrades: about <b>+${(best.dmg * 100).toFixed(2)}% damage</b>${best.dmgPartial ? ' or more (weapon ATT below 16 stars is not counted)' : ''}. An estimate from the stats you entered on Gear; potential tier-ups aren't ranked because their result depends on the lines you roll. <a href="#gear">Gear</a> · <a href="#mesos">Mesos</a></span>`
+        : html`<span class="small muted">Most gear score per meso among your permanent items (+${(best.gain * 100).toFixed(1)}% of your gear target). The score is this tracker's own, not a damage number. Enter your stats on <a href="#gear">Gear</a> to rank by estimated damage instead. <a href="#mesos">Mesos</a></span>`}</div>` : null}
     ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginBottom: '14px' }}><${SeasonCard} season=${data.season} state=${state} now=${now} /></div>` : null}
     <div class="grid wide-left">
       <${SessionPlanner} data=${data} state=${state} now=${now} />

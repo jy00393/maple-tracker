@@ -603,3 +603,84 @@ test('season end: actions are grouped by Nexon deadline and counted until the la
   assert.equal(seasonOutlook(season, {}, Date.parse('2027-02-24T00:00:00Z')).over, true);
   assert.equal(seasonOutlook(null, {}, now), null);
 });
+
+test('flames: typed-in bonus stats are cleaned, labelled and totalled over equipped slots', async () => {
+  const { cleanFlame, flameLabel, flameTotals } = await import('../../site/app/calc/gearstats.js');
+  assert.equal(cleanFlame(null), null);
+  assert.equal(cleanFlame({ main: 0, att: '', boss: -3 }), null);
+  assert.deepEqual(cleanFlame({ main: 80, att: '6', allstat: 5, junk: 9 }), { main: 80, att: 6, allstat: 5 });
+  assert.equal(flameLabel({ main: 80, att: 6, allstat: 5, boss: 12 }, 'STR'), 'STR +80 · ATT +6 · All Stats +5% · Boss +12%');
+  const state = { slots: { hat: { tier: 2, flame: { main: 80, allstat: 5 } }, weapon: { tier: 2, flame: { att: 120, boss: 12, dmg: 6 } }, cape: { flame: { main: 999 } } } };
+  assert.deepEqual(flameTotals(gear.slots, state), { main: 80, att: 120, allstat: 5, boss: 12, dmg: 6, items: 2 });
+});
+
+test('gear stats: Star Force stat gains match the wiki table', async () => {
+  const { starStats, starDelta } = await import('../../site/app/calc/gearstats.js');
+  const gs = load('gearstats');
+  const sf = gs.starforce;
+  const slot = (id) => gear.slots.find((s) => s.id === id);
+  // Stars 1-15 on armor: +2 for five stars, +3 for ten = 40. Star 16 at Lv. 160: stat +13, ATT +10; at Lv. 200: +15 and +12.
+  assert.deepEqual(starStats(sf, slot('hat'), 160, 15), { stat: 40, att: 0, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 160, 15, 16), { stat: 13, att: 10, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 200, 15, 16), { stat: 15, att: 12, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 160, 21, 22), { stat: 13, att: 17, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 250, 21, 22), { stat: 17, att: 21, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 200, 24, 25), { stat: 0, att: 25, partial: false });
+  // Gloves: ATT +1 at stars 5, 7, 9, 11, 13, 14 and 15.
+  assert.equal(starStats(sf, slot('gloves'), 160, 15).att, 7);
+  assert.equal(starStats(sf, slot('gloves'), 160, 6).att, 1);
+  // Weapons: ATT at stars 1-15 needs the base ATT, so it is flagged; star 16 at Lv. 200 gives ATT +13.
+  assert.equal(starStats(sf, slot('weapon'), 200, 15).partial, true);
+  assert.deepEqual(starDelta(sf, slot('weapon'), 200, 15, 16), { stat: 15, att: 13, partial: false });
+  assert.equal(starDelta(sf, slot('weapon'), 200, 12, 16).partial, true);
+  // A Lv. 130 item cannot go past 20 stars in the table; under Lv. 128 nothing is known.
+  assert.equal(starStats(sf, slot('hat'), 130, 21).partial, true);
+  assert.equal(starStats(sf, slot('hat'), 100, 10).partial, true);
+  assert.deepEqual(starStats(sf, slot('emblem'), 200, 10), { stat: 0, att: 0, partial: false });
+});
+
+test('gear stats: sets are recognised from item names and bonuses add up as the wiki states', async () => {
+  const { detectSets, setBonusLabel } = await import('../../site/app/calc/gearstats.js');
+  const gs = load('gearstats');
+  const worn = (names) => ({ slots: Object.fromEntries(Object.entries(names).map(([id, note]) => [id, { tier: 2, note }])) });
+  const arcane7 = detectSets(gs.sets, gear.slots, worn({ hat: 'Arcane Umbra Knight Hat', top: 'Arcane Umbra Knight Suit', shoes: 'Arcane Umbra Knight Shoes', gloves: 'Arcane Umbra Knight Gloves', cape: 'Arcane Umbra Knight Cape', shoulder: 'Arcane Umbra Knight Shoulder', weapon: 'Arcane Umbra Two-handed Sword' }));
+  // Wiki running total at 7 pieces: All Stats +50, ATT +195, Boss 30%, IED 19%.
+  assert.deepEqual(arcane7.map((s) => [s.id, s.count, s.bonus]), [['arcane', 7, { allStats: 50, att: 195, boss: 30, ied: 19, critDmg: 0 }]]);
+  assert.equal(arcane7[0].nextAt, null);
+  const mixed = detectSets(gs.sets, gear.slots, worn({ hat: 'Royal Warrior Helm', top: 'Eagle Eye Warrior Armor', bottom: 'Trixter Warrior Pants', ring1: 'Superior Gollux Ring', pendant1: 'Superior Engraved Gollux Pendant', face: 'Berserked', eye: 'Magic Eyepatch', belt: 'Some Other Belt' }));
+  const by = Object.fromEntries(mixed.map((s) => [s.id, s]));
+  assert.deepEqual(Object.keys(by).sort(), ['cra', 'pitchedBoss', 'superiorGollux']);
+  assert.equal(by.cra.count, 3);
+  assert.equal(by.cra.nextAt, 4);
+  assert.equal(by.cra.bonus.att, 50);
+  assert.equal(by.cra.bonus.boss, 0, 'Boss +30% needs the 4th piece');
+  assert.equal(by.pitchedBoss.count, 2);
+  assert.deepEqual([by.pitchedBoss.bonus.allStats, by.pitchedBoss.bonus.att, by.pitchedBoss.bonus.boss], [10, 10, 10]);
+  assert.equal(setBonusLabel(by.pitchedBoss.bonus), 'All Stats +10 · ATT +10 · Boss +10%');
+  assert.deepEqual(detectSets(gs.sets, gear.slots, { slots: { hat: { tier: 0, note: 'Arcane Umbra Knight Hat' } } }), [], 'an empty slot is not a set piece');
+});
+
+test('damage estimate: flat stat and ATT gains scale with your percentages, and rank Star Force upgrades', async () => {
+  const { damageGain } = await import('../../site/app/calc/gearstats.js');
+  const { upgradeOptions: opts, bestUpgrade } = await import('../../site/app/calc/advice.js');
+  const stats = { main: 40000, sub: 5000, att: 5000, mainPct: 300, attPct: 100 };
+  assert.equal(damageGain({}, { stat: 10, att: 10 }), null);
+  assert.equal(damageGain(stats, { stat: 0, att: 0 }), 0);
+  // +50 ATT at 100% ATT is +100 on 5000: exactly 2%.
+  assert.ok(Math.abs(damageGain(stats, { stat: 0, att: 50 }) - 0.02) < 1e-12);
+  // +100 stat at 300%: main +400 and secondary +100, on 4*40000+5000 = 165000 -> 1700/165000.
+  assert.ok(Math.abs(damageGain(stats, { stat: 100, att: 0 }) - 1700 / 165000) < 1e-12);
+  const gs = load('gearstats');
+  const state = { preset: 'mid', slots: { hat: { tier: 2, ilvl: 150, stars: 17, pot: 3, lines: 2 }, ring1: { tier: 2, ilvl: 150, stars: 12, pot: 3, lines: 2 }, top: { tier: 3, ilvl: 150, stars: 22, pot: 2, lines: 2 } } };
+  const plain = opts(gear, state, upgrades);
+  assert.ok(plain.every((o) => o.dmg === undefined));
+  assert.equal(bestUpgrade(plain).by, 'score');
+  const ranked = opts(gear, state, upgrades, gs, stats);
+  const sf = ranked.filter((o) => o.kind === 'sf');
+  assert.ok(sf.length >= 2 && sf.every((o) => o.dmg > 0 && o.sfGain));
+  assert.ok(ranked.filter((o) => o.kind === 'cube').every((o) => o.dmg === undefined), 'cube tier-ups get no damage number');
+  const best = bestUpgrade(ranked);
+  assert.equal(best.by, 'damage');
+  assert.ok(sf.every((o) => best.dmg / best.cost >= o.dmg / o.cost));
+  assert.equal(bestUpgrade([]), null);
+});
