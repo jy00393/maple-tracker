@@ -12,7 +12,8 @@ import { ProgressPage } from './pages/progress.js';
 import { GearPage } from './pages/gear.js';
 import { CharactersPage } from './pages/characters.js';
 import { SettingsPage } from './pages/settings.js';
-import { startSync, connect, tokenFromHash } from './sync.js';
+import { startSync, connect, tokenFromHash, syncConfig, syncStatus, onSyncStatus } from './sync.js';
+import { appStatus } from './calc/status.js';
 
 // [route, tab label, page, hidden from the tab row]
 const ROUTES = [
@@ -57,6 +58,16 @@ function Clocks() {
   </div>`;
 }
 
+// Small pill in the top bar: device sync, the Nexon refresh and stale game tables in one glance. Opens Settings.
+function StatusPill({ data }) {
+  const now = useNow(60000);
+  const [sync, setSync] = useState(syncStatus());
+  useEffect(() => onSyncStatus(setSync), []);
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now });
+  const detail = st.parts.map((p) => p.text).join(' ');
+  return html`<a class=${'status-pill ' + st.level} href="#settings" title=${detail} aria-label=${`Status: ${st.label}. ${detail}`}><i aria-hidden="true"></i>${st.label}</a>`;
+}
+
 function CharacterPicker({ state }) {
   if (state.characters.length === 0) return html`<a class="btn primary" href="#characters">Add your character</a>`;
   return html`<label class="char-pick">
@@ -77,7 +88,7 @@ function App({ data }) {
       <div class="topbar-inner">
         <div class="brand-row">
           <a class="brand" href="#today"><${Logo} /><div><h1>Maple Tracker</h1><div class="sub">GMS · Heroic · your own copy</div></div></a>
-          <div class="head-right"><${CharacterPicker} state=${state} /></div>
+          <div class="head-right"><${StatusPill} data=${data} /><${CharacterPicker} state=${state} /></div>
         </div>
         <${Clocks} />
         <nav class="tabs" aria-label="Sections">
