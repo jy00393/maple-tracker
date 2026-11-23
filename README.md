@@ -7,7 +7,7 @@ A personal MapleStory (GMS) tracker that runs free on GitHub Pages and refreshes
 - **Checklist**: dailies and weeklies that clear themselves at the right reset, and a 16-week streak calendar.
 - **Bosses**: pick bosses, tick clears, see Heroic (×5) crystal income with the 14-per-character and 180-per-world caps.
 - **Mesos**: a planner (weekly income from bosses, Ursus, farming vs goals like 200 Bright Cubes, with the date each is affordable), a GMS v.272 Star Force calculator (expected cost, typical and bad-luck cost, boom odds, Sunny Sunday and Safeguard), a cube tier-up calculator, and a 12-week income chart.
-- **Gear**: an equipment grid; tap a slot for an item editor with real potential lines per slot and tier (Meso Obtained and Item Drop Rate +20% on Legendary accessories, cooldown on hats, crit damage on gloves), totals for STR %, boss, meso and drop, and the expected mesos to reach each slot's target.
+- **Gear**: an equipment grid; tap a slot for an item editor with name search and pictures (item list and icons from the community API maplestory.io), real potential lines per slot and tier (Meso Obtained and Item Drop Rate +20% on Legendary accessories, cooldown on hats, crit damage on gloves), totals for STR %, boss, meso and drop, and the expected mesos to reach each slot's target.
 - **Progress**: level gates with dates (Beyond Burning aware), symbols, Genesis/Destiny liberation, 6th job order with a Sol Erda planner, Item Burning Plus.
 - **Settings**: sync between PC and phone through a secret gist (entries from both devices are merged; a QR code connects the phone), install as a phone app, backup and restore.
 
@@ -75,6 +75,7 @@ These change only with big patches. Each file says where it came from:
 | `site/data/liberation.json` | Genesis and Destiny stages and per-boss amounts | MapleStory Wiki, Genesis/Destiny Weapon |
 | `site/data/ibp.json` | Item Burning Plus stages | Nexon v.272 event notice |
 | `site/data/checklist.json` | Daily and weekly checklist | Nexon notices and community guides |
+| `site/data/items.json` | Equipment names, levels and slots for the Gear search (refreshed by the job) | maplestory.io community API; unofficial and may lag a patch or two |
 | `site/data/gear.json`, `erda.json` | Gear tiers, targets, 6th-job order | Editable presets |
 | `site/data/upgrades.json` | Star Force rates and costs, cube prices and tier-up odds, potential line values, EXP table 260-300, Sol Erda costs | MapleStory Wiki, Nexon v.269/v.271 notes; cube odds are community estimates (Nexon doesn't publish GMS odds) |
 

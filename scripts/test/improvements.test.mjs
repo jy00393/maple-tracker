@@ -280,3 +280,62 @@ test('status: worst problem wins, and new patch notes flag the game tables', asy
   assert.deepEqual([broken.level, broken.label], ['error', 'Sync error']);
   assert.equal(broken.parts.length, 3);
 });
+
+// ---------- item list ----------
+test('item list: version pick, slot from id, compact rows', async () => {
+  const { latestGmsVersion, slotOfItem, buildItems, serialiseItems } = await import('../lib/items.mjs');
+  assert.equal(latestGmsVersion([{ region: 'GMS', isReady: true, mapleVersionId: '269' }, { region: 'GMS', isReady: true, mapleVersionId: '270' }, { region: 'GMS', isReady: false, mapleVersionId: '272' }, { region: 'KMS', isReady: true, mapleVersionId: '400' }, { region: 'GMS', isReady: true, mapleVersionId: '83.1' }]), '270');
+  assert.equal(latestGmsVersion('nope'), null);
+  // Ids taken from live answers on 23 Nov 2026.
+  assert.equal(slotOfItem(1004808), 'hat');        // Arcane Umbra Knight Hat
+  assert.equal(slotOfItem(1113075), 'ring');       // Superior Gollux Ring
+  assert.equal(slotOfItem(1012632), 'face');       // Berserked
+  assert.equal(slotOfItem(1022278), 'eye');        // Magic Eyepatch
+  assert.equal(slotOfItem(1122430), 'pendant');    // Source of Suffering
+  assert.equal(slotOfItem(1032316), 'earrings');   // Commanding Force Earring
+  assert.equal(slotOfItem(1132308), 'belt');       // Dreamy Belt
+  assert.equal(slotOfItem(1162080), 'pocket');     // Cursed Red Spellbook
+  assert.equal(slotOfItem(1182285), 'badge');      // Genesis Badge
+  assert.equal(slotOfItem(1672076), 'heart');      // Black Heart
+  assert.equal(slotOfItem(1098006), 'secondary');  // Princess No's Soul Shield
+  assert.equal(slotOfItem(1212129), 'weapon');     // Genesis Shining Rod
+  assert.equal(slotOfItem(1190301), 'emblem');
+  assert.equal(slotOfItem(1143348), null);         // a medal
+  assert.equal(slotOfItem('x'), null);
+  const rows = buildItems([
+    { id: 1004808, name: 'Arcane Umbra Knight Hat', requiredLevel: 200, isCash: false },
+    { id: 1004999, name: 'Arcane  Umbra Knight Hat ', requiredLevel: 200, isCash: false },
+    { id: 1005980, name: 'Eternal Knight Helm', requiredLevel: 250 },
+    { id: 1000001, name: 'Cash Hat', requiredLevel: 150, isCash: true },
+    { id: 1143348, name: 'The Legend of Mitra', requiredLevel: 200 },
+    { id: 1113075, name: '', requiredLevel: 150 },
+    null
+  ]);
+  assert.deepEqual(rows, [[1005980, 'Eternal Knight Helm', 250, 'hat'], [1004808, 'Arcane Umbra Knight Hat', 200, 'hat']]);
+  const doc = JSON.parse(serialiseItems({ source: 's', version: '270', items: rows }));
+  assert.deepEqual(doc, { source: 's', version: '270', items: rows });
+});
+
+test('item search is per slot, matches every word, and maps names to a tier rung', async () => {
+  const { searchItems, itemSlotKey, iconUrl, tierFromName } = await import('../../site/app/calc/items.js');
+  const items = [[1, 'Arcane Umbra Knight Hat', 200, 'hat'], [2, 'Arcane Umbra Mage Hat', 200, 'hat'], [3, 'Eternal Knight Helm', 250, 'hat'], [4, 'Superior Gollux Ring', 150, 'ring'], [5, 'Knight Ring', 100, 'ring']];
+  assert.equal(itemSlotKey('ring3'), 'ring');
+  assert.equal(itemSlotKey('pendant1'), 'pendant');
+  assert.equal(itemSlotKey('top'), 'top');
+  assert.deepEqual(searchItems(items, 'hat', 'knight').map((h) => h.id), [3, 1]);
+  assert.deepEqual(searchItems(items, 'hat', 'umbra KNIGHT').map((h) => h.id), [1]);
+  assert.deepEqual(searchItems(items, 'hat', 'arcane').map((h) => h.id), [1, 2]);
+  assert.deepEqual(searchItems(items, 'ring', 'knight').map((h) => h.id), [5]);
+  assert.deepEqual(searchItems(items, 'hat', 'ring'), []);
+  assert.deepEqual(searchItems(items, 'hat', '  '), []);
+  assert.equal(searchItems(items, 'hat', 'a', 1).length, 1);
+  assert.equal(iconUrl('270', 1004808), 'https://maplestory.io/api/GMS/270/item/1004808/icon');
+  assert.equal(iconUrl(null, 1), null);
+  const hatTiers = gear.slotTypes.hat.filter(Boolean);
+  assert.equal(hatTiers[tierFromName('Arcane Umbra Knight Hat', hatTiers, gear.tierHints) - 1], 'Arcane Umbra');
+  assert.equal(hatTiers[tierFromName('Royal Warrior Helm', hatTiers, gear.tierHints) - 1], 'Chaos Root Abyss');
+  assert.equal(hatTiers[tierFromName('Eternal Knight Helm', hatTiers, gear.tierHints) - 1], 'Eternal');
+  assert.equal(tierFromName('Lionheart Battle Helm', hatTiers, gear.tierHints), 0);
+  const ringTiers = gear.slotTypes.ring.filter(Boolean);
+  assert.match(ringTiers[tierFromName('Superior Gollux Ring', ringTiers, gear.tierHints) - 1], /Superior Gollux/);
+});

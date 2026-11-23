@@ -1,4 +1,5 @@
-import { html, useState } from '../../vendor/htm-preact.mjs';
+import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
+import { searchItems, itemSlotKey, iconUrl, tierFromName } from '../calc/items.js';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Bar, Seg, NumberInput, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
 import { gearSummary, gearProjection } from '../calc/progress.js';
@@ -58,6 +59,65 @@ function Spark({ history }) {
     <path d=${area} fill="rgba(254,172,66,.14)" /><path d=${d} fill="none" stroke="#FEAC42" stroke-width="2" />
     <circle cx=${xs[xs.length - 1]} cy=${ys[ys.length - 1]} r="3.5" fill="#FEAC42" />
   </svg>`;
+}
+
+// The item list is about 200 KB, so it loads the first time the Gear tab needs it and is then kept.
+let itemsCache = null;
+let itemsPromise = null;
+function loadItems() {
+  if (!itemsPromise) {
+    itemsPromise = fetch('data/items.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { itemsCache = d && Array.isArray(d.items) ? d : { items: [], version: null }; return itemsCache; })
+      .catch(() => { itemsCache = { items: [], version: null }; return itemsCache; });
+  }
+  return itemsPromise;
+}
+function useItems() {
+  const [doc, setDoc] = useState(itemsCache);
+  useEffect(() => { let on = true; loadItems().then((d) => { if (on) setDoc(d); }); return () => { on = false; }; }, []);
+  return doc;
+}
+
+// Item picture from maplestory.io. Hidden if it fails to load, so a missing icon never breaks the tile.
+function ItemIcon({ entry, size = 36 }) {
+  const [failed, setFailed] = useState(null);
+  const url = iconUrl(entry.iconVer, entry.itemId);
+  if (!url || failed === url) return null;
+  return html`<img class="item-icon" src=${url} alt="" width=${size} height=${size} loading="lazy" referrerpolicy="no-referrer" onError=${() => setFailed(url)} />`;
+}
+
+// Name box with suggestions from the item list for this slot. Picking one fills the name, level and picture.
+function ItemPicker({ slot, entry, tiers, hints, set }) {
+  const doc = useItems();
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const text = entry.note || '';
+  const hits = open && doc ? searchItems(doc.items, itemSlotKey(slot.id), text, 8) : [];
+  const pick = (h) => {
+    const patch = { note: h.name, ilvl: h.level, itemId: h.id, iconVer: doc.version };
+    const tier = tierFromName(h.name, tiers, hints);
+    if (tier) patch.tier = tier;
+    else if (!entry.tier) patch.tier = 1;
+    set(patch);
+    setOpen(false);
+  };
+  return html`<div class="field picker"><span>Item name${doc && doc.items.length ? ' · type to search' : ''}</span>
+    <input class="input" role="combobox" aria-expanded=${String(hits.length > 0)} aria-controls="item-suggest" aria-autocomplete="list" autocomplete="off"
+      value=${text} placeholder=${`e.g. ${slot.type === 'ring' ? 'Superior Gollux Ring' : 'Arcane Umbra'}`}
+      onInput=${(e) => { set({ note: e.currentTarget.value, itemId: null, iconVer: null }); setOpen(true); setActive(0); }}
+      onFocus=${() => setOpen(true)} onBlur=${() => setTimeout(() => setOpen(false), 150)}
+      onKeyDown=${(e) => {
+        if (!hits.length) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); setActive((active + 1) % hits.length); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((active - 1 + hits.length) % hits.length); }
+        else if (e.key === 'Enter') { e.preventDefault(); pick(hits[active] || hits[0]); }
+        else if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); }
+      }} />
+    ${hits.length ? html`<ul class="suggest" id="item-suggest" role="listbox">${hits.map((h, i) => html`<li role="option" aria-selected=${String(i === active)}
+      onMouseDown=${(e) => { e.preventDefault(); pick(h); }}><${ItemIcon} entry=${{ itemId: h.id, iconVer: doc.version }} size=${28} /><span>${h.name}</span><span class="muted small">Lv. ${h.level}</span></li>`)}</ul>` : null}
+    ${open && doc && doc.items.length && text.trim().length >= 3 && !hits.length && !entry.itemId ? html`<span class="small muted">Not in the item list (GMS v.${doc.version} data). Your typed name is kept.</span>` : null}
+  </div>`;
 }
 
 function LineEditor({ slot, entry, set, up, mainStat }) {
@@ -138,6 +198,7 @@ function SlotModal({ row, data, char, onClose }) {
     <div class="modal-b">
       <div class="grid" style=${{ gap: '12px' }}>
         <div class="item-card">
+          <div class="item-pic"><${ItemIcon} entry=${entry} size=${56} /></div>
           <div class="title">${entry.note || tiers[(entry.tier || 0) - 1] || 'Empty slot'}</div>
           <div class="small muted" style=${{ textAlign: 'center' }}>${slot.name} · Lv. ${lvl}${entry.temporary ? html` · <span class="flag">expires</span>` : ''}</div>
           ${slot.sf ? html`<div style=${{ textAlign: 'center' }}><span class="stars">★ ${entry.stars || 0}</span><span class="muted small"> / ${max}</span></div>` : null}
@@ -149,13 +210,13 @@ function SlotModal({ row, data, char, onClose }) {
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
       <div class="grid" style=${{ gap: '14px' }}>
+        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} />
         <div class="form-grid">
           <label class="field"><span>Item tier</span>
             <select class="select" value=${String(entry.tier || 0)} onChange=${(e) => set({ tier: Number(e.currentTarget.value) })}>
               <option value="0">Empty</option>
               ${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}
             </select></label>
-          <label class="field"><span>Item name (optional)</span><input class="input" value=${entry.note || ''} placeholder="e.g. Eternal Flame Ring" onInput=${(e) => set({ note: e.currentTarget.value })} /></label>
           <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${lvl} min=${0} max=${300} onChange=${(v) => set({ ilvl: v || null })} /></label>
           ${slot.sf ? html`<label class="field"><span>Stars (max ${max})</span><${NumberInput} className="input" label=${slot.name + ' stars'} value=${entry.stars || 0} max=${max || 30} onChange=${(v) => set({ stars: v || 0 })} /></label>` : null}
           ${hasPotential(slot) ? html`<label class="field"><span>Potential tier</span>
@@ -191,7 +252,7 @@ function EquipTile({ row, data, mainStat, onOpen }) {
   const empty = !entry.tier;
   return html`<button type="button" class=${'equip' + (empty ? ' empty' : '') + (entry.pot ? ' pot-' + entry.pot : '')} onClick=${onOpen} aria-label=${`${slot.name}: edit`}>
     <span class="nm"><span>${slot.name}</span><${PotBadge} tier=${entry.pot} /></span>
-    <span class="it">${empty ? 'Empty' : entry.note || tiers[entry.tier - 1]}</span>
+    <span class="it">${empty ? null : html`<${ItemIcon} entry=${entry} size=${28} />`}${empty ? 'Empty' : entry.note || tiers[entry.tier - 1]}</span>
     ${empty ? html`<span class="ln">Tap to add</span>` : lines.length
       ? html`<span class="ln">${lines.slice(0, 3).map((l, i) => html`${i ? html`<br />` : ''}<span class=${lineKind(slot, l) === 'farm' ? 'pot-4' : ''}>${lineLabel(l, mainStat)}</span>`)}</span>`
       : html`<span class="ln muted">${entry.pot ? `${POT[entry.pot]}, lines not entered` : hasPotential(slot) ? 'No potential' : ''}</span>`}

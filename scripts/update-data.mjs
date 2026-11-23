@@ -7,6 +7,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { parsePost, postUrl, findRanked } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
+import { WZ_URL, ITEMS_URL, MIN_LEVEL, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
 
 const LIST_URL = 'https://g.nexonstatic.com/maplestory/cms/v1/news';
 const POST_URL = (id) => `https://g.nexonstatic.com/maplestory/cms/v1/news/${id}`;
@@ -191,6 +192,34 @@ async function updateCharacters(errors) {
   return { characters: out.length };
 }
 
+// Equipment names, levels and slots for the Gear tab's autocomplete, from maplestory.io (community API).
+// One small request a day to see which GMS version it has; the full list (about 2 MB) only when that changes.
+async function updateItems() {
+  const prev = await readJson('items.json', null);
+  const fresh = prev && Array.isArray(prev.items) && prev.items.length > 0;
+  if (fresh && Date.now() - Date.parse(prev.checkedAt) < DAY) return { items: prev.items.length, itemsVersion: prev.version };
+  const version = latestGmsVersion(await getJson(WZ_URL));
+  if (!version) throw new Error('maplestory.io lists no ready GMS version');
+  let items = fresh ? prev.items : [];
+  let fetchedAt = fresh ? prev.fetchedAt : null;
+  if (!fresh || prev.version !== version) {
+    await sleep(500);
+    const built = buildItems(await getJson(ITEMS_URL(version, MIN_LEVEL)));
+    if (built.length < 500) throw new Error(`maplestory.io returned only ${built.length} items for GMS v.${version}`);
+    items = built;
+    fetchedAt = new Date().toISOString();
+  }
+  await writeTextIfChanged('items.json', serialiseItems({
+    source: `maplestory.io community API, GMS v.${version} game data: non-cash equipment Lv. ${MIN_LEVEL}+. Unofficial; it can lag behind the live game, so newer items may be missing.`,
+    sourceUrl: 'https://maplestory.io',
+    version,
+    fetchedAt,
+    checkedAt: new Date().toISOString(),
+    items
+  }));
+  return { items: items.length, itemsVersion: version };
+}
+
 async function main() {
   await mkdir(DATA_DIR, { recursive: true });
   const errors = [];
@@ -205,6 +234,12 @@ async function main() {
     Object.assign(meta, await updateCharacters(errors));
   } catch (err) {
     errors.push(`characters: ${err.message}`);
+  }
+  try {
+    Object.assign(meta, await updateItems());
+  } catch (err) {
+    // Kept apart from `errors`: the item list is a convenience and the old copy stays in place.
+    meta.itemsError = err.message;
   }
   await writeFile(new URL('meta.json', DATA_DIR), JSON.stringify(meta, null, 1) + '\n');
   console.log(JSON.stringify(meta, null, 1));

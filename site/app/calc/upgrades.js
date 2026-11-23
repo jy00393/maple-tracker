@@ -74,7 +74,7 @@ export function lineOptions(slot, tier) {
   if (slot.id === 'gloves' && tier >= 4) opts.push('critdmg');
   if (t === 'hat' && tier >= 4) opts.push('cdr');
   if (MESO_DROP_SLOTS.has(slot.id) && tier >= 4) opts.push('meso', 'drop');
-  opts.push('hp', 'offstat', 'other');
+  opts.push('hp', 'other'); // 'offstat' ("Other stat %") is no longer offered: the four stats are listed by name. Saved lines still show.
   return opts;
 }
 
