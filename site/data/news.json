@@ -1,1 +1,1504 @@
-{"items": []}
+{
+ "items": [
+  {
+   "id": 47555,
+   "name": "Black Friday 2026!",
+   "category": "sale",
+   "liveDate": "2026-11-22T16:00:00Z",
+   "summary": "Check out every sale coming all week long during Black Friday 2026!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/47555"
+  },
+  {
+   "id": 48409,
+   "name": "Classic World Cash Shop Update: Black Friday and Nov. 25",
+   "category": "sale",
+   "liveDate": "2026-11-22T16:00:00Z",
+   "summary": "Black Friday Mystery Fashion Crate, Mystery Styles, Black Friday Daily Deals, and more!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/48409"
+  },
+  {
+   "id": 48998,
+   "name": "[Completed] Unscheduled Quanah World Channel Maintenance - November 20, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-20T18:21:08Z",
+   "summary": "The channel maintenance has been completed. Thank you for your patience.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48998"
+  },
+  {
+   "id": 48863,
+   "name": "[Completed] Scheduled Minor Patch - November 19, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-19T12:00:32Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 7 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48863"
+  },
+  {
+   "id": 48436,
+   "name": "v.272 Known Issues",
+   "category": "maintenance",
+   "liveDate": "2026-11-19T09:55:40Z",
+   "summary": "Here you’ll find a list of known and resolved issues from the v.272 - Maplayer One update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48436"
+  },
+  {
+   "id": 48938,
+   "name": "[Completed]  Scheduled Cash Shop Maintenance - November 19, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-19T05:30:17Z",
+   "summary": "Cash Shop maintenance has been completed. ",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48938"
+  },
+  {
+   "id": 48935,
+   "name": "Maple Memo: Developer’s Note Regarding Event World: Quanah Adjustment",
+   "category": "general",
+   "liveDate": "2026-11-19T05:00:00Z",
+   "summary": "Click here to read more on the Developer’s Note Regarding Event World: Quanah Adjustment notice.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/48935"
+  },
+  {
+   "id": 34840,
+   "name": "Mac OS Beta Known Issues and Updates",
+   "category": "maintenance",
+   "liveDate": "2026-11-18T12:00:00Z",
+   "summary": "Click here to find Known Issues and Updates for macOS users during the Beta service.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/34840"
+  },
+  {
+   "id": 48557,
+   "name": "[Completed] Scheduled Game Update - November 18, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-18T10:00:22Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 6 hours.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48557"
+  },
+  {
+   "id": 48911,
+   "name": "v.272 Public Test Server Best Tester Reward Notice",
+   "category": "general",
+   "liveDate": "2026-11-18T04:50:27Z",
+   "summary": "Congratulations to the players who were the best testers during the PTS for v.272!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/48911"
+  },
+  {
+   "id": 47292,
+   "name": "MapleStory Cash Shop Update: Nov. 18",
+   "category": "sale",
+   "liveDate": "2026-11-17T16:00:01Z",
+   "summary": "Royal Styles and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/47292"
+  },
+  {
+   "id": 48255,
+   "name": "November Update: Forgotten Hollow Patch Notes",
+   "category": "update",
+   "liveDate": "2026-11-17T16:00:00Z",
+   "summary": "Click here to read the patch notes for the November Update: Forgotten Hollow.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/update/48255"
+  },
+  {
+   "id": 47857,
+   "name": "Classic World Cash Shop Update: Nov. 18",
+   "category": "sale",
+   "liveDate": "2026-11-17T16:00:00Z",
+   "summary": "Mystery Fashion Crate Update!",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/47857"
+  },
+  {
+   "id": 48634,
+   "name": "November 2026 Community Contest",
+   "category": "community",
+   "liveDate": "2026-11-16T17:15:00Z",
+   "summary": "Take a look at the new and upcoming Community Contests below, and be prepared to take on these challenges!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/48634"
+  },
+  {
+   "id": 48552,
+   "name": "November Update: Special Events",
+   "category": "events",
+   "liveDate": "2026-11-16T14:00:53Z",
+   "summary": "A new world opens and a new journey begins!",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/events/48552"
+  },
+  {
+   "id": 48440,
+   "name": "[Completed] Unscheduled Quanah World Channel Maintenance - November 12, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-12T17:10:00Z",
+   "summary": "The channel maintenance has been completed. Thank you for your patience.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48440"
+  },
+  {
+   "id": 48256,
+   "name": "November Update: Forgotten Hollow Preview",
+   "category": "update",
+   "liveDate": "2026-11-12T16:00:00Z",
+   "summary": "Get a preview of the November Update for MapleStory Classic World!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/update/48256"
+  },
+  {
+   "id": 47304,
+   "name": "Adventure in Event World: Quanah!",
+   "category": "events",
+   "liveDate": "2026-11-11T11:00:02Z",
+   "summary": "Encounter a brand new style of high-level MapleStory gameplay with a unique dungeon, special gear, and your own Inspector's Mapae!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/47304"
+  },
+  {
+   "id": 47305,
+   "name": "Maplayer One Challenger World and Burning Events!",
+   "category": "events",
+   "liveDate": "2026-11-11T11:00:01Z",
+   "summary": "Challenger World and the host of growth events are back for the Maplayer One winter updates!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/47305"
+  },
+  {
+   "id": 47306,
+   "name": "Now Available: Lethe, Sovereign of Oaths!",
+   "category": "events",
+   "liveDate": "2026-11-11T11:00:00Z",
+   "summary": "Lethe, Sovereign of Oaths, is bringing her loyal vassals to MapleStory!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/47306"
+  },
+  {
+   "id": 47254,
+   "name": "MapleStory Cash Shop Update: Nov. 11",
+   "category": "sale",
+   "liveDate": "2026-11-10T16:30:00Z",
+   "summary": "Mythic SSB Update, Genesis Passes, Premium SSB Update, Challenger Passes, and more!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/47254"
+  },
+  {
+   "id": 47069,
+   "name": "Classic World Cash Shop Update: Nov. 11",
+   "category": "sale",
+   "liveDate": "2026-11-10T16:00:00Z",
+   "summary": "Mystery Styles Update!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/47069"
+  },
+  {
+   "id": 47132,
+   "name": "v.272 - Maplayer One Patch Notes",
+   "category": "update",
+   "liveDate": "2026-11-10T15:30:00Z",
+   "summary": "Click here to read the patch notes for v.272 -  Maplayer One update.",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/47132"
+  },
+  {
+   "id": 47826,
+   "name": "[Completed] Scheduled Game Update - November 11, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-09T17:20:12Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 9 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/47826"
+  },
+  {
+   "id": 45226,
+   "name": "v.271 Known Issues",
+   "category": "maintenance",
+   "liveDate": "2026-11-09T03:00:00Z",
+   "summary": "Here you’ll find a list of known and resolved issues from the v.271 - MapleStory x Frieren: Beyond Journey's End update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/45226"
+  },
+  {
+   "id": 46688,
+   "name": "MapleStory Fest 2026 Recap!",
+   "category": "community",
+   "liveDate": "2026-11-06T17:00:00Z",
+   "summary": "Check out the MapleStory Fest 2026 recap video!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/46688"
+  },
+  {
+   "id": 47580,
+   "name": "[Completed] Unscheduled Maintenance - November 4, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-04T17:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 2 hours.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/47580"
+  },
+  {
+   "id": 47256,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - October 29, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-04T10:00:19Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 8 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/47256"
+  },
+  {
+   "id": 46661,
+   "name": "MapleStory Cash Shop Update: Nov. 4",
+   "category": "sale",
+   "liveDate": "2026-11-03T16:00:01Z",
+   "summary": "Gachapon Update and more!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/46661"
+  },
+  {
+   "id": 47031,
+   "name": "Classic World Cash Shop Update: Nov. 4",
+   "category": "sale",
+   "liveDate": "2026-11-03T16:00:00Z",
+   "summary": "Mystery Fashion Crate Update!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/47031"
+  },
+  {
+   "id": 47370,
+   "name": "[Completed] Unscheduled Emergency Maintenance - October 30, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-30T16:00:03Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 2 hours. Please restart your Nexon Launcher or Steam to ensure you receive the latest client update.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/47370"
+  },
+  {
+   "id": 47298,
+   "name": "[Completed] Scheduled Maintenance - October 29, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-29T08:00:47Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 4 hours.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/47298"
+  },
+  {
+   "id": 47070,
+   "name": "Maple Music Video Contest Winners!",
+   "category": "community",
+   "liveDate": "2026-10-28T15:00:00Z",
+   "summary": "Check out the winners of the Maple Music Video Contest, judged and announced at MapleStory Fest 2026!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/47070"
+  },
+  {
+   "id": 46460,
+   "name": "MapleStory Cash Shop Update: Oct. 28",
+   "category": "sale",
+   "liveDate": "2026-10-27T16:00:00Z",
+   "summary": "Royal Styles Update and more!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/46460"
+  },
+  {
+   "id": 46602,
+   "name": "[Update Oct 28] Classic World Cash Shop Update: Oct. 28",
+   "category": "sale",
+   "liveDate": "2026-10-27T16:00:00Z",
+   "summary": "Halloween Mystery Fashion Crate, Mystery Styles Update, and more!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/46602"
+  },
+  {
+   "id": 47102,
+   "name": "Introducing the Debt System in MapleStory Classic World",
+   "category": "general",
+   "liveDate": "2026-10-22T14:00:07Z",
+   "summary": "Click here for the details of the new Debt System!",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/47102"
+  },
+  {
+   "id": 47098,
+   "name": "[Completed] Unscheduled Maintenance - October 22, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-22T12:00:22Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 2 hours.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/47098"
+  },
+  {
+   "id": 46370,
+   "name": "The Grand Launch of Global MapleStory Classic World!",
+   "category": "general",
+   "liveDate": "2026-10-21T11:00:00Z",
+   "summary": "Grand Launch brings Housing in Henesys and Kerning City, Grand Launch events, and so much more!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/46370"
+  },
+  {
+   "id": 46800,
+   "name": "[Completed] Scheduled Grand Launch - October 21, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-21T10:59:23Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 5 hours.",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/46800"
+  },
+  {
+   "id": 46506,
+   "name": "Grand Launch Release Notes",
+   "category": "general",
+   "liveDate": "2026-10-20T17:50:48Z",
+   "summary": "Click here to read the release notes for the Global MapleStory Classic World Grand Launch!",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/46506"
+  },
+  {
+   "id": 46362,
+   "name": "Grand Launch Cash Shop Update",
+   "category": "sale",
+   "liveDate": "2026-10-20T16:00:02Z",
+   "summary": "Beauty Essentials Pack, Mystery Fashion Crate, and more!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/46362"
+  },
+  {
+   "id": 46242,
+   "name": "Halloween Ethereal Atelier: Pumpkin Candles",
+   "category": "sale",
+   "liveDate": "2026-10-20T16:00:01Z",
+   "summary": "The Ethereal Atelier returns! Get Pumpkin Candles to claim new items!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/46242"
+  },
+  {
+   "id": 46292,
+   "name": "Cash Shop Update for October 21",
+   "category": "sale",
+   "liveDate": "2026-10-20T16:00:00Z",
+   "summary": "Ethereal Atelier, Halloween Effects, and more!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/46292"
+  },
+  {
+   "id": 46613,
+   "name": "Inkwell's Note: Maplayer One",
+   "category": "general",
+   "liveDate": "2026-10-17T16:30:00Z",
+   "summary": "Inkwell previews the Maplayer One Winter Updates!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/46613"
+  },
+  {
+   "id": 46730,
+   "name": "Changes to Megaphone Level Requirements Notice",
+   "category": "general",
+   "liveDate": "2026-10-16T14:00:00Z",
+   "summary": "Click here for details on the updated Megaphone requirements.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/46730"
+  },
+  {
+   "id": 46330,
+   "name": "MapleStory Fest 2026 is this Saturday!",
+   "category": "community",
+   "liveDate": "2026-10-15T15:00:00Z",
+   "summary": "Check out the Livestream schedule and get ready for the event this Saturday!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/46330"
+  },
+  {
+   "id": 46523,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - October 15, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-15T10:55:48Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 3 hours.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/46523"
+  },
+  {
+   "id": 45551,
+   "name": "Night of the Yeti",
+   "category": "events",
+   "liveDate": "2026-10-13T17:00:00Z",
+   "summary": "Play the Night of the Yeti as either a common hunter or a Monster Yeti and earn frightfully fun rewards!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/45551"
+  },
+  {
+   "id": 45474,
+   "name": "Cash Shop Update for October 14",
+   "category": "sale",
+   "liveDate": "2026-10-13T16:00:00Z",
+   "summary": "Premium SSB Update, Change Royal Styles, and more!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/45474"
+  },
+  {
+   "id": 45499,
+   "name": "[Update Oct 14] Parking and Directions for MapleStory Fest 2026",
+   "category": "community",
+   "liveDate": "2026-10-09T15:00:00Z",
+   "summary": "Learn how to get to MapleStory Fest 2026 and where to park!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/45499"
+  },
+  {
+   "id": 46249,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - October 8, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-08T10:53:10Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 7 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/46249"
+  },
+  {
+   "id": 46321,
+   "name": "[Completed] Unscheduled Maintenance - October 8, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-10-08T05:00:00Z",
+   "summary": "We will be performing an unscheduled maintenance starting on Thursday, October 8, 2026 at 7:00 AM PDT (10:00 AM EDT / 4:00 PM CEST / 1:00 AM AEDT October 9).",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/46321"
+  },
+  {
+   "id": 45500,
+   "name": "Sign Up for the v.272 Public Test Server!",
+   "category": "general",
+   "liveDate": "2026-10-07T16:00:00Z",
+   "summary": "We're inviting you to sign up for a chance to join the Public Test Server, and try out the November update!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/45500"
+  },
+  {
+   "id": 45393,
+   "name": "Winter Countdown Event",
+   "category": "events",
+   "liveDate": "2026-10-06T17:00:30Z",
+   "summary": "Stock up for the upcoming frost with a collection of useful items in the Winter Countdown event!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/45393"
+  },
+  {
+   "id": 45490,
+   "name": "Founder's Access Has Begun!",
+   "category": "general",
+   "liveDate": "2026-10-06T16:19:00Z",
+   "summary": "Founder's Access for Global MapleStory Classic World is now live!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/45490"
+  },
+  {
+   "id": 45359,
+   "name": "Cash Shop Update for October 7",
+   "category": "sale",
+   "liveDate": "2026-10-06T16:00:00Z",
+   "summary": "Royal Styles, Violet Cubes, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/45359"
+  },
+  {
+   "id": 45819,
+   "name": "Founder's Access Cash Shop",
+   "category": "sale",
+   "liveDate": "2026-10-05T19:55:07Z",
+   "summary": "Check out the Cash Shop details for Founder's Access in Global MapleStory Classic World!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/45819"
+  },
+  {
+   "id": 45621,
+   "name": "Founder's Access Release Notes",
+   "category": "general",
+   "liveDate": "2026-10-03T13:30:00Z",
+   "summary": "Click here to read the release notes for the Global MapleStory Classic World Founder's Access.",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/45621"
+  },
+  {
+   "id": 45681,
+   "name": "Inkwell on the Future of Global MapleStory and Classic World",
+   "category": "general",
+   "liveDate": "2026-10-02T13:44:41Z",
+   "summary": "Click here to read more about Inkwell on the Future of Global MapleStory and Classic World.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/45681"
+  },
+  {
+   "id": 45521,
+   "name": "Founder's Access Pre-Download Instructions Nexon Launcher and Steam",
+   "category": "general",
+   "liveDate": "2026-09-29T17:52:00Z",
+   "summary": "Click here for the steps to pre-download Founder's Access on Nexon Launcher or Steam!",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/45521"
+  },
+  {
+   "id": 45385,
+   "name": "MapleStory Classic World FAQ",
+   "category": "general",
+   "liveDate": "2026-09-29T17:00:00Z",
+   "summary": "Click here for more details and answers to frequently asked questions about MapleStory Classic World.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/45385"
+  },
+  {
+   "id": 45330,
+   "name": "Defend the Omega Sector!",
+   "category": "events",
+   "liveDate": "2026-09-29T17:00:00Z",
+   "summary": "Join the M-Forcers protecting the festival and getting the Mesotron-S into fighting shape!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/45330"
+  },
+  {
+   "id": 45259,
+   "name": "Cash Shop Update for September 30",
+   "category": "sale",
+   "liveDate": "2026-09-29T16:00:00Z",
+   "summary": "Autumn Surprise Boxes and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/45259"
+  },
+  {
+   "id": 44949,
+   "name": "Cash Shop Update for September 23",
+   "category": "sale",
+   "liveDate": "2026-09-22T16:00:00Z",
+   "summary": "Gachapon Update, Premium SSB Update, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/44949"
+  },
+  {
+   "id": 45230,
+   "name": "Maple Memo: Notice Regarding Account Sanctions Across Global MapleStory and Global MapleStory Classic World",
+   "category": "general",
+   "liveDate": "2026-09-22T16:00:00Z",
+   "summary": "Click here to read more on the Account Sanctions Across Global MapleStory and Global MapleStory Classic World Notice.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/45230"
+  },
+  {
+   "id": 45318,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - September 17, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-09-17T12:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 7 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/45318"
+  },
+  {
+   "id": 44528,
+   "name": "Cash Shop Update for September 16",
+   "category": "sale",
+   "liveDate": "2026-09-15T16:00:00Z",
+   "summary": "Royal Styles and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/44528"
+  },
+  {
+   "id": 45268,
+   "name": "September 2026 Community Contest",
+   "category": "community",
+   "liveDate": "2026-09-15T11:00:00Z",
+   "summary": "Take a look at the new and upcoming Community Contests below, and be prepared to take on these challenges!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/45268"
+  },
+  {
+   "id": 44825,
+   "name": "Maple Memo: Notice Regarding Unauthorized MapleStory Servers",
+   "category": "general",
+   "liveDate": "2026-09-11T16:00:00Z",
+   "summary": "Click here for more details regarding unauthorized MapleStory servers.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/44825"
+  },
+  {
+   "id": 45261,
+   "name": "[Completed] Unscheduled Channel Maintenance - September 10, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-09-10T20:00:00Z",
+   "summary": "The channel maintenance has been completed. Thank you for your patience.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/45261"
+  },
+  {
+   "id": 44291,
+   "name": "Signature Style Collection",
+   "category": "sale",
+   "liveDate": "2026-09-09T13:00:00Z",
+   "summary": "Use the Signature Style Collection to collect a complete outfit set!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/44291"
+  },
+  {
+   "id": 44314,
+   "name": "Philosopher's Book",
+   "category": "sale",
+   "liveDate": "2026-09-09T13:00:00Z",
+   "summary": "Open the Philosopher’s Book to collect a pair of special items!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/44314"
+  },
+  {
+   "id": 44348,
+   "name": "Special Petite Luna Pets",
+   "category": "sale",
+   "liveDate": "2026-09-09T13:00:00Z",
+   "summary": "Use Special Luna Crystals and Wisp's Wondrous Wonderberry to meet Special Petite Luna Pets!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/44348"
+  },
+  {
+   "id": 44414,
+   "name": "[Update Sept 11] Frieren's Spell Collection",
+   "category": "events",
+   "liveDate": "2026-09-09T11:01:00Z",
+   "summary": "New magic to collect—let’s explore Maple World!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/44414"
+  },
+  {
+   "id": 44415,
+   "name": "Adventure with Frieren's Companions",
+   "category": "events",
+   "liveDate": "2026-09-09T11:00:00Z",
+   "summary": "We’ve got support—let’s go hunting!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/44415"
+  },
+  {
+   "id": 44597,
+   "name": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
+   "category": "update",
+   "liveDate": "2026-09-08T18:00:00Z",
+   "summary": "Click here to read the patch notes for v.271 - MapleStory x Frieren: Beyond Journey's End update.",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44597"
+  },
+  {
+   "id": 44225,
+   "name": "Cash Shop Update for September 9",
+   "category": "sale",
+   "liveDate": "2026-09-08T16:00:00Z",
+   "summary": "Collaboration Sales, Choice Styles and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/44225"
+  },
+  {
+   "id": 44892,
+   "name": "[Completed] Scheduled Game Update - September 9, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-09-08T11:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 9 hours. ",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/44892"
+  },
+  {
+   "id": 44159,
+   "name": "Auction House Item Claim Reminder Notice",
+   "category": "general",
+   "liveDate": "2026-09-03T12:00:00Z",
+   "summary": "Reminder to claim your old items from the Auction House!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/44159"
+  },
+  {
+   "id": 44134,
+   "name": "Classic World Founder's Packages Now On Sale!",
+   "category": "sale",
+   "liveDate": "2026-09-02T16:45:00Z",
+   "summary": "Start playing Classic World early on Tuesday, October 6 with Classic World Founder's Packages!",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/sale/44134"
+  },
+  {
+   "id": 44705,
+   "name": "v.271 Update Preview",
+   "category": "update",
+   "liveDate": "2026-09-02T14:00:00Z",
+   "summary": "Click here to catch a glimpse of our upcoming v.271 update!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/44705"
+  },
+  {
+   "id": 44883,
+   "name": "Founder's Package Purchase Guide",
+   "category": "general",
+   "liveDate": "2026-09-02T14:00:00Z",
+   "summary": "Click here for Founder's Package Purchase Guide!",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/44883"
+  },
+  {
+   "id": 43991,
+   "name": "Cash Shop Update for September 2",
+   "category": "sale",
+   "liveDate": "2026-09-01T16:00:00Z",
+   "summary": "Spirit Collector Packages, Cash Shop Transfer Event, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/43991"
+  },
+  {
+   "id": 44154,
+   "name": "Spanish Language Support (Beta) Notice",
+   "category": "general",
+   "liveDate": "2026-08-27T12:00:00Z",
+   "summary": "Click here to read more on the Spanish Language Support (Beta) Notice.",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/44154"
+  },
+  {
+   "id": 44267,
+   "name": "Check your MapleStory Fest 2026 Badges!",
+   "category": "community",
+   "liveDate": "2026-08-26T12:00:00Z",
+   "summary": "MapleStory Fest 2026 attendees have until 12:00 PM PT on Thursday, August 27 to select their characters for their personalized badges!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/44267"
+  },
+  {
+   "id": 43420,
+   "name": "v.270 Known Issues",
+   "category": "maintenance",
+   "liveDate": "2026-08-26T12:00:00Z",
+   "summary": "Here you’ll find a list of known and resolved issues from the v.270 - Ride the Lightning update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43420"
+  },
+  {
+   "id": 43992,
+   "name": "[Update Aug 26] Fantasia Finale Event",
+   "category": "events",
+   "liveDate": "2026-08-25T17:00:00Z",
+   "summary": "Wrap up the Night of Phantasms event with daily check-ins, and earn the Ellanos mount, pet, and illusion ring along with other rewards!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/43992"
+  },
+  {
+   "id": 43821,
+   "name": "[Update Aug 26] Cash Shop Update for August 26",
+   "category": "sale",
+   "liveDate": "2026-08-25T16:00:00Z",
+   "summary": "Gachapon Update, Marvel Machine, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/43821"
+  },
+  {
+   "id": 44413,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - August 27, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-08-25T15:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 8 hours. ",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/44413"
+  },
+  {
+   "id": 43833,
+   "name": "The Marvel Machine Returns August 27!",
+   "category": "sale",
+   "liveDate": "2026-08-24T16:00:00Z",
+   "summary": "Get ready, because the Marvel Machine is returning on Thursday, August 27 at 5:00 PM PDT / 2:00 AM CEST (Aug 28) / 10:00 AM AEST (Aug 28)!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/43833"
+  },
+  {
+   "id": 44359,
+   "name": "Ossyria Exploration Report",
+   "category": "general",
+   "liveDate": "2026-08-21T13:00:00Z",
+   "summary": "Take a look at what we achieved together from the Classic World Closed Online Test #2 and a very special message from Inkwell.",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/44359"
+  },
+  {
+   "id": 44133,
+   "name": "[Completed] Scheduled Cash Shop Maintenance - August 20, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-08-19T14:30:00Z",
+   "summary": "Cash Shop maintenance has been completed. Cash Shop and Billing/Payments have been reenabled thank you for your patience.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/44133"
+  },
+  {
+   "id": 43487,
+   "name": "[Update Aug 26] Cash Shop Update for August 19",
+   "category": "sale",
+   "liveDate": "2026-08-18T16:00:00Z",
+   "summary": "Premium Surprise Style Box, Royal Styles, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/43487"
+  },
+  {
+   "id": 43763,
+   "name": "Closes 5:00 PM PT - MapleStory Fest 2026 Merch Shop Open for Pre-Orders!",
+   "category": "community",
+   "liveDate": "2026-08-14T16:00:00Z",
+   "summary": "MapleStory Fest 2026 Merch Pre-Orders end today at 5:00 PM PT! Get your pre-orders in before it's too late!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/43763"
+  },
+  {
+   "id": 43762,
+   "name": "[Sales Closed] MapleStory Fest 2026 Tickets",
+   "category": "community",
+   "liveDate": "2026-08-13T14:00:00Z",
+   "summary": "Sale of MapleStory Fest tickets are now closed.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/43762"
+  },
+  {
+   "id": 42856,
+   "name": "Cash Shop Update for August 12",
+   "category": "sale",
+   "liveDate": "2026-08-11T16:00:00Z",
+   "summary": "Coloring Prism Daily Deal and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42856"
+  },
+  {
+   "id": 43961,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - August 13, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-08-11T12:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 6 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43961"
+  },
+  {
+   "id": 43962,
+   "name": "[Completed] Scheduled Maintenance - August 11, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-08-11T11:00:00Z",
+   "summary": "The maintenance has been completed.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43962"
+  },
+  {
+   "id": 43803,
+   "name": "Maple Music Video Contest at MapleStory Fest 2026",
+   "category": "community",
+   "liveDate": "2026-08-10T18:00:00Z",
+   "summary": "Join us for the first ever Maple Music Video Contest at MapleStory Fest 2026!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/43803"
+  },
+  {
+   "id": 42772,
+   "name": "MapleStory Fest 2026 is Coming October 17!",
+   "category": "community",
+   "liveDate": "2026-08-10T16:00:00Z",
+   "summary": "We're excited to announce that MapleStory Fest 2026 is returning to Los Angeles on Saturday, October 17!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/42772"
+  },
+  {
+   "id": 43903,
+   "name": "[Completed] Unscheduled Maintenance - August 10, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-08-10T14:00:00Z",
+   "summary": "The maintenance has been completed.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43903"
+  },
+  {
+   "id": 39223,
+   "name": "What's Your MapleStory - Plurinal",
+   "category": "community",
+   "liveDate": "2026-08-07T15:00:00Z",
+   "summary": "Plurinal shares their journey through MapleStory!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/community/39223"
+  },
+  {
+   "id": 43846,
+   "name": "[Completed] Unscheduled Maintenance - August 7, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-08-07T02:00:00Z",
+   "summary": "The maintenance has been completed.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43846"
+  },
+  {
+   "id": 43431,
+   "name": "Miracle Summer 2026 Redux",
+   "category": "events",
+   "liveDate": "2026-08-06T18:00:00Z",
+   "summary": "Miracle Summer will take place Friday, August 14 through Wednesday, August 19 (UTC), with each day giving double Rank-Up chances for different slots of equipment!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/43431"
+  },
+  {
+   "id": 43808,
+   "name": "Classic World: Closed Online Test #2 Known Issues",
+   "category": "maintenance",
+   "liveDate": "2026-08-06T13:00:00Z",
+   "summary": "Here you’ll find a list of known issues from the MapleStory Classic World Closed Online Test #2.",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43808"
+  },
+  {
+   "id": 43807,
+   "name": "Maple Memo: Addressing Recent Instances of Hacking Activity",
+   "category": "general",
+   "liveDate": "2026-08-05T18:00:00Z",
+   "summary": "Click here for more details regarding the recent instances of hacking activity.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/43807"
+  },
+  {
+   "id": 43492,
+   "name": "Momentum Pass Continues!",
+   "category": "events",
+   "liveDate": "2026-08-04T17:00:00Z",
+   "summary": "The second round of the Momentum Pass is here, with a new wealth of rewards to earn by playing MapleStory!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/43492"
+  },
+  {
+   "id": 42846,
+   "name": "Summer Ethereal Atelier: Lucky Turtles",
+   "category": "sale",
+   "liveDate": "2026-08-04T16:00:00Z",
+   "summary": "The Ethereal Atelier returns! Get Lucky Turtles to claim new items!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42846"
+  },
+  {
+   "id": 42853,
+   "name": "Cash Shop Update for August 5",
+   "category": "sale",
+   "liveDate": "2026-08-04T16:00:00Z",
+   "summary": "Ethereal Atelier and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42853"
+  },
+  {
+   "id": 43432,
+   "name": "Closed Online Test #2 Release Notes",
+   "category": "general",
+   "liveDate": "2026-08-03T16:00:00Z",
+   "summary": "Click here to read the release notes for the Global MapleStory Classic World Closed Online Test #2.",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/general/43432"
+  },
+  {
+   "id": 43716,
+   "name": "v.270 Public Test Server Best Tester Reward Notice",
+   "category": "general",
+   "liveDate": "2026-07-30T15:00:00Z",
+   "summary": "Congratulations to the players who were the best testers during the PTS for v.270!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/43716"
+  },
+  {
+   "id": 43574,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - July 30, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-07-28T18:35:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 10 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43574"
+  },
+  {
+   "id": 42634,
+   "name": "Cash Shop Update for July 29",
+   "category": "sale",
+   "liveDate": "2026-07-28T16:00:00Z",
+   "summary": "Gachapon Update, Premium Surprise Style Box, Royal Styles, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42634"
+  },
+  {
+   "id": 43430,
+   "name": "[Completed] Unscheduled Channel Maintenance - July 23, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-07-23T12:10:00Z",
+   "summary": "The channel maintenance has been completed. Thank you for your patience.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43430"
+  },
+  {
+   "id": 43429,
+   "name": "[Completed] Scheduled Cash Shop Maintenance - July 23, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-07-22T20:40:00Z",
+   "summary": "We will be performing a scheduled Cash Shop maintenance starting on Thursday, July 23, 2026 at 5:00 AM PDT (8:00 AM EDT / 2:00 PM CEST / 10:00 PM AEST). ",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/43429"
+  },
+  {
+   "id": 42854,
+   "name": "Brazil Digital ECA Update",
+   "category": "general",
+   "liveDate": "2026-07-22T13:00:00Z",
+   "summary": "Click here for more details regarding the Brazil Digital ECA Update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42854"
+  },
+  {
+   "id": 42466,
+   "name": "[Update Aug 13] Mystic Frontier Champions",
+   "category": "events",
+   "liveDate": "2026-07-22T12:40:00Z",
+   "summary": "Fill out your collection of Familiars, and select the perfect group for a different challenge every week, and take on the competition for special rewards!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/42466"
+  },
+  {
+   "id": 42465,
+   "name": "Kinesis Redux!",
+   "category": "events",
+   "liveDate": "2026-07-22T11:41:00Z",
+   "summary": "Take a look at the many changes that have come to Kinesis and claim unique rewards in the Kinetic Event!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/42465"
+  },
+  {
+   "id": 42477,
+   "name": "Operation: Dive Phase 2",
+   "category": "events",
+   "liveDate": "2026-07-22T11:39:00Z",
+   "summary": "The second phase of Operation: Dive is here!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/42477"
+  },
+  {
+   "id": 42467,
+   "name": "Ride or Die Revamp!",
+   "category": "events",
+   "liveDate": "2026-07-22T11:38:00Z",
+   "summary": "Take on a new boss challenge every week with the newest round of Ride or Die!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/42467"
+  },
+  {
+   "id": 42446,
+   "name": "Cash Shop Update for July 22",
+   "category": "sale",
+   "liveDate": "2026-07-21T17:10:00Z",
+   "summary": "Boss Outfit Packages, Boss Style Coupons, Summer Outfit Packages, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42446"
+  },
+  {
+   "id": 42415,
+   "name": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
+   "category": "update",
+   "liveDate": "2026-07-21T16:00:00Z",
+   "summary": "Click here to read the patch notes for v.270 - Ride the Lightning update.",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/42415"
+  },
+  {
+   "id": 42877,
+   "name": "[Completed] Scheduled Game Update - July 22, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-07-20T19:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 8 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42877"
+  },
+  {
+   "id": 42364,
+   "name": "Sign Up for Global MapleStory Classic World Closed Online Test #2",
+   "category": "general",
+   "liveDate": "2026-07-16T16:00:00Z",
+   "summary": "Sign-ups for the upcoming Global MapleStory Classic World Closed Online Test #2 on August 4, 2026 are now open!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42364"
+  },
+  {
+   "id": 42797,
+   "name": "Maple Memo: Addressing the Unique tier Familiar Boss Damage Potential",
+   "category": "general",
+   "liveDate": "2026-07-16T15:00:00Z",
+   "summary": "Click here for more details regarding the Unique tier Familiar Boss Damage Potential option.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42797"
+  },
+  {
+   "id": 42359,
+   "name": "Try the Kinesis Demo!",
+   "category": "general",
+   "liveDate": "2026-07-15T16:00:00Z",
+   "summary": "Get a sneak preview of Kinesis' new skills and abilities with the Kinesis web demo now!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42359"
+  },
+  {
+   "id": 42333,
+   "name": "Cash Shop Update for July 15",
+   "category": "sale",
+   "liveDate": "2026-07-14T16:30:00Z",
+   "summary": "Lightning Surprise Style Box and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42333"
+  },
+  {
+   "id": 42197,
+   "name": "v.269 Known Issues",
+   "category": "maintenance",
+   "liveDate": "2026-07-14T10:30:00Z",
+   "summary": "Here you’ll find a list of known and resolved issues from the v.269 - Ride the Lightning update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42197"
+  },
+  {
+   "id": 42501,
+   "name": "[Completed]Scheduled Minor Patch Maintenance - July 9, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-07-07T18:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 5 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42501"
+  },
+  {
+   "id": 42213,
+   "name": "Cash Shop Update for July 8",
+   "category": "sale",
+   "liveDate": "2026-07-07T16:00:00Z",
+   "summary": "Premium Surprise Style Box, Royal Styles, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/42213"
+  },
+  {
+   "id": 42339,
+   "name": "v.270 Public Test Server Coming Soon!",
+   "category": "general",
+   "liveDate": "2026-07-02T14:00:00Z",
+   "summary": "The Public Test Server is coming for the July v.270 update!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42339"
+  },
+  {
+   "id": 42250,
+   "name": "Custom Portrait Events",
+   "category": "events",
+   "liveDate": "2026-07-01T17:00:00Z",
+   "summary": "Get your Custom Portrait by picking up Portrait Commission Tickets in a pair of events over the next few weeks!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/42250"
+  },
+  {
+   "id": 42249,
+   "name": "Momentum Pass",
+   "category": "events",
+   "liveDate": "2026-06-30T17:00:00Z",
+   "summary": "Keep your momentum going with the Momentum Pass, a collection of bonus rewards you can earn by playing MapleStory!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/42249"
+  },
+  {
+   "id": 41483,
+   "name": "Cash Shop Update for July 1",
+   "category": "sale",
+   "liveDate": "2026-06-30T16:00:00Z",
+   "summary": "Gachapon Update and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/41483"
+  },
+  {
+   "id": 42362,
+   "name": "Notice Regarding 6/26 Accessory Miracle Time Issue Compensation",
+   "category": "general",
+   "liveDate": "2026-06-27T01:00:00Z",
+   "summary": "Click here to read more on the 6/26 Accessory Miracle Time Issue.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42362"
+  },
+  {
+   "id": 42342,
+   "name": "[Completed] Unscheduled Channel Maintenance - June 26, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-06-26T14:00:00Z",
+   "summary": "The channel maintenance has been completed. Thank you for your patience.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42342"
+  },
+  {
+   "id": 42322,
+   "name": "Public Test Server Best Tester Reward Notice",
+   "category": "general",
+   "liveDate": "2026-06-25T14:00:00Z",
+   "summary": "Congratulations to the players who were the best testers during the PTS!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42322"
+  },
+  {
+   "id": 42255,
+   "name": "[Completed] Scheduled Minor Patch Maintenance - June 25, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-06-23T18:30:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 12 hours. ",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42255"
+  },
+  {
+   "id": 41450,
+   "name": "Cash Shop Update for June 24",
+   "category": "sale",
+   "liveDate": "2026-06-23T16:00:00Z",
+   "summary": "Philosopher's Book and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/41450"
+  },
+  {
+   "id": 42254,
+   "name": "Compensation for the 6/20 Unscheduled Maintenance",
+   "category": "general",
+   "liveDate": "2026-06-22T18:40:00Z",
+   "summary": "We apologize for the inconvenience experienced by the players due to the Kronos World downtime, channel maintenance, and issues using certain content after the v.269 patch.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/42254"
+  },
+  {
+   "id": 42253,
+   "name": "[Completed] Unscheduled Channel Maintenance - June 20, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-06-20T23:00:00Z",
+   "summary": "The unscheduled channel maintenance has been completed.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42253"
+  },
+  {
+   "id": 42252,
+   "name": "[Completed] Emergency Maintenance - June 20, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-06-20T18:30:00Z",
+   "summary": "[Updated 6/20 at 10:40 PM PDT] The maintenance has been completed and we have extended Cash Shop items in your inventory for 4 hours.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/42252"
+  },
+  {
+   "id": 41369,
+   "name": "Miracle Summer 2026",
+   "category": "events",
+   "liveDate": "2026-06-18T18:00:00Z",
+   "summary": "Miracle Summer will take place Friday, June 26 through Wednesday, July 1 (UTC), with each day giving double Rank-Up chances for different slots of equipment!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/41369"
+  },
+  {
+   "id": 41137,
+   "name": "Now Available: Erel Light!",
+   "category": "events",
+   "liveDate": "2026-06-17T11:12:00Z",
+   "summary": "The Savior of Light is here, and you can earn special rewards in the SHINE: The Power of Starlight event!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/41137"
+  },
+  {
+   "id": 41132,
+   "name": "Challenger World and Burning Events!",
+   "category": "events",
+   "liveDate": "2026-06-17T11:11:00Z",
+   "summary": "Challenger World and the Burning Events are back!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/41132"
+  },
+  {
+   "id": 41133,
+   "name": "Operation: Dive",
+   "category": "events",
+   "liveDate": "2026-06-17T11:10:00Z",
+   "summary": "Althea is back with a new, Global MapleStory-exclusive story!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/events/41133"
+  },
+  {
+   "id": 41138,
+   "name": "[Updated 6/30] v.269 - Ride the Lightning Patch Notes",
+   "category": "update",
+   "liveDate": "2026-06-16T16:30:00Z",
+   "summary": "Click here to read the patch notes for v.269 -  Ride the Lightning update.",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/update/41138"
+  },
+  {
+   "id": 41224,
+   "name": "Cash Shop Update for June 17",
+   "category": "sale",
+   "liveDate": "2026-06-16T16:00:00Z",
+   "summary": "Mythic Star Style Box, Challenger EXP Duo Coupon, Premium Surprise Style Box, Genesis Pass, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/41224"
+  },
+  {
+   "id": 41982,
+   "name": "[Completed] Scheduled Game Update - June 17, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-06-15T18:00:00Z",
+   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 9 hours. Please restart your Nexon Launcher or Steam to ensure you receive the latest client update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/41982"
+  },
+  {
+   "id": 40929,
+   "name": "Cash Shop Update for June 10",
+   "category": "sale",
+   "liveDate": "2026-06-09T16:00:00Z",
+   "summary": "Unicube 10-Pack, Cash Shop Transfer Event, and more!",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/sale/40929"
+  }
+ ]
+}
