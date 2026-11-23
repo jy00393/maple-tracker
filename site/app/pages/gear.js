@@ -1,5 +1,6 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
 import { searchItems, itemSlotKey, iconUrl, tierFromName } from '../calc/items.js';
+import { lineChoices, makeLine, refreshLines } from '../calc/potential.js';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Bar, Seg, NumberInput, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
 import { gearSummary, gearProjection } from '../calc/progress.js';
@@ -88,7 +89,7 @@ function ItemIcon({ entry, size = 36 }) {
 }
 
 // Name box with suggestions from the item list for this slot. Picking one fills the name, level and picture.
-function ItemPicker({ slot, entry, tiers, hints, set }) {
+function ItemPicker({ slot, entry, tiers, hints, set, pot }) {
   const doc = useItems();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -96,6 +97,7 @@ function ItemPicker({ slot, entry, tiers, hints, set }) {
   const hits = open && doc ? searchItems(doc.items, itemSlotKey(slot.id), text, 8) : [];
   const pick = (h) => {
     const patch = { note: h.name, ilvl: h.level, itemId: h.id, iconVer: doc.version };
+    if (entry.pot && Array.isArray(entry.potLines) && entry.potLines.length) patch.potLines = refreshLines(pot, slot.id, entry.pot, h.level, entry.potLines);
     const tier = tierFromName(h.name, tiers, hints);
     if (tier) patch.tier = tier;
     else if (!entry.tier) patch.tier = 1;
@@ -120,44 +122,44 @@ function ItemPicker({ slot, entry, tiers, hints, set }) {
   </div>`;
 }
 
-function LineEditor({ slot, entry, set, up, mainStat }) {
+function LineEditor({ slot, entry, set, pot, mainStat }) {
   const tier = entry.pot || 0;
-  const opts = lineOptions(slot, tier);
   if (!hasPotential(slot)) return html`<p class="note">This slot can't have potential.</p>`;
   if (!tier) return html`<p class="note">Pick a potential tier to add its lines.</p>`;
   const lines = Array.isArray(entry.potLines) ? entry.potLines : [];
   const lvl = itemLevel(slot, entry);
-  const choices = [];
-  for (const t of opts) {
-    if (t === 'main') for (const st of MAIN_STATS) choices.push([`main:${st}`, `${st} %`]);
-    else choices.push([t, LINE_TYPES[t].label(mainStat)]);
-  }
-  const setLine = (i, patch) => {
-    const next = [0, 1, 2].map((k) => lines[k] || null);
-    next[i] = patch ? { ...(next[i] || {}), ...patch } : null;
-    set({ potLines: next.filter(Boolean).length ? next.map((l) => l || { type: '' }) : [] });
+  const choices = lineChoices(pot, slot.id, tier, lvl);
+  const prime = choices.filter((c) => c.prime);
+  const nonPrime = choices.filter((c) => !c.prime);
+  const keyOf = (c) => `${c.prime ? 'p' : 'n'}${c.pid}`;
+  const setLine = (i, line) => {
+    const next = [0, 1, 2].map((k) => lines[k] || { type: '' });
+    next[i] = line || { type: '' };
+    set({ potLines: next.some((l) => l && l.type) ? next : [] });
   };
+  const group = (label, list) => (list.length ? html`<optgroup label=${label}>${list.map((c) => html`<option value=${keyOf(c)}>${c.text}</option>`)}</optgroup>` : null);
   return html`<div class="grid" style=${{ gap: '8px' }}>
     ${[0, 1, 2].map((i) => {
       const l = lines[i] || {};
-      const key = l.type === 'main' ? `main:${l.stat || mainStat}` : l.type || '';
+      const fromTable = l.type && l.pid !== undefined && l.pid !== null;
+      const current = fromTable ? choices.find((c) => c.pid === l.pid && c.prime === Boolean(l.prime)) : null;
+      const legacy = l.type && !current;
       const kind = lineKind(slot, l);
-      return html`<label class="field"><span>Potential line ${i + 1}${kind === 'farm' ? ' · farming' : kind === 'damage' ? ' · damage' : ''}</span>
-        <div class="pline">
-          <select class="select" aria-label=${'Potential line ' + (i + 1)} value=${key} onChange=${(e) => {
-            const v = e.currentTarget.value;
-            if (!v) return setLine(i, null);
-            const [type, stat] = v.split(':');
-            setLine(i, { type, stat: stat || undefined, value: defaultValue(up, type, tier, lvl) });
-          }}>
-            <option value="">— none —</option>
-            ${choices.map(([v, label]) => html`<option value=${v}>${label}</option>`)}
-          </select>
-          <input class="input" type="number" step="1" min="0" max="100" aria-label=${'Line ' + (i + 1) + ' value'} value=${l.type ? l.value ?? '' : ''} disabled=${!l.type}
-            onInput=${(e) => setLine(i, { value: e.currentTarget.value === '' ? null : Number(e.currentTarget.value) })} />
-        </div></label>`;
+      return html`<label class="field"><span>Potential line ${i + 1}${current ? (current.prime ? ' · prime' : ' · non-prime') : ''}${kind === 'farm' ? ' · farming' : kind === 'damage' ? ' · damage' : ''}</span>
+        <select class="select pline-select" aria-label=${'Potential line ' + (i + 1)} value=${current ? keyOf(current) : legacy ? 'legacy' : ''} onChange=${(e) => {
+          const v = e.currentTarget.value;
+          if (!v) return setLine(i, null);
+          if (v === 'legacy') return;
+          const c = choices.find((x) => keyOf(x) === v);
+          if (c) setLine(i, makeLine(pot, c, lvl));
+        }}>
+          <option value="">— none —</option>
+          ${legacy ? html`<option value="legacy">${lineLabel(l, mainStat)} (entered earlier)</option>` : null}
+          ${group(`Prime · ${POT[tier]}`, prime)}
+          ${group(`Non-prime · ${POT[tier - 1] === 'None' ? 'Rare' : POT[tier - 1]}`, nonPrime)}
+        </select></label>`;
     })}
-    <p class="note">Values start at the usual prime line for a Lv. ${lvl} item${tier === 4 && opts.includes('meso') ? '; Meso and Item Drop +20% are Legendary accessory lines' : ''}. Change them to match yours.</p>
+    <p class="note">Lines and values for a Lv. ${lvl} ${slot.name.toLowerCase()} at ${POT[tier]}: prime lines are the item's own tier, non-prime lines come from the tier below. Useful lines are listed first. From StrategyWiki (2023), so a line added since may be missing.</p>
   </div>`;
 }
 
@@ -210,25 +212,25 @@ function SlotModal({ row, data, char, onClose }) {
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
       <div class="grid" style=${{ gap: '14px' }}>
-        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} />
+        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} pot=${data.potential} />
         <div class="form-grid">
           <label class="field"><span>Item tier</span>
             <select class="select" value=${String(entry.tier || 0)} onChange=${(e) => set({ tier: Number(e.currentTarget.value) })}>
               <option value="0">Empty</option>
               ${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}
             </select></label>
-          <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${lvl} min=${0} max=${300} onChange=${(v) => set({ ilvl: v || null })} /></label>
+          <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${lvl} min=${0} max=${300} onChange=${(v) => set({ ilvl: v || null, ...(entry.pot && (entry.potLines || []).length ? { potLines: refreshLines(data.potential, slot.id, entry.pot, itemLevel(slot, { ...entry, ilvl: v || null }), entry.potLines) } : {}) })} /></label>
           ${slot.sf ? html`<label class="field"><span>Stars (max ${max})</span><${NumberInput} className="input" label=${slot.name + ' stars'} value=${entry.stars || 0} max=${max || 30} onChange=${(v) => set({ stars: v || 0 })} /></label>` : null}
           ${hasPotential(slot) ? html`<label class="field"><span>Potential tier</span>
             <select class=${'select pot-' + (entry.pot || 0)} value=${String(entry.pot || 0)} onChange=${(e) => {
               const pot = Number(e.currentTarget.value);
-              const allowed = new Set(lineOptions(slot, pot));
-              set({ pot, potLines: (entry.potLines || []).filter((l) => l && allowed.has(l.type)) });
+              const kept = refreshLines(data.potential, slot.id, pot, lvl, entry.potLines).map((l) => (l.type && (l.pid === undefined || l.pid === null) ? { type: '' } : l));
+              set({ pot, potLines: pot && kept.some((l) => l.type) ? kept : [] });
             }}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>` : null}
           ${!heroic && hasPotential(slot) ? html`<label class="field"><span>Bonus potential</span>
             <select class="select" value=${String(entry.bpot || 0)} onChange=${(e) => set({ bpot: Number(e.currentTarget.value) })}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>` : null}
         </div>
-        <${LineEditor} slot=${slot} entry=${entry} set=${set} up=${up} mainStat=${mainStat} />
+        <${LineEditor} slot=${slot} entry=${entry} set=${set} pot=${data.potential} mainStat=${mainStat} />
         <label class="toggle"><input type="checkbox" checked=${Boolean(entry.temporary)} onChange=${(e) => set({ temporary: e.currentTarget.checked })} /> Temporary item (Item Burning, event or rental)</label>
         <details>
           <summary class="small muted">Target for this slot: ${tiers[target.tier - 1] || 'tier ' + target.tier}${target.stars ? `, ${target.stars}★` : ''}${hasPotential(slot) ? `, ${POT[target.pot]} with ${target.lines} useful lines` : ''}. Change</summary>

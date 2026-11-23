@@ -153,6 +153,7 @@ export function SettingsPage({ data }) {
         <p class="note">Item Burning Plus: ${data.ibp.source}</p>
         <p class="note">Star Force: ${data.upgrades.starforce.source}</p>
         <p class="note">Cubes: ${data.upgrades.cubes.source}</p>
+        <p class="note">Potential lines: ${data.potential.source}</p>
         <p class="note">EXP: ${data.upgrades.exp.source}</p>
         <p class="note">Not affiliated with Nexon. Game names belong to Nexon; this is a personal tracker.</p>
       <//>

@@ -145,6 +145,8 @@ export function lineTotals(slots, gearState, mainStat = 'STR') {
 
 export function lineLabel(line, mainStat = 'STR') {
   if (!line || !line.type) return '';
+  // Lines picked from the real tables carry the game's own wording.
+  if (line.text) return line.text;
   const t = LINE_TYPES[line.type] || LINE_TYPES.other;
   if (line.type === 'other') return line.text || 'Other line';
   if (line.type === 'cdr') return `Cooldown -${line.value || 0}s`;

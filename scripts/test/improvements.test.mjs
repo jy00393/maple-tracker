@@ -339,3 +339,85 @@ test('item search is per slot, matches every word, and maps names to a tier rung
   const ringTiers = gear.slotTypes.ring.filter(Boolean);
   assert.match(ringTiers[tierFromName('Superior Gollux Ring', ringTiers, gear.tierHints) - 1], /Superior Gollux/);
 });
+
+// ---------- real potential lines ----------
+test('potential lines: data is consistent and matches the rules already in the tracker', async () => {
+  const P = await import('../../site/app/calc/potential.js');
+  const pot = load('potential');
+  // Every pool entry points at a line; every group has five pools.
+  for (const [group, pools] of Object.entries(pot.pools)) {
+    assert.equal(pools.length, 5, group);
+    for (const pool of pools) for (const pid of pool) assert.ok(pot.lines[pid], `${group} -> ${pid}`);
+  }
+  for (const slot of gear.slots) {
+    const group = P.groupOf(pot, slot.id);
+    if (slot.id === 'pocket' || slot.id === 'badge') continue;
+    assert.ok(group && pot.pools[group], `slot ${slot.id} has a line group`);
+  }
+  const texts = (slotId, tier, lvl, prime) => P.lineChoices(pot, slotId, tier, lvl).filter((c) => c.prime === prime).map((c) => c.text);
+
+  // Lv. 151+ Legendary main stat is 13% prime and 10% non-prime; 12% and 9% below Lv. 151.
+  assert.ok(texts('hat', 4, 160, true).includes('STR +13%'));
+  assert.ok(texts('hat', 4, 160, false).includes('STR +10%'));
+  assert.ok(texts('hat', 4, 150, true).includes('STR +12%'));
+  assert.ok(texts('hat', 4, 150, false).includes('STR +9%'));
+  assert.ok(texts('hat', 4, 160, true).includes('All Stats +10%'));
+  // Meso and Item Drop +20% are Legendary prime lines on accessories only.
+  for (const s of ['face', 'eye', 'earrings', 'ring1', 'ring4', 'pendant2']) {
+    assert.ok(texts(s, 4, 160, true).includes('Mesos Obtained +20%'), s);
+    assert.ok(texts(s, 4, 160, true).includes('Item Drop Rate +20%'), s);
+    assert.ok(!texts(s, 3, 160, true).includes('Mesos Obtained +20%'), s);
+  }
+  assert.ok(!texts('belt', 4, 160, true).includes('Mesos Obtained +20%'));
+  // Hat cooldown, glove crit damage, weapon boss damage; no boss damage on emblems.
+  assert.ok(texts('hat', 4, 160, true).includes('Skill Cooldown -2 seconds'));
+  assert.ok(!texts('hat', 4, 100, true).includes('Skill Cooldown -2 seconds'), 'needs Lv. 120+');
+  assert.ok(texts('hat', 4, 100, true).includes('Skill Cooldown -1 second'));
+  assert.ok(texts('gloves', 4, 160, true).includes('Critical Damage +8%'));
+  assert.ok(texts('weapon', 4, 200, true).includes('Damage to Boss Monsters +40%'));
+  assert.ok(texts('weapon', 4, 200, true).includes('Damage to Boss Monsters +35%'));
+  assert.ok(texts('weapon', 4, 200, false).includes('Damage to Boss Monsters +30%'));
+  assert.ok(texts('weapon', 3, 200, true).includes('Damage to Boss Monsters +30%'));
+  assert.ok(texts('weapon', 4, 200, true).includes('Weapon ATT +13%'));
+  assert.ok(texts('secondary', 4, 160, true).includes('Damage to Boss Monsters +40%'));
+  assert.ok(!P.lineChoices(pot, 'emblem', 4, 200).some((c) => c.text.startsWith('Damage to Boss')));
+  assert.ok(texts('emblem', 4, 200, true).includes("Ignore 40% of Monster's DEF when attacking"));
+  assert.deepEqual(P.lineChoices(pot, 'pocket', 4, 160), []);
+  assert.deepEqual(P.lineChoices(pot, 'hat', 0, 160), []);
+  // Useful lines come first within each group.
+  const hat = P.lineChoices(pot, 'hat', 4, 160).filter((c) => c.prime);
+  assert.ok(hat.findIndex((c) => !c.useful) > hat.map((c) => c.useful).lastIndexOf(true));
+});
+
+test('potential lines: saved lines feed the totals and survive tier and level changes', async () => {
+  const P = await import('../../site/app/calc/potential.js');
+  const { lineTotals, lineLabel, usefulLines } = await import('../../site/app/calc/upgrades.js');
+  const pot = load('potential');
+  const pick = (slotId, tier, lvl, text, prime = true) => P.makeLine(pot, P.lineChoices(pot, slotId, tier, lvl).find((c) => c.text === text && c.prime === prime), lvl);
+  const str = pick('hat', 4, 160, 'STR +13%');
+  assert.deepEqual({ type: str.type, stat: str.stat, value: str.value, prime: str.prime, text: str.text }, { type: 'main', stat: 'STR', value: 13, prime: true, text: 'STR +13%' });
+  const cdr = pick('hat', 4, 160, 'Skill Cooldown -2 seconds');
+  assert.deepEqual([cdr.type, cdr.value], ['cdr', 2]);
+  const junk = pick('hat', 4, 160, 'DEF +12%');
+  assert.equal(junk.type, 'other');
+  const boss = pick('weapon', 4, 200, 'Damage to Boss Monsters +40%');
+  const ied = pick('weapon', 4, 200, "Ignore 30% of Monster's DEF when attacking", false);
+  const meso = pick('ring1', 4, 160, 'Mesos Obtained +20%');
+  assert.equal(lineLabel(str), 'STR +13%');
+  assert.equal(lineLabel(junk), 'DEF +12%');
+  const state = { slots: { hat: { tier: 1, pot: 4, potLines: [str, cdr, junk] }, weapon: { tier: 1, pot: 4, potLines: [boss, ied] }, ring1: { tier: 1, pot: 4, potLines: [meso] } } };
+  const totals = lineTotals(gear.slots, state, 'STR');
+  assert.deepEqual([totals.main, totals.cdr, totals.boss, totals.ied, totals.meso], [13, 2, 40, 30, 20]);
+  assert.equal(usefulLines(gear.slots.find((s) => s.id === 'hat'), state.slots.hat), 2);
+
+  // Item level drops below 151: 13% becomes 12%. Tier drops to Unique: the Legendary prime line goes, STR stays at the Unique value.
+  const lower = P.refreshLines(pot, 'hat', 4, 150, [str, cdr]);
+  assert.deepEqual(lower.map((l) => l.text), ['STR +12%', 'Skill Cooldown -2 seconds']);
+  const unique = P.refreshLines(pot, 'hat', 3, 160, [str, cdr]);
+  assert.deepEqual(unique.map((l) => l.text || ''), ['', '']);
+  const nonPrimeStr = pick('hat', 4, 160, 'STR +10%', false);
+  assert.deepEqual(P.refreshLines(pot, 'hat', 3, 160, [nonPrimeStr]).map((l) => [l.text, l.prime]), [['STR +10%', true]]);
+  // Lines entered before the real tables existed are left alone.
+  const old = { type: 'main', stat: 'STR', value: 13 };
+  assert.deepEqual(P.refreshLines(pot, 'hat', 4, 160, [old, null]), [old, { type: '' }]);
+});

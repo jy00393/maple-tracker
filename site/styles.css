@@ -318,3 +318,5 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .suggest { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; margin: 4px 0 0; padding: 4px; list-style: none; background: var(--panel-2); border: 1.5px solid var(--line-2); border-radius: 12px; box-shadow: 0 10px 28px rgba(0, 0, 0, .45); max-height: 300px; overflow-y: auto; }
 .suggest li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; cursor: pointer; min-height: 40px; }
 .suggest li[aria-selected="true"], .suggest li:hover { background: rgba(254, 172, 66, .14); }
+
+.pline-select { background: var(--menu); width: 100%; }
