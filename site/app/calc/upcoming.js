@@ -5,7 +5,8 @@ const DAY = 86400000;
 export function comingUp(upcoming, now, char, limit = 6) {
   const items = (upcoming && Array.isArray(upcoming.items) ? upcoming.items : [])
     .map((it) => ({ ...it, t: Date.parse(it.at) }))
-    .filter((it) => Number.isFinite(it.t) && it.t > now)
+    // A day-only entry ("arrives with that day's maintenance") stays listed until that day is over.
+    .filter((it) => Number.isFinite(it.t) && it.t + (it.day ? DAY : 0) > now)
     .filter((it) => it.only !== 'challenger' || Boolean(char && char.challenger))
     .sort((a, b) => a.t - b.t);
   // Repeating entries of one kind (the weekly pass missions) show only their next date.

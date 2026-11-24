@@ -19,7 +19,7 @@ export function Flames({ data, state }) {
     return html`<${Card} title="Flame calculator"><p class="note">Flame score is not worked out for Max HP characters: there is no sourced formula for it yet.</p><//>`;
   }
   const weights = flameWeights(fl, o.weights);
-  const secondary = o.secondary || SECONDARY_DEFAULT[mainStat];
+  const secondary = o.secondary && o.secondary !== mainStat ? o.secondary : SECONDARY_DEFAULT[mainStat];
   const type = fl.types.find((t) => t.id === o.type) || fl.types[0];
   const slots = data.gear.slots.filter((s) => s.id !== 'weapon' && !fl.noFlameSlots.includes(s.id));
   const gear = (char && state.gear[char.id] && state.gear[char.id].slots) || {};
@@ -29,7 +29,7 @@ export function Flames({ data, state }) {
     const slot = slots.find((s) => s.id === id);
     const entry = slot && gear[slot.id];
     if (!slot || !entry) return set({ slot: id });
-    const patch = { slot: id, level: itemLevel(slot, entry) || o.level };
+    const patch = { slot: id, level: itemLevel(slot, entry) || o.level, adv: entry.flameAdv !== false };
     if (entry.flame) patch.target = Math.floor(flameScore(entry.flame, weights)) + 1;
     set(patch);
   };

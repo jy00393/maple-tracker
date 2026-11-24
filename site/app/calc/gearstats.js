@@ -1,8 +1,9 @@
 // Gear stat totals beyond potential lines: bonus stats (flames) typed in per slot.
-// A flame is { main, att, allstat, boss, dmg }: flat main stat, flat ATT (or Magic ATT), All Stats %, Boss Damage %,
+// A flame is { main, sub, att, allstat, boss, dmg }: flat main stat, flat secondary stat, flat ATT (or Magic ATT), All Stats %, Boss Damage %,
 // Damage %. Every field is optional and entered by hand from the item tooltip.
 export const FLAME_FIELDS = [
   ['main', 'Main stat', ''],
+  ['sub', 'Secondary stat', ''],
   ['att', 'ATT', ''],
   ['allstat', 'All Stats', '%'],
   ['boss', 'Boss Damage', '%'],
@@ -22,6 +23,7 @@ export function flameLabel(flame, mainStat = 'STR') {
   if (!f) return '';
   const parts = [];
   if (f.main) parts.push(`${mainStat} +${f.main}`);
+  if (f.sub) parts.push(`Secondary +${f.sub}`);
   if (f.att) parts.push(`ATT +${f.att}`);
   if (f.allstat) parts.push(`All Stats +${f.allstat}%`);
   if (f.boss) parts.push(`Boss +${f.boss}%`);
@@ -31,7 +33,7 @@ export function flameLabel(flame, mainStat = 'STR') {
 
 // Sum over equipped (non-empty) slots.
 export function flameTotals(slots, gearState) {
-  const out = { main: 0, att: 0, allstat: 0, boss: 0, dmg: 0, items: 0 };
+  const out = { main: 0, sub: 0, att: 0, allstat: 0, boss: 0, dmg: 0, items: 0 };
   for (const slot of slots || []) {
     const e = ((gearState && gearState.slots) || {})[slot.id];
     if (!e || !e.tier) continue;

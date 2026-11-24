@@ -49,6 +49,7 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
       if (!Number.isFinite(n)) return;
       if (max !== undefined) n = Math.min(max, n);
       n = Math.max(min, n);
+      if (Number.isInteger(step)) n = Math.round(n);
       onChange(n);
     }} />`;
 }

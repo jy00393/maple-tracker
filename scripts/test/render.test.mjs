@@ -411,6 +411,27 @@ test('Mesos > Flames gives an answer for every character and every setting, and 
   close(el);
 });
 
+test('a decimal typed into a stars box is saved as a whole number and no page breaks', async () => {
+  store.replaceState(richState(), true);
+  const el = await show('gear');
+  el.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'Hat: edit').fire('click');
+  await tick(5);
+  const box = el.find((n) => n.attrs.role === 'dialog').find((n) => n.localName === 'input' && n.attrs['aria-label'] === 'Hat stars');
+  box.value = '2.5';
+  box.fire('input', { currentTarget: box });
+  await tick(5);
+  assert.equal(store.getState().gear.main.slots.hat.stars, 3);
+  close(el);
+  // Even if a decimal is already in saved data (an older copy, an import), every page still draws.
+  const s = richState();
+  s.gear.main.slots.hat.stars = 2.5;
+  s.gear.main.slots.hat.target = { stars: 21.5 };
+  s.ui = { ...(s.ui || {}), sfCalc: { level: 160, from: 2.5, to: 12.5 }, mesosView: 'starforce' };
+  store.replaceState(s, true);
+  assert.equal(store.getState().gear.main.slots.hat.stars, 2);
+  await renderAll('decimal stars');
+});
+
 test('Progress > Champions tracks slots, ranks and the raid score for the whole account', async () => {
   const s = richState();
   s.ui = { ...(s.ui || {}), progressView: 'champions' };

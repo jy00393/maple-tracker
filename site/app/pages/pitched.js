@@ -1,7 +1,7 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, charSlice, newId } from '../store.js';
 import { Card } from '../ui.js';
-import { pitchedSummary, kstDay } from '../calc/pitched.js';
+import { pitchedSummary, kstDay, isDay } from '../calc/pitched.js';
 import { fmtDate } from '../time.js';
 
 const showDay = (d) => fmtDate(Date.parse(d + 'T00:00:00Z'));
@@ -9,9 +9,11 @@ const showDay = (d) => fmtDate(Date.parse(d + 'T00:00:00Z'));
 // Log of Pitched and Brilliant boss drops for one character. Shown on Bosses.
 export function PitchedCard({ data, state, char, now }) {
   const today = kstDay(now);
-  const [day, setDay] = useState(today);
+  // No date picked means "today", which keeps up if the page stays open past midnight. A drop cannot be in the future.
+  const [picked, setDay] = useState('');
   const sum = pitchedSummary(data.pitched, state.pitch[char.id]);
-  const useDay = /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : today;
+  const useDay = isDay(picked) && picked <= today ? picked : today;
+  const day = picked || today;
   const log = (itemId) => update((s) => {
     const p = charSlice(s, 'pitch', char.id, () => ({ drops: [] }));
     p.drops.push({ id: newId(), item: itemId, d: useDay });
@@ -24,7 +26,7 @@ export function PitchedCard({ data, state, char, now }) {
   return html`<${Card} title="Pitched and Brilliant drops" meta=${meta} className="span2">
     <div class="toolbar">
       <label class="field"><span>Drop date (Korea)</span><input id="pitch-day" class="input" type="date" value=${day} max=${today} onInput=${(e) => setDay(e.currentTarget.value)} /></label>
-      <p class="note">${sum.latest ? `Latest drop: ${showDay(sum.latest.d)}.` : 'No drops logged yet.'} Press "Got one" when an item drops. It is saved for ${char.name} with the date on the left.</p>
+      <p class="note">${sum.latest ? `Latest drop: ${showDay(sum.latest.d)}.` : 'No drops logged yet.'} Press "Got one" when an item drops. It is saved for ${char.name} with the date on the left${picked && picked > today ? ' (a date in the future counts as today)' : ''}.</p>
     </div>
     ${sum.sets.map((set) => html`<h4 class="sub-h">${set.name} <span class="small muted">${set.owned} of ${set.total}</span></h4>
       <div class="drops">

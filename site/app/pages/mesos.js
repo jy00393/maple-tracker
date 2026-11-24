@@ -124,7 +124,8 @@ function StarForce({ data, state }) {
   const to = Math.min(o.to, max);
   const opts = { discount: o.discount, lessBoom: o.lessBoom, safeguard: o.safeguard, mvp: o.mvp };
   const plan = starPlan(sfData, o.level, o.from, to, opts, o.spare || 0);
-  const spread = to - o.from <= 15 ? starSpread(sfData, o.level, o.from, to, opts, o.spare || 0, 2500) : null;
+  // The spread comes from simulated runs, so it is skipped when a run would take thousands of attempts.
+  const spread = plan.attempts > 0 && plan.attempts <= 2000 ? starSpread(sfData, o.level, o.from, to, opts, o.spare || 0, 2500) : null;
   return html`<div class="grid wide-left">
     <${Card} title="Star Force calculator" meta="GMS v.272 rates and costs">
       <div class="form-grid">
@@ -141,7 +142,7 @@ function StarForce({ data, state }) {
       </div>
       <div class="tiles">
         <div class="tile accent"><span class="k">Expected cost</span><span class="v">${fmtBig(plan.cost)}</span><span class="s">${plan.attempts.toFixed(0)} attempts on average</span></div>
-        <div class="tile"><span class="k">Typical · bad luck</span><span class="v">${spread ? fmtBig(spread.p50) : '—'}</span><span class="s">${spread ? `1 in 10 runs costs over ${fmtBig(spread.p90)}` : 'shown for up to 15 stars at a time'}</span></div>
+        <div class="tile"><span class="k">Typical · bad luck</span><span class="v">${spread ? fmtBig(spread.p50) : '—'}</span><span class="s">${spread ? `1 in 10 runs costs over ${fmtBig(spread.p90)}` : 'not shown when the upgrade takes thousands of attempts'}</span></div>
         <div class=${'tile' + (plan.noBoom > 0.8 ? ' ok' : '')}><span class="k">No boom</span><span class="v">${Math.round(plan.noBoom * 100)}%</span><span class="s">${plan.booms.toFixed(2)} booms expected</span></div>
       </div>
       ${spread ? html`<div class="tbl-wrap"><table class="tbl">
@@ -193,7 +194,7 @@ function Cubes({ data, state }) {
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Cube</th><th class="num">Rare → Epic</th><th class="num">Epic → Unique</th><th class="num">Unique → Legendary</th></tr></thead>
           <tbody>${['bright', 'glowing'].map((id) => html`<tr><td>${c.types[id].name}</td>${[0, 1, 2].map((i) => html`<td class="num">
             <input class="input num sm" type="number" step="0.1" min="0.1" max="100" aria-label=${`${c.types[id].name} tier-up ${i + 1} percent`} value=${(typeFor(id).tierUp[i] * 100).toFixed(1)}
-              onInput=${(e) => { const v = Number(e.currentTarget.value); if (!(v > 0)) return; update((s) => { const r = { ...(s.mesos.cubeRates || {}) }; const arr = [...(r[id] || c.types[id].tierUp)]; arr[i] = v / 100; r[id] = arr; s.mesos.cubeRates = r; }); }} />%</td>`)}</tr>`)}</tbody></table></div>
+              onInput=${(e) => { const v = Number(e.currentTarget.value); if (!(v >= 0.1 && v <= 100)) return; update((s) => { const r = { ...(s.mesos.cubeRates || {}) }; const arr = [...(r[id] || c.types[id].tierUp)]; arr[i] = v / 100; r[id] = arr; s.mesos.cubeRates = r; }); }} />%</td>`)}</tr>`)}</tbody></table></div>
         <button type="button" class="btn ghost" onClick=${() => update((s) => { delete s.mesos.cubeRates; })}>Reset to the estimates</button>
       </details>
     <//>

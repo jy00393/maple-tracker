@@ -19,8 +19,8 @@ export function flamesSupported(mainStat) {
 export function flameWeights(fl, custom) {
   const out = { ...fl.weights };
   for (const k of Object.keys(out)) {
-    const v = Number(custom && custom[k]);
-    if (Number.isFinite(v) && v >= 0 && v <= 100) out[k] = v;
+    const v = custom ? custom[k] : undefined;
+    if (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100) out[k] = v;
   }
   return out;
 }
@@ -35,7 +35,7 @@ function statWeight(stat, mainStat, secondary, weights) {
 // Score per tier for every line the item can roll: [{ id, per }].
 export function flameLines(fl, { level, mainStat = 'STR', secondary, weights }) {
   const w = weights || fl.weights;
-  const sec = STATS.includes(secondary) ? secondary : SECONDARY_DEFAULT[mainStat];
+  const sec = STATS.includes(secondary) && secondary !== mainStat ? secondary : SECONDARY_DEFAULT[mainStat];
   const single = bandValue(fl.single, level);
   const double = bandValue(fl.double, level);
   const attLine = mainStat === 'INT' ? 'MATT' : 'ATT';
@@ -79,7 +79,7 @@ function computeDist(fl, opts) {
   const shift = opts.advantaged ? fl.advantageShift : 0;
   const tiers = type.odds.map((p, i) => [i + 1 + shift, p]).filter(([, p]) => p > 0);
   const lines = flameLines(fl, opts);
-  const counts = opts.advantaged ? [0, 0, 0, 1] : fl.lineCount;
+  const counts = opts.advantaged ? fl.advantagedLineCount : fl.lineCount;
   const maxLines = Math.min(counts.length, lines.length);
   // sets[j]: score -> total weight over every way to pick j lines (each way weighted by its tier odds).
   const sets = Array.from({ length: maxLines + 1 }, () => new Map());
@@ -125,11 +125,11 @@ export function chanceWithin(p, flames) {
   return 1 - Math.pow(1 - p, flames);
 }
 
-// Score of a flame typed into Gear ({ main, att, allstat }). Secondary stat is not typed in, so it is not counted.
+// Score of a flame typed into Gear ({ main, sub, att, allstat }): sub is the secondary stat.
 export function flameScore(flame, weights) {
   const f = flame || {};
   const n = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : 0);
-  return Math.round((n(f.main) + n(f.att) * weights.att + n(f.allstat) * weights.allstat) * 100) / 100;
+  return Math.round((n(f.main) + n(f.sub) * weights.secondary + n(f.att) * weights.att + n(f.allstat) * weights.allstat) * 100) / 100;
 }
 
 export function bestScore(dist) {

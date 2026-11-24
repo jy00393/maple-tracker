@@ -10,6 +10,7 @@
  "oddsNote": "Odds are for stages 1 to 5. Flame-advantaged (boss) items count two stages higher, so tiers 3 to 7.",
  "advantageShift": 2,
  "lineCount": [0.4, 0.4, 0.16, 0.04],
+ "advantagedLineCount": [0, 0, 0, 1],
  "lineCountNote": "Chance of 1, 2, 3 or 4 lines from a Rebirth Flame. Flame-advantaged items always get 4.",
  "armourLines": ["STR", "DEX", "INT", "LUK", "STR+DEX", "STR+INT", "STR+LUK", "DEX+INT", "DEX+LUK", "INT+LUK", "HP", "MP", "LEVEL", "DEF", "ATT", "MATT", "SPEED", "JUMP", "ALLSTAT"],
  "linesNote": "Armour and accessories pick from these 19 lines with equal chance, never the same line twice. ATT and Magic ATT need item level 60+, All Stats % needs 70+.",
