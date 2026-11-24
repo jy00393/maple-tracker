@@ -14,9 +14,12 @@ function record(checklistState, id, kind, now) {
   return r && r.p === periodKey(kind, now) ? r : null;
 }
 
-export function itemStatus(item, group, checklistState, now) {
+// level: the active character's level, if known. Items with a minLevel stay locked until it is reached.
+export function itemStatus(item, group, checklistState, now, level) {
   const kind = resetOf(item, group, checklistState);
-  const locked = Boolean(item.gate && !checklistState.flags[item.gate]);
+  // "lvl:<id>" in flags is the player's own override ("Mark unlocked"), e.g. when the tracker's level is behind.
+  const tooLow = Boolean(item.minLevel && Number.isFinite(level) && level < item.minLevel && !checklistState.flags[`lvl:${item.id}`]);
+  const locked = Boolean(item.gate && !checklistState.flags[item.gate]) || tooLow;
   const expired = item.until && Date.parse(item.until) < now;
   if (item.type === 'count') {
     const r = record(checklistState, item.id, kind, now);

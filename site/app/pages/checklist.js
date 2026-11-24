@@ -1,21 +1,22 @@
 import { html } from '../../vendor/htm-preact.mjs';
-import { update } from '../store.js';
+import { update, activeCharacter } from '../store.js';
 import { Card, Counter, PageHead, useNow, Bar } from '../ui.js';
 import { periodKey } from '../time.js';
 import { StreakRecorder, StreakCard } from './session.js';
 import { itemStatus, resetOf, RESET_CYCLE } from '../calc/checklist.js';
+import { knownLevel } from './level.js';
 
 export { itemStatus, resetOf };
 
 const DAY_NAMES = { mon: ['Mon', 'Monday'], wed: ['Wed', 'Wednesday'], thu: ['Thu', 'Thursday'] };
 
 // Progress over the main daily group; used by the Today page too.
-export function dailyProgress(checklistData, checklistState, now) {
+export function dailyProgress(checklistData, checklistState, now, level) {
   const group = checklistData.groups.find((g) => g.key === 'daily');
   let done = 0;
   let total = 0;
   for (const item of group.items) {
-    const st = itemStatus(item, group, checklistState, now);
+    const st = itemStatus(item, group, checklistState, now, level);
     if (st.locked || st.expired || st.link || item.optional) continue;
     total++;
     if (st.done) done++;
@@ -29,8 +30,8 @@ export function setRecord(id, kind, rec) {
   });
 }
 
-function Item({ item, group, cs, now }) {
-  const st = itemStatus(item, group, cs, now);
+function Item({ item, group, cs, now, level }) {
+  const st = itemStatus(item, group, cs, now, level);
   if (st.expired) return null;
   const cls = 'row' + (st.done ? ' done' : '') + (item.optional || group.optional ? ' optional' : '') + (st.locked ? ' locked' : '');
   const id = 'cl-' + item.id;
@@ -61,6 +62,10 @@ function Item({ item, group, cs, now }) {
         s.checklist.resets[item.id] = next;
       })}>${names[0]} reset</button>`);
   }
+  if (item.minLevel && st.locked && Number.isFinite(level) && level < item.minLevel) {
+    right.push(html`<span class="pill">from Lv. ${item.minLevel}</span>`);
+    right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[`lvl:${item.id}`] = true; })}>Mark unlocked</button>`);
+  }
   if (item.gate && st.locked) {
     right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[item.gate] = true; })}>Mark unlocked</button>`);
   }
@@ -78,7 +83,8 @@ function Item({ item, group, cs, now }) {
 export function ChecklistPage({ data, state }) {
   const now = useNow(15000);
   const cs = state.checklist;
-  const prog = dailyProgress(data.checklist, cs, now);
+  const level = knownLevel(data, state, activeCharacter(state));
+  const prog = dailyProgress(data.checklist, cs, now, level);
   return html`
     <${PageHead} title="Checklist">Ticks clear themselves at each reset: dailies at 09:00 KST, weeklies on their own day. Event items disappear once the event ends.<//>
     <div class="tiles">
@@ -88,7 +94,7 @@ export function ChecklistPage({ data, state }) {
     <div class="grid two">
       <${StreakCard} state=${state} now=${now} />
       ${data.checklist.groups.map((group) => {
-        const items = group.items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} />`);
+        const items = group.items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} level=${level} />`);
         return html`<${Card} title=${group.title} meta=${group.hint} bodyClass="card-b tight">${items}<//>`;
       })}
     </div>

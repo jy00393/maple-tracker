@@ -17,6 +17,14 @@ export function levelReadings(data, state, char) {
   return [...auto, ...manual].sort((a, b) => a.t - b.t);
 }
 
+// The highest level the tracker knows for a character: the one typed on Characters, your own log, or Nexon's
+// rankings history. Used for level locks, so a stale stored level never hides something you can already do.
+export function knownLevel(data, state, char) {
+  if (!char) return undefined;
+  const levels = [Number(char.level), ...levelReadings(data, state, char).map((r) => Number(r.level))].filter(Number.isFinite);
+  return levels.length ? Math.max(...levels) : undefined;
+}
+
 export function levelOutlook(data, state, char, now) {
   const exp = data.upgrades.exp;
   const readings = levelReadings(data, state, char);

@@ -12,12 +12,23 @@ export function latestPatchNotes(news) {
 
 // sync: { state: 'off' | 'busy' | 'ok' | 'error', message } from sync.js; syncOn: a token is saved on this device.
 // meta: data/meta.json written by the refresh job (or null); tablesChecked: ISO date the game tables were last checked.
-export function appStatus({ syncOn, sync, meta, news, tablesChecked, now }) {
+// tokenExpires: 'YYYY-MM-DD' typed in by the user, or null.
+export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenExpires }) {
   const parts = [];
   if (!syncOn) parts.push({ key: 'sync', level: 'off', short: 'Sync off', text: 'Device sync is off. Your entries stay in this browser only.' });
   else if (sync && sync.state === 'error') parts.push({ key: 'sync', level: 'error', short: 'Sync error', text: `Device sync failed: ${sync.message || 'unknown error'}` });
   else if (sync && sync.state === 'busy') parts.push({ key: 'sync', level: 'busy', short: 'Syncing…', text: 'Syncing your entries…' });
   else parts.push({ key: 'sync', level: 'ok', short: 'Synced', text: `Devices in sync${sync && sync.message ? ` (${sync.message.toLowerCase()})` : ''}.` });
+
+  // The token can stop working at any time on its expiry date, so the countdown runs to the start of that date (UTC).
+  const expAt = syncOn && tokenExpires ? Date.parse(`${tokenExpires}T00:00:00Z`) : NaN;
+  if (Number.isFinite(expAt)) {
+    const left = expAt - now;
+    const days = Math.ceil(left / (24 * HOUR));
+    if (left <= -24 * HOUR) parts.push({ key: 'token', level: 'error', short: 'Sync token expired', text: `Your sync token expired on ${tokenExpires}. Make a new gist-only token on GitHub and connect again in Settings.` });
+    else if (left <= 0) parts.push({ key: 'token', level: 'error', short: 'Sync token expires today', text: `Your sync token expires today (${tokenExpires}). Make a new gist-only token on GitHub and connect again in Settings.` });
+    else if (days <= 7) parts.push({ key: 'token', level: 'warn', short: `Sync token: ${days} day${days === 1 ? '' : 's'} left`, text: `Your sync token expires on ${tokenExpires}. Make a new gist-only token on GitHub and connect again before then.` });
+  }
 
   const checked = meta ? Date.parse(meta.checkedAt) : NaN;
   if (!meta || !Number.isFinite(checked)) {

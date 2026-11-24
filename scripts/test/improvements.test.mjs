@@ -514,3 +514,217 @@ test('item list: a katara is a secondary', async () => {
   assert.equal(slotOfItem(1342101), 'secondary');
   assert.equal(slotOfItem(1332225), 'weapon');
 });
+
+// ---------- batch 2 ----------
+test('backups: one automatic copy a day, newest seven kept, labelled copies kept apart', async () => {
+  const { addBackup, describeBackup } = await import('../../site/app/calc/backups.js');
+  const day = (n) => Date.parse('2026-11-01T03:00:00Z') + n * DAY;
+  const st = (n) => ({ ...blank(), updatedAt: day(n), characters: [{ id: 'a' }], gear: { a: { slots: { hat: {}, top: {} } } } });
+  let list = [];
+  list = addBackup(list, blank(), day(0));
+  assert.equal(list.length, 0, 'an untouched tracker is not worth a copy');
+  for (let n = 0; n < 10; n++) { list = addBackup(list, st(n), day(n)); list = addBackup(list, st(n), day(n) + 3600000); }
+  assert.equal(list.length, 7);
+  assert.deepEqual(list.map((b) => b.d), ['2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08', '2026-11-09', '2026-11-10']);
+  for (let n = 0; n < 5; n++) list = addBackup(list, st(10), day(10) + n, 'before restore');
+  assert.equal(list.filter((b) => b.label).length, 3);
+  assert.equal(list.filter((b) => !b.label).length, 7);
+  assert.equal(describeBackup(list[0]), '1 character, 2 gear slots filled');
+  assert.deepEqual(addBackup('junk', null, day(0)), []);
+});
+
+test('checklist: an item with a minimum level stays locked until the character reaches it', async () => {
+  const { itemStatus } = await import('../../site/app/calc/checklist.js');
+  const cs = { items: {}, resets: {}, flags: {}, history: {} };
+  const thu = checklist.groups.find((g) => g.key === 'thu');
+  const mayrin = thu.items.find((i) => i.id === 'w-mayrin');
+  const wed = Date.parse('2026-11-25T02:00:00Z');
+  assert.equal(mayrin.minLevel, 270);
+  assert.equal(itemStatus(mayrin, thu, cs, wed, 264).locked, true);
+  assert.equal(itemStatus(mayrin, thu, cs, wed, 270).locked, false);
+  assert.equal(itemStatus(mayrin, thu, cs, wed, undefined).locked, false, 'unknown level never hides anything');
+  const low = resetWarnings(checklist, cs, [], wed, { level: 264 })[0].items;
+  const high = resetWarnings(checklist, cs, [], wed, { level: 271 })[0].items;
+  assert.ok(!low.includes('Mayrin (from Lv. 270)'));
+  assert.ok(high.includes('Mayrin (from Lv. 270)'));
+  assert.ok(!high.some((l) => l.startsWith("Arthur's")), 'optional items are not warned about');
+});
+
+test('status: a sync token close to its expiry date warns, an expired one is an error', async () => {
+  const { appStatus } = await import('../../site/app/calc/status.js');
+  const now = Date.parse('2026-12-10T00:00:00Z');
+  const base = { syncOn: true, sync: { state: 'ok', message: 'Up to date' }, meta: { checkedAt: '2026-12-09T20:00:00Z', ok: true, errors: [] }, news: [], tablesChecked: '2026-11-23T00:00:00Z', now };
+  assert.equal(appStatus({ ...base, tokenExpires: '2027-03-01' }).label, 'All synced');
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-14' }).level, appStatus({ ...base, tokenExpires: '2026-12-14' }).label], ['warn', 'Sync token: 4 days left']);
+  assert.equal(appStatus({ ...base, tokenExpires: '2026-12-18' }).label, 'All synced', '8 days out: no warning yet');
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-10' }).level, appStatus({ ...base, tokenExpires: '2026-12-10' }).label], ['error', 'Sync token expires today']);
+  assert.equal(appStatus({ ...base, now: Date.parse('2026-12-09T23:00:00Z'), meta: { checkedAt: '2026-12-09T20:00:00Z', ok: true, errors: [] }, tokenExpires: '2026-12-10' }).label, 'Sync token: 1 day left');
+  assert.deepEqual([appStatus({ ...base, tokenExpires: '2026-12-08' }).level, appStatus({ ...base, tokenExpires: '2026-12-08' }).label], ['error', 'Sync token expired']);
+  assert.equal(appStatus({ ...base, syncOn: false, tokenExpires: '2026-12-08' }).level, 'ok', 'no warning when sync is off');
+  assert.equal(appStatus({ ...base, tokenExpires: 'soon' }).label, 'All synced');
+});
+
+test('Sunny Sunday: schedule is read from the patch notes table and drives Star Force timing', async () => {
+  const { findSunnySchedule } = await import('../lib/nexon-parse.mjs');
+  const { sunnyDays, starForceTiming } = await import('../../site/app/calc/sunny.js');
+  // Shape of the v.272 patch notes section (read 23 Nov 2026), shortened.
+  const body = '<h2>Other</h2><p>Text</p><h2 style="x"><span> Sunny Sunday</span></h2><p>Log in each Sunday to enjoy various perks!</p><table><tr><td>Date (UTC)</td><td>Perks</td></tr>'
+    + '<tr><td>November 29, 2026</td><td><ul><li>50% off Ability resets</li><li>Treasure Hunter EXP x3</li></ul></td></tr>'
+    + '<tr><td>December 6, 2026</td><td><ul><li>Shining Star Force Time<ul><li>30% off Star Force enhancements</li><li>Mesos used to safeguard are not eligible for the 30% discount.</li></ul></li><li>2x Sol Erda when hunting</li></ul></td></tr>'
+    + '<tr><td>December 8, 2026</td><td><ul><li>Not a Sunday</li></ul></td></tr></table><h2>Next section</h2><p>December 13, 2026</p><p>Unrelated</p>';
+  const sched = findSunnySchedule(body);
+  assert.deepEqual(sched.map((d) => d.date), ['2026-11-29', '2026-12-06']);
+  assert.deepEqual(sched[0].perks, ['50% off Ability resets', 'Treasure Hunter EXP x3']);
+  assert.ok(sched[1].perks.some((p) => p.includes('30% off Star Force enhancements')));
+  assert.deepEqual(findSunnySchedule('<h2>Events</h2><p>November 29, 2026</p>'), []);
+
+  const mon = Date.parse('2026-11-23T03:00:00Z');
+  assert.deepEqual(sunnyDays(sched, mon).map((d) => [d.date, d.starForce, d.active]), [['2026-11-29', false, false], ['2026-12-06', true, false]]);
+  const wait = starForceTiming(sched, 3e9, 2e9, mon);
+  assert.deepEqual([wait.kind, wait.day.date, wait.saves], ['wait', '2026-12-06', 1e9]);
+  assert.equal(starForceTiming(sched, 3e9, 2e9, Date.parse('2026-12-06T10:00:00Z')).kind, 'now');
+  assert.equal(starForceTiming(sched.slice(0, 1), 3e9, 2e9, mon).kind, 'none');
+  assert.equal(starForceTiming([], 3e9, 2e9, mon).kind, 'unknown');
+  assert.equal(starForceTiming(sched, 3e9, 2e9, Date.parse('2026-12-07T00:00:00Z')).kind, 'unknown', 'past Sundays are ignored');
+});
+
+test('season end: actions are grouped by Nexon deadline and counted until the last one passes', async () => {
+  const { seasonOutlook } = await import('../../site/app/calc/season.js');
+  const season = load('season');
+  assert.equal(season.ends, '2027-02-09T23:59:00Z');
+  assert.ok(season.actions.every((a) => a.id && a.label && a.detail && a.quote && Number.isFinite(Date.parse(a.by))), 'every action has a date and Nexon wording');
+  assert.equal(new Set(season.actions.map((a) => a.id)).size, season.actions.length);
+  const now = Date.parse('2026-11-24T00:00:00Z');
+  const o = seasonOutlook(season, { 'spend-coins': true }, now);
+  assert.equal(o.daysLeft, 78);
+  assert.deepEqual(o.groups.map((g) => new Date(g.at).toISOString()), ['2027-02-09T23:59:00.000Z', '2027-02-10T02:00:00.000Z', '2027-02-23T23:59:00.000Z']);
+  assert.equal(o.total, season.actions.length);
+  assert.equal(o.open, season.actions.length - 1);
+  assert.ok(o.groups[0].items.find((i) => i.id === 'spend-coins').done);
+  const after = seasonOutlook(season, {}, Date.parse('2027-02-10T01:00:00Z'));
+  assert.deepEqual([after.ended, after.over, after.groups[0].passed, after.groups[1].passed], [true, false, true, false]);
+  assert.equal(seasonOutlook(season, {}, Date.parse('2027-02-24T00:00:00Z')).over, true);
+  assert.equal(seasonOutlook(null, {}, now), null);
+});
+
+test('flames: typed-in bonus stats are cleaned, labelled and totalled over equipped slots', async () => {
+  const { cleanFlame, flameLabel, flameTotals } = await import('../../site/app/calc/gearstats.js');
+  assert.equal(cleanFlame(null), null);
+  assert.equal(cleanFlame({ main: 0, att: '', boss: -3 }), null);
+  assert.deepEqual(cleanFlame({ main: 80, att: '6', allstat: 5, junk: 9 }), { main: 80, att: 6, allstat: 5 });
+  assert.equal(flameLabel({ main: 80, att: 6, allstat: 5, boss: 12 }, 'STR'), 'STR +80 · ATT +6 · All Stats +5% · Boss +12%');
+  const state = { slots: { hat: { tier: 2, flame: { main: 80, allstat: 5 } }, weapon: { tier: 2, flame: { att: 120, boss: 12, dmg: 6 } }, cape: { flame: { main: 999 } } } };
+  assert.deepEqual(flameTotals(gear.slots, state), { main: 80, att: 120, allstat: 5, boss: 12, dmg: 6, items: 2 });
+});
+
+test('gear stats: Star Force stat gains match the wiki table', async () => {
+  const { starStats, starDelta } = await import('../../site/app/calc/gearstats.js');
+  const gs = load('gearstats');
+  const sf = gs.starforce;
+  const slot = (id) => gear.slots.find((s) => s.id === id);
+  // Stars 1-15 on armor: +2 for five stars, +3 for ten = 40. Star 16 at Lv. 160: stat +13, ATT +10; at Lv. 200: +15 and +12.
+  assert.deepEqual(starStats(sf, slot('hat'), 160, 15), { stat: 40, att: 0, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 160, 15, 16), { stat: 13, att: 10, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 200, 15, 16), { stat: 15, att: 12, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 160, 21, 22), { stat: 13, att: 17, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 250, 21, 22), { stat: 17, att: 21, partial: false });
+  assert.deepEqual(starDelta(sf, slot('hat'), 200, 24, 25), { stat: 0, att: 25, partial: false });
+  // Gloves: ATT +1 at stars 5, 7, 9, 11, 13, 14 and 15.
+  assert.equal(starStats(sf, slot('gloves'), 160, 15).att, 7);
+  assert.equal(starStats(sf, slot('gloves'), 160, 6).att, 1);
+  // Weapons: ATT at stars 1-15 needs the base ATT, so it is flagged; star 16 at Lv. 200 gives ATT +13.
+  assert.equal(starStats(sf, slot('weapon'), 200, 15).partial, true);
+  assert.deepEqual(starDelta(sf, slot('weapon'), 200, 15, 16), { stat: 15, att: 13, partial: false });
+  assert.equal(starDelta(sf, slot('weapon'), 200, 12, 16).partial, true);
+  // A Lv. 130 item cannot go past 20 stars in the table; under Lv. 128 nothing is known.
+  assert.equal(starStats(sf, slot('hat'), 130, 21).partial, true);
+  assert.equal(starStats(sf, slot('hat'), 100, 10).partial, true);
+  assert.deepEqual(starStats(sf, slot('emblem'), 200, 10), { stat: 0, att: 0, partial: false });
+});
+
+test('gear stats: sets are recognised from item names and bonuses add up as the wiki states', async () => {
+  const { detectSets, setBonusLabel } = await import('../../site/app/calc/gearstats.js');
+  const gs = load('gearstats');
+  const worn = (names) => ({ slots: Object.fromEntries(Object.entries(names).map(([id, note]) => [id, { tier: 2, note }])) });
+  const arcane7 = detectSets(gs.sets, gear.slots, worn({ hat: 'Arcane Umbra Knight Hat', top: 'Arcane Umbra Knight Suit', shoes: 'Arcane Umbra Knight Shoes', gloves: 'Arcane Umbra Knight Gloves', cape: 'Arcane Umbra Knight Cape', shoulder: 'Arcane Umbra Knight Shoulder', weapon: 'Arcane Umbra Two-handed Sword' }));
+  // Wiki running total at 7 pieces: All Stats +50, ATT +195, Boss 30%, IED 19%.
+  assert.deepEqual(arcane7.map((s) => [s.id, s.count, s.bonus]), [['arcane', 7, { allStats: 50, att: 195, boss: 30, ied: 19, critDmg: 0 }]]);
+  assert.equal(arcane7[0].nextAt, null);
+  const mixed = detectSets(gs.sets, gear.slots, worn({ hat: 'Royal Warrior Helm', top: 'Eagle Eye Warrior Armor', bottom: 'Trixter Warrior Pants', ring1: 'Superior Gollux Ring', pendant1: 'Superior Engraved Gollux Pendant', face: 'Berserked', eye: 'Magic Eyepatch', belt: 'Some Other Belt' }));
+  const by = Object.fromEntries(mixed.map((s) => [s.id, s]));
+  assert.deepEqual(Object.keys(by).sort(), ['cra', 'pitchedBoss', 'superiorGollux']);
+  assert.equal(by.cra.count, 3);
+  assert.equal(by.cra.nextAt, 4);
+  assert.equal(by.cra.bonus.att, 50);
+  assert.equal(by.cra.bonus.boss, 0, 'Boss +30% needs the 4th piece');
+  assert.equal(by.pitchedBoss.count, 2);
+  assert.deepEqual([by.pitchedBoss.bonus.allStats, by.pitchedBoss.bonus.att, by.pitchedBoss.bonus.boss], [10, 10, 10]);
+  assert.equal(setBonusLabel(by.pitchedBoss.bonus), 'All Stats +10 · ATT +10 · Boss +10%');
+  assert.deepEqual(detectSets(gs.sets, gear.slots, { slots: { hat: { tier: 0, note: 'Arcane Umbra Knight Hat' } } }), [], 'an empty slot is not a set piece');
+});
+
+test('damage estimate: flat stat and ATT gains scale with your percentages, and rank Star Force upgrades', async () => {
+  const { damageGain } = await import('../../site/app/calc/gearstats.js');
+  const { upgradeOptions: opts, bestUpgrade } = await import('../../site/app/calc/advice.js');
+  const stats = { main: 40000, sub: 5000, att: 5000, mainPct: 300, attPct: 100 };
+  assert.equal(damageGain({}, { stat: 10, att: 10 }), null);
+  assert.equal(damageGain(stats, { stat: 0, att: 0 }), 0);
+  // +50 ATT at 100% ATT is +100 on 5000: exactly 2%.
+  assert.ok(Math.abs(damageGain(stats, { stat: 0, att: 50 }) - 0.02) < 1e-12);
+  // +100 stat at 300%: main +400 and secondary +100, on 4*40000+5000 = 165000 -> 1700/165000.
+  assert.ok(Math.abs(damageGain(stats, { stat: 100, att: 0 }) - 1700 / 165000) < 1e-12);
+  const gs = load('gearstats');
+  const state = { preset: 'mid', slots: { hat: { tier: 2, ilvl: 150, stars: 17, pot: 3, lines: 2 }, ring1: { tier: 2, ilvl: 150, stars: 12, pot: 3, lines: 2 }, top: { tier: 3, ilvl: 150, stars: 22, pot: 2, lines: 2 } } };
+  const plain = opts(gear, state, upgrades);
+  assert.ok(plain.every((o) => o.dmg === undefined));
+  assert.equal(bestUpgrade(plain).by, 'score');
+  const ranked = opts(gear, state, upgrades, gs, stats);
+  const sf = ranked.filter((o) => o.kind === 'sf');
+  assert.ok(sf.length >= 2 && sf.every((o) => o.dmg > 0 && o.sfGain));
+  assert.ok(ranked.filter((o) => o.kind === 'cube').every((o) => o.dmg === undefined), 'cube tier-ups get no damage number');
+  const best = bestUpgrade(ranked);
+  assert.equal(best.by, 'damage');
+  assert.ok(sf.every((o) => best.dmg / best.cost >= o.dmg / o.cost));
+  assert.equal(bestUpgrade([]), null);
+});
+
+// ---------- fixes from the 24 Nov 2026 review ----------
+test('sets: an item listed by name in one set is never counted in another by prefix', async () => {
+  const { detectSets } = await import('../../site/app/calc/gearstats.js');
+  const gs = load('gearstats');
+  const worn = (names) => ({ slots: Object.fromEntries(Object.entries(names).map(([id, note]) => [id, { tier: 2, note }])) });
+  const a = Object.fromEntries(detectSets(gs.sets, gear.slots, worn({ hat: 'Royal Warrior Helm', top: 'Eagle Eye Warrior Armor', bottom: 'Trixter Warrior Pants', shoulder: 'Royal Black Metal Shoulder' })).map((s) => [s.id, s]));
+  assert.equal(a.cra.count, 3, 'the Boss Accessory shoulder is not a Root Abyss piece');
+  assert.equal(a.cra.bonus.boss, 0);
+  assert.equal(a.bossAccessory.worn, 1);
+  const b = Object.fromEntries(detectSets(gs.sets, gear.slots, worn({ badge: 'Genesis Badge', hat: 'Eternal Knight Helm', weapon: 'Genesis Two-handed Sword' })).map((s) => [s.id, s]));
+  assert.equal(b.eternal.count, 2, 'Eternal hat plus Genesis weapon; the badge is a Pitched Boss piece');
+  assert.equal(b.pitchedBoss.worn, 1);
+});
+
+test('checklist: the level lock can be overridden by the player', async () => {
+  const { itemStatus } = await import('../../site/app/calc/checklist.js');
+  const thu = checklist.groups.find((g) => g.key === 'thu');
+  const mayrin = thu.items.find((i) => i.id === 'w-mayrin');
+  const now = Date.parse('2026-11-25T02:00:00Z');
+  const cs = { items: {}, resets: {}, flags: {}, history: {} };
+  assert.equal(itemStatus(mayrin, thu, cs, now, 264).locked, true);
+  cs.flags['lvl:w-mayrin'] = true;
+  assert.equal(itemStatus(mayrin, thu, cs, now, 264).locked, false);
+});
+
+test('Sunny Sunday: text after the schedule table is not a perk', async () => {
+  const { findSunnySchedule } = await import('../lib/nexon-parse.mjs');
+  const body = '<h2>Sunny Sunday</h2><p>Log in each Sunday.</p><table><tr><td>Date (UTC)</td><td>Perks</td></tr><tr><td>December 13, 2026</td><td><ul><li>Treasure Hunter EXP x3</li></ul></td></tr></table><p>Reminder: 30% off Star Force returns next month.</p><h2>Other</h2>';
+  assert.deepEqual(findSunnySchedule(body), [{ date: '2026-12-13', perks: ['Treasure Hunter EXP x3'] }]);
+  // A layout without a table still works, and the section still ends at the next heading.
+  const flat = '<h3>Sunny Sunday</h3><p>December 13, 2026</p><p>Combo Kill EXP +300%</p><h3>Next</h3><p>December 20, 2026</p><p>Not this</p>';
+  assert.deepEqual(findSunnySchedule(flat), [{ date: '2026-12-13', perks: ['Combo Kill EXP +300%'] }]);
+  assert.deepEqual(findSunnySchedule(null), []);
+});
+
+test('best upgrade ignores options without a usable cost', async () => {
+  const { bestUpgrade } = await import('../../site/app/calc/advice.js');
+  assert.equal(bestUpgrade([{ dmg: 0.01, cost: 0, label: 'free' }, { dmg: 0.5, cost: 100, label: 'real' }]).label, 'real');
+  assert.equal(bestUpgrade([{ dmg: 0.2, cost: NaN, label: 'nan' }, { dmg: 0.1, cost: 100, label: 'real' }]).label, 'real');
+});

@@ -320,3 +320,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .suggest li[aria-selected="true"], .suggest li:hover { background: rgba(254, 172, 66, .14); }
 
 .pline-select { background: var(--menu); width: 100%; }
+
+/* Phone: finger-sized targets */
+@media (max-width: 900px) {
+  .iconbtn.mini { width: 34px; height: 34px; font-size: 16px; }
+  .suggest li { min-height: 46px; }
+  .linkbtn { padding: 6px 2px; }
+}
+details > summary { cursor: pointer; padding: 6px 0; }

@@ -3,6 +3,7 @@ import { gearSummary, slotProgress } from './progress.js';
 import { starPlan, maxStarsFor } from './starforce.js';
 import { cubePlan, hasPotential } from './upgrades.js';
 import { DAY } from '../time.js';
+import { starDelta, damageGain } from './gearstats.js';
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
 
@@ -36,7 +37,9 @@ export function slotOutlook(slot, entry, target, up) {
 
 // Every meso upgrade that moves a permanent item toward its target, best value first.
 // gain = share of the overall gear score it adds (the tracker's own scoring, not a damage number).
-export function upgradeOptions(gearData, gearState, up) {
+// With gearStats (data/gearstats.json) and the character's own stats, Star Force options also get
+// dmg: the estimated damage gain as a fraction, and dmgPartial when part of the gain is unknown.
+export function upgradeOptions(gearData, gearState, up, gearStats, stats) {
   const sum = gearSummary(gearData, gearState);
   const totalWeight = sum.slots.reduce((a, s) => a + s.slot.weight, 0) || 1;
   const out = [];
@@ -47,7 +50,14 @@ export function upgradeOptions(gearData, gearState, up) {
     const tierNames = gearData.slotTypes[r.slot.type].filter(Boolean);
     const gainOf = (patch) => (r.slot.weight * (slotProgress({ ...r.entry, ...patch }, r.target, tierNames).pct - r.pct)) / totalWeight;
     if (o.sf) {
-      out.push({ slotId: r.slot.id, kind: 'sf', label: `${r.slot.name}: ${o.sf.from} → ${o.sf.to} stars`, cost: o.sf.plain.cost, sunnyCost: o.sf.sunny.cost, booms: o.sf.plain.booms, gain: gainOf({ stars: o.sf.to }) });
+      const opt = { slotId: r.slot.id, kind: 'sf', label: `${r.slot.name}: ${o.sf.from} → ${o.sf.to} stars`, cost: o.sf.plain.cost, sunnyCost: o.sf.sunny.cost, booms: o.sf.plain.booms, gain: gainOf({ stars: o.sf.to }) };
+      if (gearStats && gearStats.starforce) {
+        const d = starDelta(gearStats.starforce, r.slot, itemLevel(r.slot, r.entry), o.sf.from, o.sf.to);
+        const dmg = damageGain(stats, d);
+        opt.sfGain = d;
+        if (dmg !== null && dmg > 0) { opt.dmg = dmg; opt.dmgPartial = d.partial; }
+      }
+      out.push(opt);
     }
     if (o.cube) {
       out.push({ slotId: r.slot.id, kind: 'cube', label: `${r.slot.name}: potential ${POT[o.cube.from]} → ${POT[o.cube.to]}`, cost: o.cube.bright.cost, cost90: o.cube.bright.cost90, gain: gainOf({ pot: o.cube.to }) });
@@ -57,6 +67,15 @@ export function upgradeOptions(gearData, gearState, up) {
     .filter((x) => x.cost > 0 && x.gain > 0)
     .map((x) => ({ ...x, value: x.gain / x.cost }))
     .sort((a, b) => b.value - a.value);
+}
+
+// The single best option. When damage estimates exist (your stats are entered), Star Force options are ranked by
+// damage per meso; potential tier-ups have no fixed damage value (it depends on the lines you roll), so they are
+// only suggested when no Star Force option has an estimate.
+export function bestUpgrade(options) {
+  const withDmg = (options || []).filter((o) => o.dmg > 0 && Number.isFinite(o.cost) && o.cost > 0);
+  if (withDmg.length) return { ...withDmg.slice().sort((a, b) => b.dmg / b.cost - a.dmg / a.cost)[0], by: 'damage' };
+  return options && options.length ? { ...options[0], by: 'score' } : null;
 }
 
 // When `cost` is covered by mesos held plus weekly income. null = never at this income.

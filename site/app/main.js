@@ -63,7 +63,7 @@ function StatusPill({ data }) {
   const now = useNow(60000);
   const [sync, setSync] = useState(syncStatus());
   useEffect(() => onSyncStatus(setSync), []);
-  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now });
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires });
   const detail = st.parts.map((p) => p.text).join(' ');
   return html`<a class=${'status-pill ' + st.level} href="#settings" title=${detail} aria-label=${`Status: ${st.label}. ${detail}`}><i aria-hidden="true"></i>${st.label}</a>`;
 }

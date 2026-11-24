@@ -1,0 +1,502 @@
+{
+ "source": "MapleStory Wiki (maplestorywiki.net), read 23 Nov 2026: Star Force Enhancement/Stat Tables (edited 8 Dec 2025), the set pages (Root Abyss, AbsoLab, Arcane Umbra, Eternal, Superior Gollux, Boss Accessory, Dawn Boss, Pitched Boss; edited Feb to Nov 2026) and Damage Formula (edited 31 Aug 2026).",
+ "checked": "2026-11-23",
+ "starforce": {
+  "note": "Stats gained by each single star (index 0 = star 1). Columns follow levels: an item uses the last column whose level it reaches. \"stat\" is the class stat (main and secondary stat each get it). The wiki has one table for all regions, so GMS-only differences cannot be ruled out. Weapons gain ATT at stars 1 to 15 as floor(base ATT x 0.02 + 1) per star, which needs the weapon's base ATT and is not included; the weapon table has no Lv. 250 column and stops at 25 stars.",
+  "levels": [128, 138, 150, 160, 200, 250],
+  "armor": {
+   "stat": [
+    [2, 2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2, 2],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3, 3],
+    [7, 9, 11, 13, 15, 17],
+    [7, 9, 11, 13, 15, 17],
+    [7, 9, 11, 13, 15, 17],
+    [7, 9, 11, 13, 15, 17],
+    [7, 9, 11, 13, 15, 17],
+    [null, 9, 11, 13, 15, 17],
+    [null, 9, 11, 13, 15, 17],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0, 0]
+   ],
+   "att": [
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [7, 8, 9, 10, 12, 14],
+    [8, 9, 10, 11, 13, 15],
+    [9, 10, 11, 12, 14, 16],
+    [10, 11, 12, 13, 15, 17],
+    [11, 12, 13, 14, 16, 18],
+    [null, 13, 14, 15, 17, 19],
+    [null, 15, 16, 17, 19, 21],
+    [null, 17, 18, 19, 21, 23],
+    [null, 19, 20, 21, 23, 25],
+    [null, 21, 22, 23, 25, 27],
+    [null, 22, 23, 24, 26, 28],
+    [null, 23, 24, 25, 27, 29],
+    [null, 24, 25, 26, 28, 30],
+    [null, 25, 26, 27, 29, 31],
+    [null, 26, 27, 28, 30, 32]
+   ]
+  },
+  "gloveAtt": [
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [1, 1, 1, 1, 1, 1],
+   [0, 0, 0, 0, 0, 0],
+   [1, 1, 1, 1, 1, 1],
+   [0, 0, 0, 0, 0, 0],
+   [1, 1, 1, 1, 1, 1],
+   [0, 0, 0, 0, 0, 0],
+   [1, 1, 1, 1, 1, 1],
+   [0, 0, 0, 0, 0, 0],
+   [1, 1, 1, 1, 1, 1],
+   [1, 1, 1, 1, 1, 1],
+   [1, 1, 1, 1, 1, 1],
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [0, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0],
+   [null, 0, 0, 0, 0, 0]
+  ],
+  "weapon": {
+   "stat": [
+    [2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2],
+    [2, 2, 2, 2, 2],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [3, 3, 3, 3, 3],
+    [7, 9, 11, 13, 15],
+    [7, 9, 11, 13, 15],
+    [7, 9, 11, 13, 15],
+    [7, 9, 11, 13, 15],
+    [7, 9, 11, 13, 15],
+    [null, 9, 11, 13, 15],
+    [null, 9, 11, 13, 15],
+    [null, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0],
+    [null, 0, 0, 0, 0]
+   ],
+   "att": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    [6, 7, 8, 9, 13],
+    [6, 7, 8, 9, 13],
+    [7, 8, 9, 10, 14],
+    [8, 9, 10, 11, 14],
+    [9, 10, 11, 12, 15],
+    [null, 11, 12, 13, 16],
+    [null, 12, 13, 14, 17],
+    [null, 30, 31, 32, 34],
+    [null, 31, 32, 33, 35],
+    [null, 32, 33, 34, 36]
+   ]
+  }
+ },
+ "sets": {
+  "note": "Each step is the bonus unlocked at that piece count; add up every step at or below the pieces you wear. IED steps multiply (10% and 10% make 19%). Only the stats the tracker uses are kept: All Stats, ATT, Boss Damage %, IED %, Critical Damage %. Lucky items are not counted. A set is recognised from the item name you picked.",
+  "list": [
+   {
+    "id": "cra",
+    "name": "Root Abyss Set",
+    "total": 4,
+    "match": {
+     "prefixes": [
+      "Royal ",
+      "Eagle Eye ",
+      "Trixter ",
+      "Fafnir "
+     ]
+    },
+    "steps": {
+     "2": {},
+     "3": {
+      "att": 50
+     },
+     "4": {
+      "boss": 30
+     }
+    }
+   },
+   {
+    "id": "absolab",
+    "name": "AbsoLab Set",
+    "total": 7,
+    "match": {
+     "prefixes": [
+      "AbsoLab "
+     ]
+    },
+    "steps": {
+     "2": {
+      "att": 20,
+      "boss": 10
+     },
+     "3": {
+      "allStats": 30,
+      "att": 20,
+      "boss": 10
+     },
+     "4": {
+      "att": 25,
+      "ied": 10
+     },
+     "5": {
+      "att": 30,
+      "boss": 10
+     },
+     "6": {
+      "att": 20
+     },
+     "7": {
+      "att": 20,
+      "ied": 10
+     }
+    }
+   },
+   {
+    "id": "arcane",
+    "name": "Arcane Umbra Set",
+    "total": 7,
+    "match": {
+     "prefixes": [
+      "Arcane Umbra "
+     ]
+    },
+    "steps": {
+     "2": {
+      "att": 30,
+      "boss": 10
+     },
+     "3": {
+      "att": 30,
+      "ied": 10
+     },
+     "4": {
+      "allStats": 50,
+      "att": 35,
+      "boss": 10
+     },
+     "5": {
+      "att": 40,
+      "boss": 10
+     },
+     "6": {
+      "att": 30
+     },
+     "7": {
+      "att": 30,
+      "ied": 10
+     }
+    }
+   },
+   {
+    "id": "eternal",
+    "name": "Eternal Set",
+    "total": 8,
+    "match": {
+     "prefixes": [
+      "Eternal ",
+      "Genesis ",
+      "Destiny "
+     ]
+    },
+    "steps": {
+     "2": {
+      "att": 40,
+      "boss": 10
+     },
+     "3": {
+      "allStats": 50,
+      "att": 40,
+      "boss": 10
+     },
+     "4": {
+      "att": 40,
+      "boss": 10
+     },
+     "5": {
+      "att": 40,
+      "ied": 20
+     },
+     "6": {
+      "att": 40,
+      "boss": 15
+     },
+     "7": {
+      "allStats": 50,
+      "att": 40,
+      "boss": 15
+     },
+     "8": {
+      "att": 40,
+      "boss": 15
+     }
+    }
+   },
+   {
+    "id": "superiorGollux",
+    "name": "Superior Gollux Set",
+    "total": 4,
+    "match": {
+     "all": [
+      "Superior",
+      "Gollux"
+     ]
+    },
+    "steps": {
+     "2": {
+      "allStats": 20
+     },
+     "3": {
+      "att": 35
+     },
+     "4": {
+      "boss": 30,
+      "ied": 30
+     }
+    }
+   },
+   {
+    "id": "bossAccessory",
+    "name": "Boss Accessory Set",
+    "total": 9,
+    "match": {
+     "names": [
+      "Condensed Power Crystal",
+      "Aquatic Letter Eye Accessory",
+      "Black Bean Mark",
+      "Papulatus Mark",
+      "Dea Sidus Earring",
+      "Will o' the Wisps",
+      "Silver Blossom Ring",
+      "Noble Ifia's Ring",
+      "Guardian Angel Ring",
+      "Horntail Necklace",
+      "Chaos Horntail Necklace",
+      "Mechanator Pendant",
+      "Dominator Pendant",
+      "Golden Clover Belt",
+      "Enraged Zakum Belt",
+      "Royal Black Metal Shoulder",
+      "Stone of Eternal Life",
+      "Pink Holy Cup",
+      "Crystal Ventus Badge"
+     ]
+    },
+    "steps": {
+     "3": {
+      "allStats": 10,
+      "att": 5
+     },
+     "5": {
+      "allStats": 10,
+      "att": 5
+     },
+     "7": {
+      "allStats": 10,
+      "att": 10,
+      "ied": 10
+     },
+     "9": {
+      "allStats": 15,
+      "att": 10,
+      "boss": 10
+     }
+    }
+   },
+   {
+    "id": "dawnBoss",
+    "name": "Dawn Boss Set",
+    "total": 4,
+    "match": {
+     "names": [
+      "Daybreak Pendant",
+      "Twilight Mark",
+      "Estella Earrings",
+      "Dawn Guardian Angel Ring"
+     ]
+    },
+    "steps": {
+     "2": {
+      "allStats": 10,
+      "att": 10,
+      "boss": 10
+     },
+     "3": {
+      "allStats": 10,
+      "att": 10
+     },
+     "4": {
+      "allStats": 10,
+      "att": 10,
+      "ied": 10
+     }
+    }
+   },
+   {
+    "id": "pitchedBoss",
+    "name": "Pitched Boss Set",
+    "total": 10,
+    "match": {
+     "names": [
+      "Black Heart",
+      "Total Control",
+      "Berserked",
+      "Magic Eyepatch",
+      "Source of Suffering",
+      "Cursed Red Spellbook",
+      "Cursed Blue Spellbook",
+      "Cursed Green Spellbook",
+      "Cursed Yellow Spellbook",
+      "Commanding Force Earring",
+      "Endless Terror",
+      "Dreamy Belt",
+      "Genesis Badge",
+      "Mitra's Rage: Warrior",
+      "Mitra's Rage: Bowman",
+      "Mitra's Rage: Pirate",
+      "Mitra's Rage: Magician",
+      "Mitra's Rage: Thief"
+     ]
+    },
+    "steps": {
+     "2": {
+      "allStats": 10,
+      "att": 10,
+      "boss": 10
+     },
+     "3": {
+      "allStats": 10,
+      "att": 10,
+      "ied": 10
+     },
+     "4": {
+      "allStats": 15,
+      "att": 15,
+      "critDmg": 5
+     },
+     "5": {
+      "allStats": 15,
+      "att": 15,
+      "boss": 10
+     },
+     "6": {
+      "allStats": 15,
+      "att": 15,
+      "ied": 10
+     },
+     "7": {
+      "allStats": 15,
+      "att": 15,
+      "critDmg": 5
+     },
+     "8": {
+      "allStats": 15,
+      "att": 15,
+      "boss": 10
+     },
+     "9": {
+      "allStats": 15,
+      "att": 15,
+      "critDmg": 5
+     },
+     "10": {
+      "allStats": 20,
+      "att": 20,
+      "boss": 10
+     }
+    }
+   }
+  ]
+ },
+ "damage": {
+  "note": "Used only to estimate how much a Star Force upgrade adds, relative to your current stats.",
+  "formulas": [
+   "Intro: All numbers in this page are decimals instead of percents.",
+   "Calculation: approximate average output is the product of these unofficially named factors: 0.01; Current Applied Weapon Constant; Stat Multiplier; Attack Power/Magic ATT; Damage Multiplier; Final Damage Multiplier; [Multiplying only the factors above, while subtracting Boss Damage or Normal Enemy Damage from Damage Multiplier, outputs Default Damage Range]; Critical Damage Multiplier; Ignore Defense Multiplier; Ignore Elemental Resistance Multiplier; Level Multiplier; Map Multiplier; Skill Multiplier; Mastery Multiplier",
+   "Stat Multiplier: For jobs except Demon Avenger: 4 (Main Stat 1 + Main Stat 2 + Main Stat 3) + Secondary Stat 1 + Secondary Stat 2; inapplicable Stats are 0",
+   "Stat Multiplier: A Stat is floor(Base Value (1 + % Value)) + % Value Not Applied",
+   "Stat Multiplier: All Stats increase STR, DEX, INT, and LUK; nothing else.",
+   "Attack Power/Magic ATT: floor(Base Value (1 + % Value)) + % Value Not Applied",
+   "Attack Power/Magic ATT: For jobs except Kanna: floor(Base Value (1 + % Value))",
+   "Attack Power/Magic ATT: Magicians use Magic ATT; other jobs use Attack Power.",
+   "Damage Multiplier: 1 + % Damage + % Boss Damage for bosses or 1 + % Damage + % Normal Enemy Damage for mobs",
+   "Final Damage Multiplier: 1 + % Final Damage; Adding a source: (1 + % Final Damage without Source) (1 + Source)",
+   "Critical Damage Multiplier: 1.35 [ref: average] + % Critical Damage for critical hits or 1 for non critical hits; Base % Critical Damage is a number between 1.2 and 1.5.",
+   "Ignore Defense Multiplier: 1 - (% Enemy Defense (1 - % Ignore Defense)); If this multiplier is 0 or negative, output is 1 damage. Usually, mobs' % Defense is 0.1 and difficult bosses' Defense is 3.8.",
+   "Ignore Defense Multiplier: % Ignore Defense = 1 - ((1 - Source 1) (1 - Source 2) (1 - Source 3) ...); Adding a source: 1 - ((1 - % Ignore Defense without Source) (1 - Source))",
+   "Ignore Defense Multiplier: Each line of potential is a separate source.",
+   "Ignore Elemental Resistance Multiplier: 0.5 (1 + % Ignore Elemental Resistance) for almost all bosses or 1 for almost all mobs",
+   "Mastery Multiplier: 0.5 [ref: average] (1 + % Weapon Mastery)",
+   "Stat Equivalence: Stat Multiplier = 4 (floor(Base Main Stat (1 + % Main Stat))) + 4 (% Main Stat Not Applied) + floor(Base Secondary Stat (1 + % Secondary Stat)) + % Secondary Stat Not Applied",
+   "Stat Equivalence: relative change = (new - old) / old"
+  ]
+ }
+}

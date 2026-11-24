@@ -183,6 +183,7 @@
     {
      "id": "w-mayrin",
      "label": "Mayrin (from Lv. 270)",
+     "minLevel": 270,
      "note": "Season boss, once a week per account. Golden Meso Pouches, +3% ATT soul.",
      "until": "2027-02-09T23:59:00Z"
     },
@@ -195,6 +196,7 @@
     {
      "id": "w-arthur",
      "label": "Arthur's Equipment Rental before a real boss attempt",
+     "optional": true,
      "note": "Lasts 2 days, up to 3 a week, paid in mesos first.",
      "until": "2027-02-09T23:59:00Z"
     }

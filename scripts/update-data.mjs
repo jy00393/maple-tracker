@@ -5,7 +5,7 @@
 // On any network error it keeps the previous files and records the error in meta.json.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { parsePost, postUrl, findRanked } from './lib/nexon-parse.mjs';
+import { parsePost, postUrl, findRanked, findSunnySchedule } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
 import { WZ_URL, ITEMS_URL, MIN_LEVEL, ITEMS_SCHEMA, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
 
@@ -25,6 +25,8 @@ const DAY = 86400000;
 const DETAIL_CATEGORIES = new Set(['events', 'update', 'sale', 'general', 'maintenance']);
 const MAX_DETAIL_FETCHES = 30;
 const NEWS_KEEP = 150;
+// Raise this when the parser learns something new, so cached posts are read again (a few per run).
+const PARSER_VERSION = 2;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -104,7 +106,7 @@ async function updateNewsAndEvents(errors) {
   for (const post of candidates) {
     const cached = posts[post.id];
     const recent = now - Date.parse(post.liveDate) < 10 * DAY;
-    const stale = !cached || cached.name !== post.name || (recent && now - Date.parse(cached.fetchedAt || 0) > 5 * 3600000);
+    const stale = !cached || cached.pv !== PARSER_VERSION || cached.name !== post.name || (recent && now - Date.parse(cached.fetchedAt || 0) > 5 * 3600000);
     if (!stale) continue;
     if (fetched >= MAX_DETAIL_FETCHES) break;
     try {
@@ -116,7 +118,9 @@ async function updateNewsAndEvents(errors) {
         category: post.category,
         liveDate: post.liveDate,
         fetchedAt: new Date(now).toISOString(),
-        events: parsePost(post, detail.body || '')
+        pv: PARSER_VERSION,
+        events: parsePost(post, detail.body || ''),
+        sunny: post.category === 'maintenance' ? [] : findSunnySchedule(detail.body || '')
       };
     } catch (err) {
       errors.push(`post ${post.id}: ${err.message}`);
@@ -131,10 +135,17 @@ async function updateNewsAndEvents(errors) {
     .filter((e) => Date.parse(e.end) > now - 21 * DAY)
     .sort((a, b) => Date.parse(a.end) - Date.parse(b.end));
 
+  // Sunny Sunday perks by date; when two posts list the same Sunday, the newer post wins.
+  const sunnyByDate = new Map();
+  for (const p of Object.values(posts).sort((a, b) => Date.parse(a.liveDate) - Date.parse(b.liveDate))) {
+    for (const d of p.sunny || []) if (Date.parse(`${d.date}T23:59:59Z`) > now - DAY) sunnyByDate.set(d.date, d);
+  }
+  const sunny = [...sunnyByDate.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
+
   const changed = [];
   if (await writeJsonIfChanged('news.json', { items: news })) changed.push('news');
   if (await writeJsonIfChanged('posts.json', { posts })) changed.push('posts');
-  if (await writeJsonIfChanged('events.json', { events })) changed.push('events');
+  if (await writeJsonIfChanged('events.json', { events, sunny })) changed.push('events');
   if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now))) changed.push('calendar');
   return { changed, fetched, posts: list.length, events: events.length };
 }
