@@ -36,7 +36,7 @@ export function setRecord(id, kind, rec) {
   });
 }
 
-function Item({ item, group, cs, now, who }) {
+export function Item({ item, group, cs, now, who }) {
   const st = itemStatus(item, group, cs, now, who);
   const level = who.level;
   const key = recordKey(item, who);

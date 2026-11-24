@@ -243,6 +243,58 @@ test('ticking a checklist box saves it for the active character only', async () 
   close(el);
 });
 
+test('Today ticks dailies and bosses directly, with the same ticks as Checklist and Bosses', async () => {
+  store.replaceState(richState(), true);
+  const el = await show('today');
+  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · 2 \/ 4 bosses/);
+  const daily = el.find((n) => n.localName === 'input' && n.attrs.id === 'cl-d-coupon');
+  assert.ok(daily, 'a core daily can be ticked on Today');
+  daily.checked = true;
+  daily.fire('change', { currentTarget: daily });
+  const boss = el.find((n) => n.localName === 'input' && n.attrs.id === 'today-boss-will-hard');
+  assert.ok(boss && !flag(boss, 'checked'), 'an uncleared boss is listed unticked');
+  assert.ok(flag(el.find((n) => n.attrs.id === 'today-boss-lucid-hard'), 'checked'), 'a cleared boss is listed ticked');
+  boss.fire('change', { currentTarget: boss });
+  await tick(5);
+  const s = store.getState();
+  assert.equal(s.checklist.items['main|d-coupon'].d, 1);
+  assert.equal(s.bosses.main.clears['will-hard'][week], true);
+  close(el);
+  const again = await show('today');
+  assert.match(again.text.replace(/\s+/g, ' '), /3 \/ 4 bosses/);
+  close(again);
+  // A character with no bosses picked gets a pointer instead of an empty list.
+  store.update((x) => { x.activeId = 'da'; });
+  const el2 = await show('today');
+  assert.match(el2.text.replace(/\s+/g, ' '), /No bosses picked yet/);
+  close(el2);
+});
+
+test('Gear: the equipment window and the list show the same slots, and the star stepper saves', async () => {
+  store.replaceState(richState(), true);
+  const el = await show('gear');
+  const tilesOf = () => el.findAll((n) => n.localName === 'button' && /: edit$/.test(n.attrs['aria-label'] || ''));
+  const inWindow = tilesOf().map((n) => n.attrs['aria-label']).sort();
+  assert.ok(tilesOf().every((n) => n.attrs.class.split(' ').includes('wslot')), 'the window is the first view');
+  el.find((n) => n.localName === 'button' && n.text.trim() === 'List').fire('click');
+  await tick(5);
+  assert.ok(tilesOf().every((n) => n.attrs.class.split(' ').includes('equip')));
+  assert.deepEqual(tilesOf().map((n) => n.attrs['aria-label']).sort(), inWindow);
+  tilesOf().find((n) => n.attrs['aria-label'] === 'Hat: edit').fire('click');
+  await tick(5);
+  const modal = el.find((n) => n.attrs.role === 'dialog');
+  const before = store.getState().gear.main.slots.hat.stars || 0;
+  modal.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'One more: Hat stars').fire('click');
+  await tick(5);
+  assert.equal(store.getState().gear.main.slots.hat.stars, before + 1);
+  const max = el.find((n) => n.attrs.role === 'dialog').find((n) => n.localName === 'button' && /^Max \d+★$/.test(n.text.trim()));
+  max.fire('click');
+  await tick(5);
+  assert.equal(store.getState().gear.main.slots.hat.stars, Number(max.text.match(/\d+/)[0]));
+  assert.ok(flag(el.find((n) => n.attrs.role === 'dialog').find((n) => n.attrs['aria-label'] === 'One more: Hat stars'), 'disabled'), 'no step past the item’s maximum');
+  close(el);
+});
+
 // A seeded generator so a failure can be reproduced.
 function rng(seed) { let x = seed >>> 0; return () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; }; }
 const JUNK = [null, undefined, -1, 0, 1e15, NaN, 'abc', '', [], {}, true];

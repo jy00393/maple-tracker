@@ -78,6 +78,35 @@ function CharacterPicker({ state }) {
   </label>`;
 }
 
+// Phones: the four tabs used every day sit in a bar under the thumb; the rest open from "More".
+const PRIMARY = ['today', 'checklist', 'bosses', 'gear'];
+const ICONS = {
+  today: 'M3 11l9-7 9 7v8a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  checklist: 'M8 12l3 3 6-7M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z',
+  bosses: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+  gear: 'M6 4h12l4 5-10 11L2 9zM2 9h20',
+  more: 'M5 12h.01M12 12h.01M19 12h.01'
+};
+function NavIcon({ name }) {
+  return html`<svg viewBox="0 0 24 24" aria-hidden="true"><path d=${ICONS[name]} /></svg>`;
+}
+
+function BottomNav({ route, newNews }) {
+  const [more, setMore] = useState(false);
+  useEffect(() => { setMore(false); }, [route]);
+  const rest = ROUTES.filter(([key]) => !PRIMARY.includes(key));
+  return html`<nav class="bottomnav" aria-label="Sections, bottom bar">
+    ${more ? html`<div class="more-sheet">
+      ${rest.map(([key, label]) => html`<a class="more-item" href=${'#' + key} aria-current=${key === route ? 'page' : undefined} onClick=${() => setMore(false)}>
+        ${label}${key === 'events' && newNews > 0 ? html`<span class="dot" aria-label=${newNews + ' new posts'}>${newNews}</span>` : null}</a>`)}
+    </div>` : null}
+    ${PRIMARY.map((key) => html`<a class="bn" href=${'#' + key} aria-current=${key === route ? 'page' : undefined}><${NavIcon} name=${key} /><span>${ROUTES.find((r) => r[0] === key)[1]}</span></a>`)}
+    <button type="button" class="bn" aria-expanded=${String(more)} aria-current=${!PRIMARY.includes(route) ? 'page' : undefined} onClick=${() => setMore(!more)}>
+      <${NavIcon} name="more" /><span>More</span>${newNews > 0 ? html`<i class="bn-dot" aria-label=${newNews + ' new posts'}></i>` : null}
+    </button>
+  </nav>`;
+}
+
 function App({ data }) {
   const state = useStore();
   const route = useRoute();
@@ -98,7 +127,8 @@ function App({ data }) {
         </nav>
       </div>
     </header>
-    <main id="main"><${Page} data=${data} state=${state} /></main>`;
+    <main id="main"><${Page} data=${data} state=${state} /></main>
+    <${BottomNav} route=${route} newNews=${newNews} />`;
 }
 
 async function boot() {

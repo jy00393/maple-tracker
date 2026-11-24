@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, PageHead, Seg, NumberInput, Bar, Tile, Empty } from '../ui.js';
+import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty } from '../ui.js';
 import { symbolPlan, liberationPlan, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos } from '../calc/income.js';
 import { fmtDate } from '../time.js';
@@ -22,7 +22,7 @@ function SymbolTable({ kind, kindData, char, entries }) {
     if (!plan.locked) totalMesos += plan.remainingMesos;
     return html`<tr class=${plan.locked ? 'off' : ''}>
       <td>${area.name}<div class="small muted">Lv. ${area.unlockLevel}+</div></td>
-      <td><${NumberInput} label=${area.name + ' level'} value=${entry.level ?? 0} min=${0} max=${kindData.maxLevel} onChange=${(v) => set(area.id, { level: v ?? 0 })} /></td>
+      <td><${Stepper} label=${area.name + ' level'} value=${entry.level ?? 0} min=${0} max=${kindData.maxLevel} onChange=${(v) => set(area.id, { level: v ?? 0 })} /></td>
       <td><${NumberInput} label=${area.name + ' symbols held'} value=${entry.have ?? 0} min=${0} max=${9999} onChange=${(v) => set(area.id, { have: v ?? 0 })} /></td>
       <td><${NumberInput} label=${area.name + ' symbols per day'} value=${entry.daily ?? area.daily} min=${0} max=${999} onChange=${(v) => set(area.id, { daily: v })} /></td>
       <td class="num">${plan.locked ? 'not unlocked' : plan.maxed ? 'max' : html`${days(plan.daysToNext)}${plan.affordable ? html`<div class="small" style=${{ color: 'var(--ok)' }}>${plan.affordable} level${plan.affordable === 1 ? '' : 's'} ready now</div>` : null}`}</td>
@@ -103,7 +103,7 @@ function SixthJob({ data, char, entry }) {
       </div>
       ${template.steps.map((st) => html`<label class="small"><input type="checkbox" checked=${Boolean(steps[st.id])} onChange=${(e) => set((x) => { x.steps[st.id] = e.currentTarget.checked; })} /> ${st.label}</label>`)}
       <div class="tbl-wrap"><table class="tbl"><tbody>
-        ${template.nodes.map((n) => html`<tr><td>${n.name}</td><td class="num"><${NumberInput} label=${n.name + ' level'} value=${levels[n.id] || 0} min=${0} max=${30} onChange=${(v) => set((e) => { e.levels[n.id] = v || 0; })} /></td></tr>`)}
+        ${template.nodes.map((n) => html`<tr><td>${n.name}</td><td class="num"><${Stepper} label=${n.name + ' level'} value=${levels[n.id] || 0} min=${0} max=${30} onChange=${(v) => set((e) => { e.levels[n.id] = v || 0; })} /></td></tr>`)}
       </tbody></table></div>
       <div class="form-grid">
         <label class="field"><span>Sol Erda</span><${NumberInput} className="input" label="Sol Erda" value=${entry.solErda || 0} max=${99999} onChange=${(v) => set((e) => { e.solErda = v || 0; })} /></label>

@@ -4,7 +4,7 @@ import { lineChoices, makeLine, refreshLines } from '../calc/potential.js';
 import { FLAME_FIELDS, cleanFlame, flameLabel, flameTotals, starStats, detectSets, setBonusLabel, STAT_FIELDS } from '../calc/gearstats.js';
 import { upgradeOptions } from '../calc/advice.js';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, PageHead, Bar, Seg, NumberInput, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
+import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
 import { gearSummary, gearProjection } from '../calc/progress.js';
 import { maxStarsFor } from '../calc/starforce.js';
 import { itemLevel, slotOutlook } from '../calc/advice.js';
@@ -19,6 +19,16 @@ const GROUPS = [
   ['Armor', ['hat', 'top', 'bottom', 'shoes', 'gloves', 'cape', 'shoulder']],
   ['Accessories', ['belt', 'pendant1', 'pendant2', 'earrings', 'face', 'eye', 'ring1', 'ring2', 'ring3', 'ring4']],
   ['Other', ['pocket', 'badge', 'heart']]
+];
+
+// The same places as the in-game equipment window (5 across). null is a gap, or a slot the tracker doesn't follow.
+const WINDOW = [
+  ['ring1', null, 'hat', null, 'emblem'],
+  ['ring2', 'pendant1', 'face', null, 'badge'],
+  ['ring3', 'pendant2', 'eye', 'earrings', null],
+  ['ring4', 'weapon', 'top', 'shoulder', 'secondary'],
+  ['pocket', 'belt', 'bottom', 'gloves', 'cape'],
+  [null, null, 'shoes', null, 'heart']
 ];
 
 function blankGear() {
@@ -83,10 +93,10 @@ function useItems() {
 }
 
 // Item picture from maplestory.io. Hidden if it fails to load, so a missing icon never breaks the tile.
-function ItemIcon({ entry, size = 36 }) {
+function ItemIcon({ entry, size = 36, fallback = null }) {
   const [failed, setFailed] = useState(null);
   const url = iconUrl(entry.iconVer, entry.itemId);
-  if (!url || failed === url) return null;
+  if (!url || failed === url) return fallback;
   return html`<img class="item-icon" src=${url} alt="" width=${size} height=${size} loading="lazy" referrerpolicy="no-referrer" onError=${() => setFailed(url)} />`;
 }
 
@@ -227,7 +237,8 @@ function SlotModal({ row, data, char, onClose }) {
               ${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}
             </select></label>
           <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${lvl} min=${0} max=${300} onChange=${(v) => set({ ilvl: v || null, ...(entry.pot && (entry.potLines || []).length ? { potLines: refreshLines(data.potential, slot.id, entry.pot, itemLevel(slot, { ...entry, ilvl: v || null }), entry.potLines, { mainStat, keepMissing: true }) } : {}) })} /></label>
-          ${slot.sf ? html`<label class="field"><span>Stars (max ${max})</span><${NumberInput} className="input" label=${slot.name + ' stars'} value=${entry.stars || 0} max=${max || 30} onChange=${(v) => set({ stars: v || 0 })} /></label>` : null}
+          ${slot.sf ? html`<div class="field wide"><span>Stars (max ${max})</span><${Stepper} label=${slot.name + ' stars'} value=${entry.stars || 0} max=${max || 30} onChange=${(v) => set({ stars: v || 0 })}
+            presets=${max ? [...new Set([0, Math.min(target.stars || 0, max), max])].map((n) => [n, n === 0 ? 'None' : n === max ? `Max ${n}★` : `Target ${n}★`]) : null} /></div>` : null}
           ${hasPotential(slot) ? html`<label class="field"><span>Potential tier</span>
             <select class=${'select pot-' + (entry.pot || 0)} value=${String(entry.pot || 0)} onChange=${(e) => {
               const pot = Number(e.currentTarget.value);
@@ -252,9 +263,9 @@ function SlotModal({ row, data, char, onClose }) {
           <summary class="small muted">Target for this slot: ${tiers[target.tier - 1] || 'tier ' + target.tier}${target.stars ? `, ${target.stars}★` : ''}${hasPotential(slot) ? `, ${POT[target.pot]} with ${target.lines} useful lines` : ''}. Change</summary>
           <div class="form-grid" style=${{ marginTop: '10px' }}>
             <label class="field"><span>Target tier</span><select class="select" value=${String(target.tier)} onChange=${(e) => setTarget({ tier: Number(e.currentTarget.value) })}>${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}</select></label>
-            ${slot.sf ? html`<label class="field"><span>Target stars</span><${NumberInput} className="input" label="Target stars" value=${target.stars} max=${30} onChange=${(v) => setTarget({ stars: v || 0 })} /></label>` : null}
+            ${slot.sf ? html`<div class="field"><span>Target stars</span><${Stepper} label="Target stars" value=${target.stars} max=${30} onChange=${(v) => setTarget({ stars: v || 0 })} /></div>` : null}
             ${hasPotential(slot) ? html`<label class="field"><span>Target potential</span><select class="select" value=${String(target.pot)} onChange=${(e) => setTarget({ pot: Number(e.currentTarget.value) })}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>
-            <label class="field"><span>Target useful lines</span><${NumberInput} className="input" label="Target lines" value=${target.lines} max=${3} onChange=${(v) => setTarget({ lines: v || 0 })} /></label>` : null}
+            <div class="field"><span>Target useful lines</span><${Seg} label="Target lines" value=${target.lines} onChange=${(v) => setTarget({ lines: v })} options=${[[0, '0'], [1, '1'], [2, '2'], [3, '3']]} /></div>` : null}
             <button type="button" class="btn ghost" onClick=${() => set({ target: {} })}>Use the preset</button>
           </div>
         </details>
@@ -279,9 +290,26 @@ function EquipTile({ row, data, mainStat, onOpen }) {
   </button>`;
 }
 
+// One square of the equipment window: picture, stars, a border in the potential tier's colour, progress to target.
+function WindowSlot({ row, data, onOpen }) {
+  const { slot, entry } = row;
+  const tiers = data.gear.slotTypes[slot.type].filter(Boolean);
+  const empty = !entry.tier;
+  const name = empty ? 'empty' : entry.note || tiers[entry.tier - 1];
+  const tip = empty ? `${slot.name}: empty` : `${slot.name}: ${name}${slot.sf ? ` · ★${entry.stars || 0}` : ''}${entry.pot ? ` · ${POT[entry.pot]}` : ''} · ${Math.round(row.pct * 100)}% of target${entry.temporary ? ' · expires' : ''}`;
+  return html`<button type="button" class=${'wslot' + (empty ? ' empty' : '') + (entry.pot ? ' pot-' + entry.pot : '')} onClick=${onOpen} aria-label=${`${slot.name}: edit`} title=${tip}>
+    <span class="pic">${empty ? html`<span class="plus" aria-hidden="true">+</span>` : html`<${ItemIcon} entry=${entry} size=${32} fallback=${html`<span class="txt">${name}</span>`} />`}</span>
+    <span class="nm">${slot.name}</span>
+    ${slot.sf && !empty ? html`<span class="st stars">★${entry.stars || 0}</span>` : null}
+    ${entry.temporary ? html`<span class="fl" aria-hidden="true">!</span>` : null}
+    ${empty ? null : html`<i class=${'pg' + (row.pct >= 1 ? ' full' : '')} style=${{ width: Math.round(Math.min(1, row.pct) * 100) + '%' }}></i>`}
+  </button>`;
+}
+
 export function GearPage({ data, state }) {
   const char = activeCharacter(state);
   const [open, setOpen] = useState(null);
+  const [view, setView] = useState('window');
   if (!char) return html`<${PageHead} title="Gear" /><${Card} title="Add a character first"><p class="note"><a href="#characters">Add your character</a> to track gear.</p><//>`;
   const g = state.gear[char.id] || blankGear();
   const sum = gearSummary(data.gear, g);
@@ -314,11 +342,19 @@ export function GearPage({ data, state }) {
         <span class="s">${proj ? (proj.eta ? `100% around ${fmtDate(proj.eta)}` : 'no progress in the saved history yet') : 'shows after a few days of edits'}</span><${Spark} history=${g.history} /></div>
     </div>
     <div class="grid wide-left">
-      <${Card} title="Equipment" meta=${`${sum.temporary.length} expiring item${sum.temporary.length === 1 ? '' : 's'}`}>
-        ${GROUPS.map(([label, ids]) => html`<div class="grid" style=${{ gap: '8px' }}>
+      <${Card} title="Equipment" meta=${html`<${Seg} label="Equipment view" value=${view} onChange=${setView} options=${[['window', 'Window'], ['list', 'List']]} />`}>
+        ${view === 'window' ? html`<div class="equip-window" role="group" aria-label="Equipment window">
+          ${WINDOW.flat().map((id, i) => (id && byId[id]
+            ? html`<${WindowSlot} key=${id} row=${byId[id]} data=${data} onOpen=${() => setOpen(id)} />`
+            : html`<span key=${'gap' + i} class="wslot blank" aria-hidden="true"></span>`))}
+          ${sum.slots.filter((r) => !WINDOW.flat().includes(r.slot.id)).map((r) => html`<${WindowSlot} key=${r.slot.id} row=${r} data=${data} onOpen=${() => setOpen(r.slot.id)} />`)}
+        </div>
+        <div class="legend"><span><i style=${{ background: 'var(--rare)' }}></i>Rare</span><span><i style=${{ background: 'var(--epic)' }}></i>Epic</span><span><i style=${{ background: 'var(--unique)' }}></i>Unique</span><span><i style=${{ background: 'var(--legendary)' }}></i>Legendary</span></div>
+        <p class="note">Laid out like the in-game equipment window. Tap a slot to edit it. The border is the potential tier and the bar along the bottom is progress to your target${sum.temporary.length ? `; “!” marks the ${sum.temporary.length} item${sum.temporary.length === 1 ? '' : 's'} that expire${sum.temporary.length === 1 ? 's' : ''}` : ''}. Switch to List to read every line.</p>` : null}
+        ${view !== 'window' ? GROUPS.map(([label, ids]) => html`<div class="grid" style=${{ gap: '8px' }}>
           <div class="group-h" style=${{ padding: '4px 2px 0' }}><h4>${label}</h4></div>
           <div class="equip-grid">${ids.filter((id) => byId[id]).map((id) => html`<${EquipTile} key=${id} row=${byId[id]} data=${data} mainStat=${mainStat} onOpen=${() => setOpen(id)} />`)}</div>
-        </div>`)}
+        </div>`) : null}
       <//>
       <${Card} title="What to upgrade next" meta="Biggest weighted gaps, permanent items">
         ${next.length ? next.map(({ row, outlook }) => html`<div class="insight" style=${{ cursor: 'pointer' }} onClick=${() => setOpen(row.slot.id)}>
@@ -340,7 +376,7 @@ export function GearPage({ data, state }) {
         </div>`) : html`<${Empty}>Pick items by name in each slot and their set bonuses show up here.<//>`}
         <p class="note">${data.gearStats.sets.note}</p>
       <//>
-      <${Card} title="Your stats, for damage estimates" meta="optional">
+      <${Fold} title="Your stats, for damage estimates" meta=${stats.main && stats.att ? 'entered · tap to change' : 'optional · tap to open'}>
         ${dmgOk ? null : html`<p class="warnbox">Not available for this character. The estimate uses the standard damage formula (4 × main stat + secondary stat), and the wiki's formula page doesn't give the Demon Avenger or Xenon versions. Upgrades are ranked by the tracker's gear score instead.</p>`}
         <p class="note">Copy these totals from your in-game stat window. With them, Star Force upgrades are ranked by estimated damage per meso instead of the tracker's gear score.</p>
         <div class="form-grid">${STAT_FIELDS.map(([key, label, ph]) => html`<label class="field"><span>${key === 'main' ? `${msLabel} (total)` : key === 'mainPct' ? `${msLabel} %` : label}</span><${NumberInput} className="input" label=${label} value=${stats[key] ?? null} max=${9999999} onChange=${(v) => setStat(key, v)} /><span class="small muted">${ph}</span></label>`)}</div>

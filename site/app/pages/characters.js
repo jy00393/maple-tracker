@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
-import { Card, PageHead, NumberInput, Empty } from '../ui.js';
+import { Card, Fold, PageHead, NumberInput, Empty } from '../ui.js';
 import { worldLabel } from '../calc/income.js';
 import { MAIN_STAT_CHOICES, mainStatForClass } from '../calc/upgrades.js';
 import { reclassifyLines } from '../calc/potential.js';
@@ -88,7 +88,7 @@ export function CharactersPage({ data, state }) {
         <${CharacterForm} key=${state.characters.length} initial=${blankForm()} saveLabel="Add character"
           onSave=${(f) => update((s) => { const id = newId(); if (s.characters.length === 0) { s.checklist.owner = id; s.checklist.ownerSet = true; } s.characters.push({ id, ...f }); s.activeId = id; })} />
       <//>
-      <${Card} title="Automatic level updates" className="span2">
+      <${Fold} title="Automatic level updates" meta="optional · tap to open" className="span2">
         <p class="note">To have your level and class refreshed from Nexon's rankings every 6 hours, list the character in <code>config/characters.json</code> in your GitHub repo, like <code>[{"name": "YourName", "region": "na"}]</code>. The next run adds it here with a button to copy the level across. Names you list there are visible to anyone who can see the repo; Nexon's own rankings already show them publicly.</p>
         ${nexon.length ? html`<p class="note">Found on Nexon: ${nexon.map((n) => `${n.name} (Lv. ${n.level})`).join(', ')}.</p>` : null}
       <//>
