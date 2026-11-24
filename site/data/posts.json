@@ -325,7 +325,8 @@
    "name": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
    "category": "update",
    "liveDate": "2026-07-21T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42415-defeat-boss-event-god-devourer",
@@ -1025,13 +1026,82 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/update/42415"
     }
+   ],
+   "sunny": [
+    {
+     "date": "2026-07-26",
+     "perks": [
+      "+250% Monster Park Clear EXP",
+      "Excludes Monster Park Extreme",
+      "Spiegelette's Golden Strawberry Farm One-Time Entry Pass (x2): Tradable within world, expires July 29, 2026 11:59 PM UTC ."
+     ]
+    },
+    {
+     "date": "2026-08-02",
+     "perks": [
+      "Special Sunny Sunday",
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, Mesos used to safeguard are not eligible for the 30% discount."
+     ]
+    },
+    {
+     "date": "2026-08-09",
+     "perks": [
+      "Combo Kill EXP + 300%",
+      "Elite monster appearance increase",
+      "2x Sol Erda when hunting"
+     ]
+    },
+    {
+     "date": "2026-08-16",
+     "perks": [
+      "Special Sunny Sunday",
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, Mesos used to safeguard are not eligible for the 30% discount.",
+      "1+1 Star Force upon a successful enhancement at 10-Star or below."
+     ]
+    },
+    {
+     "date": "2026-08-23",
+     "perks": [
+      "50% off Ability Resets",
+      "50% off Spell Trace Enhancements",
+      "250% Monster Park Clear EXP",
+      "Excludes Monster Park Extreme",
+      "Mysterious Monsterbloom (x3): Untradable, Permanent. Claim once per account.",
+      "Cannot be claimed in Challenger World.",
+      "+100% chance to register a new monster in Monster Collection",
+      "[HEXA Matrix] When Main Stat is Lv. 5+, the enhancement chance is increased 20%."
+     ]
+    },
+    {
+     "date": "2026-08-30",
+     "perks": [
+      "Special Sunny Sunday",
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, Mesos used to safeguard are not eligible for the 30% discount."
+     ]
+    },
+    {
+     "date": "2026-09-06",
+     "perks": [
+      "Haste Fever Time Booster (x3): Tradable within world, expires September 9, 2026 11:59 PM UTC .",
+      "Elite monster appearance increase",
+      "2x Sol Erda when hunting",
+      "5x Magnificent Soul chance from soul shards"
+     ]
+    }
    ]
   },
   "42446": {
    "name": "Cash Shop Update for July 22",
    "category": "sale",
    "liveDate": "2026-07-21T17:10:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42446-coloring-prism-and-prism-color-restore",
@@ -1101,13 +1171,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/42446"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42465": {
    "name": "Kinesis Redux!",
    "category": "events",
    "liveDate": "2026-07-22T11:41:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42465-kinesis",
@@ -1143,13 +1215,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/42465"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42466": {
    "name": "[Update Aug 13] Mystic Frontier Champions",
    "category": "events",
    "liveDate": "2026-07-22T12:40:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42466-mystic-frontier-champions",
@@ -1185,13 +1259,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/42466"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42467": {
    "name": "Ride or Die Revamp!",
    "category": "events",
    "liveDate": "2026-07-22T11:38:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42467-ride-or-die",
@@ -1229,13 +1305,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/42467"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42477": {
    "name": "Operation: Dive Phase 2",
    "category": "events",
    "liveDate": "2026-07-22T11:39:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42477-operation-dive",
@@ -1290,13 +1368,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/42477"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42634": {
    "name": "Cash Shop Update for July 29",
    "category": "sale",
    "liveDate": "2026-07-28T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42634-gachapon-update",
@@ -1417,7 +1497,8 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/42634"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42797": {
    "name": "Maple Memo: Addressing the Unique tier Familiar Boss Damage Potential",
@@ -1430,7 +1511,8 @@
    "name": "Summer Ethereal Atelier: Lucky Turtles",
    "category": "sale",
    "liveDate": "2026-08-04T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42846-the-atelier-reliquary",
@@ -1449,13 +1531,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/42846"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42853": {
    "name": "Cash Shop Update for August 5",
    "category": "sale",
    "liveDate": "2026-08-04T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42853-the-atelier-reliquary",
@@ -1593,20 +1677,24 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/42853"
     }
-   ]
+   ],
+   "sunny": []
   },
   "42854": {
    "name": "Brazil Digital ECA Update",
    "category": "general",
    "liveDate": "2026-07-22T13:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "42856": {
    "name": "Cash Shop Update for August 12",
    "category": "sale",
    "liveDate": "2026-08-11T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "42856-coloring-prism-and-prism-color-restore",
@@ -1727,13 +1815,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/42856"
     }
-   ]
+   ],
+   "sunny": []
   },
   "43431": {
    "name": "Miracle Summer 2026 Redux",
    "category": "events",
    "liveDate": "2026-08-06T18:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "43431-accessories-emblems-hearts-rings-august-14",
@@ -1837,13 +1927,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/43431"
     }
-   ]
+   ],
+   "sunny": []
   },
   "43487": {
    "name": "[Update Aug 26] Cash Shop Update for August 19",
    "category": "sale",
    "liveDate": "2026-08-18T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "43487-premium-ssb-update",
@@ -1964,13 +2056,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/43487"
     }
-   ]
+   ],
+   "sunny": []
   },
   "43492": {
    "name": "Momentum Pass Continues!",
    "category": "events",
    "liveDate": "2026-08-04T17:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "43492-momentum-pass",
@@ -1991,27 +2085,33 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/43492"
     }
-   ]
+   ],
+   "sunny": []
   },
   "43716": {
    "name": "v.270 Public Test Server Best Tester Reward Notice",
    "category": "general",
    "liveDate": "2026-07-30T15:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "43807": {
    "name": "Maple Memo: Addressing Recent Instances of Hacking Activity",
    "category": "general",
    "liveDate": "2026-08-05T18:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "43821": {
    "name": "[Update Aug 26] Cash Shop Update for August 26",
    "category": "sale",
    "liveDate": "2026-08-25T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "43821-gachapon-update",
@@ -2132,20 +2232,24 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/43821"
     }
-   ]
+   ],
+   "sunny": []
   },
   "43833": {
    "name": "The Marvel Machine Returns August 27!",
    "category": "sale",
    "liveDate": "2026-08-24T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "43991": {
    "name": "Cash Shop Update for September 2",
    "category": "sale",
    "liveDate": "2026-09-01T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "43991-gachapon-update",
@@ -2232,13 +2336,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/43991"
     }
-   ]
+   ],
+   "sunny": []
   },
   "43992": {
    "name": "[Update Aug 26] Fantasia Finale Event",
    "category": "events",
    "liveDate": "2026-08-25T17:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "43992-update-aug-26-fantasia-finale-event",
@@ -2259,27 +2365,33 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/43992"
     }
-   ]
+   ],
+   "sunny": []
   },
   "44154": {
    "name": "Spanish Language Support (Beta) Notice",
    "category": "general",
    "liveDate": "2026-08-27T12:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44159": {
    "name": "Auction House Item Claim Reminder Notice",
    "category": "general",
    "liveDate": "2026-09-03T12:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44225": {
    "name": "Cash Shop Update for September 9",
    "category": "sale",
    "liveDate": "2026-09-08T16:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "44225-premium-coloring-prism-and-prism-color-restore",
@@ -2349,42 +2461,53 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/44225"
     }
-   ]
+   ],
+   "sunny": []
   },
   "44291": {
    "name": "Signature Style Collection",
    "category": "sale",
    "liveDate": "2026-09-09T13:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44314": {
    "name": "Philosopher's Book",
    "category": "sale",
    "liveDate": "2026-09-09T13:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44348": {
    "name": "Special Petite Luna Pets",
    "category": "sale",
    "liveDate": "2026-09-09T13:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44414": {
    "name": "[Update Sept 11] Frieren's Spell Collection",
    "category": "events",
    "liveDate": "2026-09-09T11:01:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44415": {
    "name": "Adventure with Frieren's Companions",
    "category": "events",
    "liveDate": "2026-09-09T11:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44528": {
    "name": "Cash Shop Update for September 16",
@@ -2468,7 +2591,8 @@
    "name": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
    "category": "update",
    "liveDate": "2026-09-08T18:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
    "events": [
     {
      "id": "44597-special-skill-ring-changes",
@@ -2699,14 +2823,101 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/update/44597"
     }
+   ],
+   "sunny": [
+    {
+     "date": "2026-09-13",
+     "perks": [
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, mesos used to safeguard are not eligible for the 30% discount.",
+      "Rune Appearance Cooldown reduction",
+      "+100% Rune EXP buff effect",
+      "Combo Kill EXP +300%"
+     ]
+    },
+    {
+     "date": "2026-09-20",
+     "perks": [
+      "50% off Ability Resets",
+      "250% Monster Park Clear EXP",
+      "Excludes Monster Park Extreme"
+     ]
+    },
+    {
+     "date": "2026-09-27",
+     "perks": [
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, mesos used to safeguard are not eligible for the 30% discount.",
+      "Rune Appearance Cooldown reduction",
+      "+100% Rune EXP buff effect",
+      "Elite monster appearance increase"
+     ]
+    },
+    {
+     "date": "2026-10-04",
+     "perks": [
+      "Treasure Hunter EXP x3",
+      "Combo Kill EXP +300%",
+      "+250% Monster Park Clear EXP",
+      "Excludes Monster Park Extreme"
+     ]
+    },
+    {
+     "date": "2026-10-11",
+     "perks": [
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, mesos used to safeguard are not eligible for the 30% discount.",
+      "50% off Spell Trace Enhancements",
+      "1+1 Star Force upon a successful enhancement at 10-Star or below."
+     ]
+    },
+    {
+     "date": "2026-10-18",
+     "perks": [
+      "+250% Monster Park Clear EXP",
+      "Excludes Monster Park Extreme",
+      "[HEXA Matrix] When Main Stat is Lv. 5+, the enhancement chance is increased 20%."
+     ]
+    },
+    {
+     "date": "2026-10-25",
+     "perks": [
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, mesos used to safeguard are not eligible for the 30% discount.",
+      "50% off Ability Resets"
+     ]
+    },
+    {
+     "date": "2026-11-01",
+     "perks": [
+      "5x chance to get Magnificent Soul from Soul Shards",
+      "2x Sol Erda when hunting",
+      "Treasure Hunter EXP x3"
+     ]
+    },
+    {
+     "date": "2026-11-08",
+     "perks": [
+      "30% reduced chance of item destruction when enhancing items below 21 Stars",
+      "30% off Star Force enhancements",
+      "Excludes Superior Equipment, mesos used to safeguard are not eligible for the 30% discount.",
+      "Combo Kill EXP +300%"
+     ]
+    }
    ]
   },
   "44705": {
    "name": "v.271 Update Preview",
    "category": "update",
    "liveDate": "2026-09-02T14:00:00Z",
-   "fetchedAt": "2026-11-23T19:39:38.358Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:14:42.735Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "44949": {
    "name": "Cash Shop Update for September 23",
