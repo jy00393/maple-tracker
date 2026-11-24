@@ -60,6 +60,11 @@ async function show(name, data = DATA) {
   await tick(5);
   return el;
 }
+// Waits for the page to catch up with the store: a slow machine can take longer than one tick to redraw.
+async function until(check, ms = 3000) {
+  for (const end = Date.now() + ms; Date.now() < end;) { if (check()) return true; await tick(10); }
+  return Boolean(check());
+}
 function close(el) { render(null, el); mounted.splice(mounted.indexOf(el), 1); }
 
 async function renderAll(label, data = DATA) {
@@ -287,11 +292,12 @@ test('Gear: the equipment window and the list show the same slots, and the star 
   modal.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'One more: Hat stars').fire('click');
   await tick(5);
   assert.equal(store.getState().gear.main.slots.hat.stars, before + 1);
-  const max = el.find((n) => n.attrs.role === 'dialog').find((n) => n.localName === 'button' && /^Max \d+★$/.test(n.text.trim()));
+  await until(() => el.find((n) => n.attrs.role === 'dialog')?.find((n) => n.localName === 'button' && /^Max \d+★$/.test(n.text.trim())));
+  const max =el.find((n) => n.attrs.role === 'dialog').find((n) => n.localName === 'button' && /^Max \d+★$/.test(n.text.trim()));
   max.fire('click');
   await tick(5);
   assert.equal(store.getState().gear.main.slots.hat.stars, Number(max.text.match(/\d+/)[0]));
-  assert.ok(flag(el.find((n) => n.attrs.role === 'dialog').find((n) => n.attrs['aria-label'] === 'One more: Hat stars'), 'disabled'), 'no step past the item’s maximum');
+  assert.ok(await until(() => flag(el.find((n) => n.attrs.role === 'dialog').find((n) => n.attrs['aria-label'] === 'One more: Hat stars'), 'disabled')), 'no step past the item’s maximum');
   close(el);
 });
 
