@@ -4,7 +4,7 @@ import { qrEncode, qrPath } from '../calc/qr.js';
 import { appStatus } from '../calc/status.js';
 import { getState, replaceState, isStorageOk, blankState, listBackups, restoreBackup } from '../store.js';
 import { describeBackup } from '../calc/backups.js';
-import { Card, PageHead } from '../ui.js';
+import { Card, Fold, PageHead } from '../ui.js';
 import { fmtKst } from '../time.js';
 
 function download(name, text) {
@@ -168,7 +168,7 @@ export function SettingsPage({ data }) {
         </div>
         ${message ? html`<p class="note" role="status">${message}</p>` : null}
       <//>
-      <${Card} title="Start over">
+      <${Fold} title="Start over" meta="clear all data">
         <p class="note">Clears every character, tick and entry in this browser. Export a backup first if you might want them back.${syncConfig() ? ' This device is disconnected from Sync first, so your other devices and the synced copy keep their data.' : ''}</p>
         <div class="toolbar">
           ${confirmReset
@@ -177,13 +177,13 @@ export function SettingsPage({ data }) {
             : html`<button type="button" class="btn danger" onClick=${() => setConfirmReset(true)}>Clear all data</button>`}
         </div>
       <//>
-      <${Card} title="Nexon data">
+      <${Fold} title="Nexon data" meta="how the refresh works">
         ${meta ? html`<p class="note">Last check: ${fmtKst(Date.parse(meta.checkedAt))}. ${meta.posts ? `${meta.posts} posts in Nexon's feed, ${meta.events} event windows parsed.` : ''}
           ${meta.errors && meta.errors.length ? html`<br />Problems on the last run: ${meta.errors.join('; ')}` : ' No problems on the last run.'}</p>`
           : html`<p class="note">No data file yet. The GitHub job writes it on its first run.</p>`}
         <p class="note">The job reads Nexon's public news feed and, if you list characters in <code>config/characters.json</code>, Nexon's public rankings. Nexon doesn't offer an official API for GMS, so if they change these pages the job may need a fix.</p>
       <//>
-      <${Card} title="Sources">
+      <${Fold} title="Sources" meta="where the game numbers come from">
         <p class="note">Crystal prices: ${data.bosses.source}</p>
         <p class="note">Symbols: ${data.symbols.source}</p>
         <p class="note">Liberation: ${data.liberation.source}</p>

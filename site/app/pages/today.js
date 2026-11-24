@@ -2,7 +2,8 @@ import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
 import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig } from '../ui.js';
 import { DAY, fmtDate, fmtKst, fmtLeft } from '../time.js';
-import { dailyProgress, whoOf } from './checklist.js';
+import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
+import { toggleClear } from './bosses.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
 import { computeIncome, fmtMesos } from '../calc/income.js';
 import { endingSoon, eventKey } from '../calc/events.js';
@@ -54,6 +55,31 @@ function SeasonCard({ season, state, now }) {
       <p class="warnbox">${season.unknown}</p>
     </details>
     <p class="note">${season.source}</p>
+  <//>`;
+}
+
+// Everything you tick on a normal day, without leaving Today: core dailies, then the bosses you run.
+// The ticks are the same ones as on Checklist and Bosses.
+function TodoCard({ data, state, now, who, char, lines, prog }) {
+  const cs = state.checklist;
+  const group = data.checklist.groups.find((g) => g.key === 'daily');
+  const items = group.items.filter((item) => {
+    const st = itemStatus(item, group, cs, now, who);
+    return !item.optional && !st.locked && !st.expired && !st.link;
+  });
+  const cleared = lines.filter((l) => l.clearedNow).length;
+  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} bosses` : ''}`} bodyClass="card-b tight todo">
+    <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
+    ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
+    ${char ? html`<div class="group-h"><h4>Bosses <span class="hint">weekly reset Thu 09:00 KST</span></h4><a class="small" href="#bosses">Pick bosses</a></div>
+      ${lines.length ? lines.map((l) => {
+        const id = `today-boss-${l.bossId}`;
+        return html`<div class=${'row' + (l.clearedNow ? ' done' : '')}>
+          <input type="checkbox" id=${id} checked=${l.clearedNow} onChange=${() => toggleClear(char.id, l.boss, now)} />
+          <label class="lbl" for=${id}>${l.boss.difficulty} ${l.boss.boss}</label>
+          <div class="right"><span class="min">${l.kind === 'daily' ? 'daily' : l.kind === 'monthly' ? 'monthly' : 'weekly'}${l.value ? ` · ${fmtMesos(l.value)}` : ''}</span></div>
+        </div>`;
+      }) : html`<p class="note" style=${{ padding: '4px 8px 8px' }}>No bosses picked yet. Choose the ones you run on <a href="#bosses">Bosses</a> and they show up here to tick.</p>`}` : null}
   <//>`;
 }
 
@@ -124,9 +150,11 @@ export function TodayPage({ data, state }) {
       ${best.by === 'damage'
         ? html`<span class="small muted">Most damage per meso among your Star Force upgrades: about <b>+${(best.dmg * 100).toFixed(2)}% damage</b>${best.dmgPartial ? ' or more (weapon ATT below 16 stars is not counted)' : ''}. An estimate from the stats you entered on Gear; potential tier-ups aren't ranked because their result depends on the lines you roll. <a href="#gear">Gear</a> · <a href="#mesos">Mesos</a></span>`
         : html`<span class="small muted">Most gear score per meso among your permanent items (+${(best.gain * 100).toFixed(1)}% of your gear target). The score is this tracker's own, not a damage number. Enter your stats on <a href="#gear">Gear</a> to rank by estimated damage instead. <a href="#mesos">Mesos</a></span>`}</div>` : null}
-    ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginBottom: '14px' }}><${SeasonCard} season=${data.season} state=${state} now=${now} /></div>` : null}
     <div class="grid wide-left">
-      <${SessionPlanner} data=${data} state=${state} now=${now} />
+      <div class="grid">
+        <${TodoCard} data=${data} state=${state} now=${now} who=${who} char=${char} lines=${income ? income.lines : []} prog=${prog} />
+        <${SessionPlanner} data=${data} state=${state} now=${now} />
+      </div>
       <div class="grid">
         <${Card} title="Ending soon" meta="next 7 days" bodyClass="card-b tight">
           ${ending.length ? ending.slice(0, 5).map((e) => html`<${EventRow} key=${e.id} e=${e} now=${now} showPost=${true} onHide=${() => hideEvent(e, now)} />`) : html`<div style=${{ padding: '0 8px' }}><${Empty}>${soon.salesHidden ? 'No gameplay event ends in the next 7 days.' : 'Nothing live ends in the next 7 days.'}<//></div>`}
@@ -145,5 +173,6 @@ export function TodayPage({ data, state }) {
           ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} traces left · about ${genesis.weeks} weeks</div></div>` : null}
         <//>` : null}
       </div>
-    </div>`;
+    </div>
+    ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginTop: '2px' }}><${SeasonCard} season=${data.season} state=${state} now=${now} /></div>` : null}`;
 }

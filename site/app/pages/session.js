@@ -1,6 +1,6 @@
 import { html, useEffect } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
-import { Card, Seg } from '../ui.js';
+import { Card, Fold, Seg } from '../ui.js';
 import { itemStatus, setRecord, dailyProgress, whoOf, recordKey } from './checklist.js';
 import { streakEntry } from '../calc/checklist.js';
 import { DAY, dayKey, nextReset } from '../time.js';
@@ -46,7 +46,7 @@ export function SessionPlanner({ data, state, now }) {
   const cs = state.checklist;
   const who = whoOf(data, state);
   const plan = planSession(data.checklist, cs, now, mins, who);
-  return html`<${Card} title="Plan a session" meta=${`${plan.used} of ${mins} min planned`}>
+  return html`<${Fold} title="Short on time? Plan a session" meta=${`${plan.used} of ${mins} min · tap to open`}>
     <${Seg} label="Session length" value=${mins} onChange=${(v) => update((s) => { s.ui.sessionMins = v; })} options=${[[30, '30 min'], [60, '60 min'], [90, '90 min']]} />
     ${plan.picks.length ? html`<div>${plan.picks.map(({ item, group, mins: m, why }) => {
       const st = itemStatus(item, group, cs, now, who);

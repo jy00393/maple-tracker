@@ -32,7 +32,7 @@ function blankBosses() {
   return { picks: {}, clears: {} };
 }
 
-function toggleClear(charId, boss, now) {
+export function toggleClear(charId, boss, now) {
   update((s) => {
     const b = charSlice(s, 'bosses', charId, blankBosses);
     const key = clearKey(boss, now);

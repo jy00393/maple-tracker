@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, newId } from '../store.js';
-import { Card, PageHead, Seg, NumberInput, Empty, MesoInput, fmtBig, useNow } from '../ui.js';
+import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow } from '../ui.js';
 import { computeIncome, crystalWeekStart } from '../calc/income.js';
 import { starPlan, starSpread, maxStarsFor } from '../calc/starforce.js';
 import { cubePlan } from '../calc/upgrades.js';
@@ -128,8 +128,8 @@ function StarForce({ data, state }) {
     <${Card} title="Star Force calculator" meta="GMS v.272 rates and costs">
       <div class="form-grid">
         <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${o.level} max=${300} onChange=${(v) => set({ level: v || 0 })} /></label>
-        <label class="field"><span>From stars</span><${NumberInput} className="input" label="Current stars" value=${o.from} max=${max} onChange=${(v) => set({ from: v || 0 })} /></label>
-        <label class="field"><span>To stars (max ${max})</span><${NumberInput} className="input" label="Target stars" value=${o.to} max=${max} onChange=${(v) => set({ to: v || 0 })} /></label>
+        <div class="field"><span>From stars</span><${Stepper} label="Current stars" value=${o.from} max=${max} onChange=${(v) => set({ from: v || 0 })} /></div>
+        <div class="field"><span>To stars (max ${max})</span><${Stepper} label="Target stars" value=${o.to} max=${max} onChange=${(v) => set({ to: v || 0 })} /></div>
         <label class="field"><span>MVP</span><select class="select" value=${o.mvp} onChange=${(e) => set({ mvp: e.currentTarget.value })}><option value="none">None</option><option value="silver">Silver (3%)</option><option value="gold">Gold (5%)</option><option value="diamond">Diamond+ (10%)</option></select></label>
         <label class="field"><span>Spare item cost per boom</span><${MesoInput} label="Spare item cost" placeholder="0" value=${o.spare} onChange=${(v) => set({ spare: v || 0 })} /></label>
       </div>
@@ -148,7 +148,7 @@ function StarForce({ data, state }) {
         <tbody>${plan.steps.map((a) => html`<tr><td>${a.star} → ${a.star + 1}★${a.guard ? ' (Safeguard)' : ''}</td><td class="num">${(a.success * 100).toFixed(2)}%</td><td class="num">${a.destroy ? (a.destroy * 100).toFixed(2) + '%' : '—'}</td><td class="num">${fmtBig(a.cost)}</td></tr>`)}</tbody>
       </table></div>
     <//>
-    <${Card} title="How it's worked out">
+    <${Fold} title="How it's worked out" meta="tap to open">
       <p class="note">Rates are the wiki base table with the old Star Catch bonus folded in (GMS made it permanent in v.271). Failing never drops a star. A boom leaves a trace restored at 12★ (15–19★), 15★ (20★), 17★ (21–22★), 19★ (23–25★) or 20★ (26★+).</p>
       <p class="note">${sfData.sunny.note} ${sfData.safeguard.note} ${sfData.mvp.note}</p>
       <p class="note">${sfData.source}</p>
@@ -187,7 +187,7 @@ function Cubes({ data, state }) {
         <button type="button" class="btn ghost" onClick=${() => update((s) => { delete s.mesos.cubeRates; })}>Reset to the estimates</button>
       </details>
     <//>
-    <${Card} title="About the odds">
+    <${Fold} title="About the odds" meta="tap to open">
       <p class="note">${c.source}</p>
       <p class="note">Line odds (e.g. two lines of STR %) aren't published for GMS, so this covers tier-ups only. Gear slots show the same estimate for their own target.</p>
     <//>

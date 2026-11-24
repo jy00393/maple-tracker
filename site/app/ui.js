@@ -53,6 +53,29 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
     }} />`;
 }
 
+// A number box with − and + buttons, and optional one-tap presets ([value, text] pairs).
+// Put it inside a <div class="field">, not a <label>: a click on a label would press the first button.
+export function Stepper({ value, onChange, min = 0, max, label, presets }) {
+  const v = Number(value) || 0;
+  const clamp = (n) => Math.max(min, max !== undefined ? Math.min(max, n) : n);
+  return html`<div class="stepper">
+    <div class="stepper-row">
+      <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} disabled=${v <= min} onClick=${() => onChange(clamp(v - 1))}>−</button>
+      <${NumberInput} className="input num" label=${label} value=${value} min=${min} max=${max} onChange=${onChange} />
+      <button type="button" class="iconbtn" aria-label=${'One more: ' + label} disabled=${max !== undefined && v >= max} onClick=${() => onChange(clamp(v + 1))}>+</button>
+    </div>
+    ${presets && presets.length ? html`<div class="stepper-presets">${presets.map(([n, text]) => html`<button type="button" class="chip" aria-pressed=${String(v === n)} onClick=${() => onChange(clamp(n))}>${text}</button>`)}</div>` : null}
+  </div>`;
+}
+
+// A card that starts closed. For sections you rarely change; the title and meta stay visible.
+export function Fold({ title, meta, children, className = '', bodyClass = 'card-b' }) {
+  return html`<details class=${'card fold ' + className}>
+    <summary class="card-h"><h3>${title}</h3>${meta ? html`<span class="meta">${meta}</span>` : null}</summary>
+    <div class=${bodyClass}>${children}</div>
+  </details>`;
+}
+
 export function Counter({ value, target, onChange, label }) {
   return html`<div class="counter">
     <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} onClick=${() => onChange(Math.max(0, value - 1))}>−</button>
