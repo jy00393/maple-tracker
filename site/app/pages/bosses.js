@@ -4,6 +4,8 @@ import { Card, PageHead, Tile, useNow, Seg, Empty } from '../ui.js';
 import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart } from '../calc/income.js';
 import { dayKey } from '../time.js';
 import { PitchedCard } from './pitched.js';
+import { CombatPowerCard } from './bosscp.js';
+import { reach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
 
 // Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart.
 function IncomeRecorder({ income, state, now }) {
@@ -81,14 +83,18 @@ function ThisWeek({ char, income, data, now }) {
   </table></div>`;
 }
 
-function Picker({ char, data, picks }) {
+function Picker({ char, data, picks, margin }) {
   const [view, setView] = useState('weekly');
   const [onlyPicked, setOnlyPicked] = useState(false);
-  const bosses = data.bosses.bosses.filter((b) => b.reset === view && (!onlyPicked || picks[b.id]));
+  const [onlyReach, setOnlyReach] = useState(false);
+  const cp = char.cp || 0;
+  const reachOf = (b) => reach(data.bossCp, b, cp, margin);
+  const bosses = data.bosses.bosses.filter((b) => b.reset === view && (!onlyPicked || picks[b.id]) && (!onlyReach || !cp || reachOf(b) !== 'no' || picks[b.id]));
   return html`<div class="card-b">
     <div class="toolbar">
       <${Seg} label="Boss reset type" options=${GROUPS} value=${view} onChange=${setView} />
       <label class="small"><input type="checkbox" checked=${onlyPicked} onChange=${(e) => setOnlyPicked(e.currentTarget.checked)} /> Only bosses I run</label>
+      ${cp ? html`<label class="small"><input id="only-reach" type="checkbox" checked=${onlyReach} onChange=${(e) => setOnlyReach(e.currentTarget.checked)} /> Hide bosses above my Combat Power</label>` : null}
     </div>
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Run</th><th>Boss</th><th>Party</th><th class="num">Your crystal</th></tr></thead>
@@ -98,7 +104,8 @@ function Picker({ char, data, picks }) {
           const id = `pick-${b.id}`;
           return html`<tr class=${pick ? '' : 'off'}>
             <td><input type="checkbox" id=${id} checked=${Boolean(pick)} onChange=${(e) => setPick(char.id, b.id, e.currentTarget.checked ? {} : null)} /></td>
-            <td><label for=${id}>${b.difficulty} ${b.boss}</label>${b.note ? html`<div class="small muted">${b.note}</div>` : null}</td>
+            <td><label for=${id}>${b.difficulty} ${b.boss}</label>${b.note ? html`<div class="small muted">${b.note}</div>` : null}
+              ${minCpFor(data.bossCp, b) !== null ? html`<div class=${'small ' + (reachOf(b) === 'no' ? 'cp-no' : 'muted')}>${reachOf(b) === 'no' ? `Above your Combat Power: asks for ${fmtCp(minCpFor(data.bossCp, b) * margin)}` : `Entry from ${fmtCp(minCpFor(data.bossCp, b))} Combat Power`}</div>` : null}</td>
             <td>${pick ? html`<select class="select sm" aria-label=${'Party size for ' + b.boss} value=${pick.party || 1}
               onChange=${(e) => setPick(char.id, b.id, { party: Number(e.currentTarget.value) })}>
               ${[1, 2, 3, 4, 5, 6].map((n) => html`<option value=${n}>${n === 1 ? 'Solo' : n}</option>`)}
@@ -131,10 +138,11 @@ export function BossesPage({ data, state }) {
       <${Tile} k="Price basis" v=${char.world === 'interactive' ? 'Interactive' : 'Heroic ×5'} s="from the GMS v.272 crystal table" />
     </div>
     <div class="grid two">
+      <${CombatPowerCard} data=${data} state=${state} char=${char} />
       <${Card} title="This week" meta="Ticks reset with each boss's own reset"><${ThisWeek} char=${char} income=${income} data=${data} now=${now} /><//>
       <section class="card">
         <div class="card-h"><h3>Bosses you run</h3><span class="meta">Values for ${char.world === 'interactive' ? 'Interactive' : 'Heroic'}</span></div>
-        <${Picker} char=${char} data=${data} picks=${picks} />
+        <${Picker} char=${char} data=${data} picks=${picks} margin=${marginOf(data.bossCp, state.ui.bossMargin)} />
       </section>
       <${PitchedCard} data=${data} state=${state} char=${char} now=${now} />
     </div>

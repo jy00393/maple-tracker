@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
-import { Card, Fold, PageHead, NumberInput, Empty } from '../ui.js';
+import { Card, Fold, PageHead, NumberInput, MesoInput, Empty } from '../ui.js';
 import { worldLabel } from '../calc/income.js';
 import { MAIN_STAT_CHOICES, mainStatForClass } from '../calc/upgrades.js';
 import { reclassifyLines } from '../calc/potential.js';
@@ -24,6 +24,7 @@ function CharacterForm({ initial, onSave, onCancel, saveLabel }) {
       <label class="field"><span>Name (in-game)</span><input id="char-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
       <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat) }); }} /></label>
       <label class="field"><span>Level</span><${NumberInput} id="char-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
+      <label class="field"><span>Combat Power (optional)</span><${MesoInput} label="Combat Power" placeholder="e.g. 45M" value=${f.cp || null} onChange=${(v) => set({ cp: v || null })} /></label>
       <label class="field"><span>Region</span><select id="char-region" class="select" value=${f.region} onChange=${(e) => set({ region: e.currentTarget.value })}><option value="na">North America</option><option value="eu">Europe</option></select></label>
       <label class="field"><span>World type</span><select id="char-world" class="select" value=${f.world} onChange=${(e) => set({ world: e.currentTarget.value })}><option value="heroic">Heroic (no trading)</option><option value="interactive">Interactive</option></select></label>
       <label class="field"><span>Main stat</span><select id="char-stat" class="select" value=${f.mainStat || 'STR'} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${MAIN_STAT_CHOICES.map(([v, label]) => html`<option value=${v}>${label}</option>`)}</select></label>

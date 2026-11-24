@@ -32,7 +32,7 @@ function loadData(overrides = {}) {
     bosses: load('bosses'), symbols: load('symbols'), liberation: load('liberation'), ibp: load('ibp'), checklist: load('checklist'),
     gear: load('gear'), erda: load('erda'), upgrades: load('upgrades'), potential: load('potential'), gearStats: load('gearstats'),
     events: load('events'), news: load('news'), nexonCharacters: load('characters'), meta: load('meta'), tables: load('tables'), season: load('season'),
-    pitched: load('pitched'), shops: load('shops'), flames: load('flames'), champions: load('champions'), expSources: load('expsources'), upcoming: load('upcoming'),
+    pitched: load('pitched'), shops: load('shops'), flames: load('flames'), champions: load('champions'), expSources: load('expsources'), upcoming: load('upcoming'), bossCp: load('bosscp'),
     ...overrides
   };
   data.events = data.events || { events: [] };
@@ -446,6 +446,61 @@ test('Mesos > Flames gives an answer for every character and every setting, and 
   pick.fire('change', { currentTarget: pick });
   await tick(5);
   assert.deepEqual([store.getState().ui.flameCalc.slot, store.getState().ui.flameCalc.level, store.getState().ui.flameCalc.target], ['hat', 150, 131]);
+  close(el);
+});
+
+test('Bosses suggests a weekly list from Combat Power and marks what is out of reach', async () => {
+  store.replaceState(richState(), true);
+  let el = await show('bosses');
+  let text = el.text.replace(/\s+/g, ' ');
+  assert.match(text, /What your Combat Power can enter/);
+  assert.match(text, /Type the Combat Power from your Character Info window/);
+  assert.match(text, /Entry from 18M Combat Power/); // every boss with a figure shows it
+  assert.doesNotMatch(text, /Above your Combat Power/);
+  close(el);
+  // 5M: Hard Lucid (18M) and Hard Will (20M) are picked but out of reach. Will is a party pick, so only Lucid is called out.
+  store.update((s) => { s.characters.find((c) => c.id === 'main').cp = 5000000; });
+  el = await show('bosses');
+  text = el.text.replace(/\s+/g, ' ');
+  assert.match(text, /1 boss you run solo asks for more than that: Hard Lucid \(18M\)/);
+  assert.match(text, /Above your Combat Power: asks for 18M/);
+  assert.match(text, /Suggested weekly list \d+ bosses · [\d.]+[MB] a week/);
+  assert.match(text, /Hard Lotus/); // 5M is exactly Hard Lotus's minimum
+  assert.equal(text.match(BAD), null);
+  el.find((n) => n.localName === 'button' && n.text.trim() === 'Use this list').fire('click');
+  await tick(5);
+  const picks = store.getState().bosses.main.picks;
+  assert.ok(picks['lotus-hard'] && picks['lucid-normal'], 'the reachable difficulties are picked');
+  assert.equal(picks['lucid-hard'], undefined, 'the solo pick above your power is dropped');
+  assert.deepEqual(picks['will-hard'], { party: 2 }, 'a party pick is left alone');
+  assert.ok(picks['cygnus-normal'], 'a daily boss is left alone');
+  close(el);
+  el = await show('bosses');
+  text = el.text.replace(/\s+/g, ' ');
+  assert.match(text, /Your list matches this/);
+  assert.doesNotMatch(text, /you run solo ask/);
+  // Asking for more room shrinks the list, and the filter hides what is above your power.
+  const margin = el.find((n) => n.attrs.id === 'boss-margin');
+  margin.value = '2';
+  margin.fire('change', { currentTarget: margin });
+  await tick(5);
+  assert.equal(store.getState().ui.bossMargin, 2);
+  close(el);
+  el = await show('bosses');
+  assert.match(el.text.replace(/\s+/g, ' '), /with 2× room/);
+  assert.match(el.text.replace(/\s+/g, ' '), /asks for 10M/); // Hard Lotus: 5M × 2
+  const rowsBefore = el.findAll((n) => n.localName === 'input' && /^pick-/.test(n.attrs.id || '')).length;
+  const only = el.find((n) => n.attrs.id === 'only-reach');
+  only.checked = true;
+  only.fire('change', { currentTarget: only });
+  await tick(5);
+  const rowsAfter = el.findAll((n) => n.localName === 'input' && /^pick-/.test(n.attrs.id || '')).length;
+  assert.ok(rowsAfter < rowsBefore, `${rowsAfter} rows are fewer than ${rowsBefore}`);
+  close(el);
+  // Another character has no Combat Power typed in and gets no suggestion.
+  store.update((s) => { s.activeId = 'mule'; });
+  el = await show('bosses');
+  assert.match(el.text.replace(/\s+/g, ' '), /Type the Combat Power from your Character Info window/);
   close(el);
 });
 
