@@ -16,7 +16,10 @@ const FILES = {
   nexonCharacters: 'data/characters.json',
   meta: 'data/meta.json',
   tables: 'data/tables.json',
-  season: 'data/season.json'
+  season: 'data/season.json',
+  pitched: 'data/pitched.json',
+  shops: 'data/shops.json',
+  flames: 'data/flames.json'
 };
 const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season']);
 

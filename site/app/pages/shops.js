@@ -1,0 +1,70 @@
+import { html, useState } from '../../vendor/htm-preact.mjs';
+import { update, activeCharacter, charSlice } from '../store.js';
+import { Card, Fold, NumberInput, Stepper, Empty } from '../ui.js';
+import { shopPlan, itemCap, limitText } from '../calc/shops.js';
+import { fmtKst } from '../time.js';
+
+const num = (v) => Math.round(v).toLocaleString('en-US');
+const blankShop = () => ({ have: 0, claims: 0, want: {} });
+
+function Shop({ shop, state, char, now }) {
+  const [onlyPicked, setOnlyPicked] = useState(false);
+  const saved = state.shops[shop.id] || blankShop();
+  const plan = shopPlan(shop, saved, char, now);
+  const set = (fn) => update((s) => { fn(charSlice(s, 'shops', shop.id, blankShop)); });
+  const earn = shop.earn;
+  const rows = plan.rows.filter((r) => !onlyPicked || r.want > 0);
+  const coin = shop.currency;
+  if (!plan.open) return html`<${Card} title=${shop.name} meta="closed"><${Empty}>This shop closed on ${fmtKst(Date.parse(shop.end))}.<//><//>`;
+  return html`<div class="grid wide-left">
+    <${Card} title=${shop.name} meta=${`${shop.event} · ${plan.daysLeft} days left`}>
+      <div class="tiles">
+        <div class=${'tile ' + (plan.short ? 'accent' : 'ok')}>
+          <span class="k">${plan.short ? 'Short by' : 'Left over'}</span>
+          <span class="v">${num(plan.short || plan.spare)}</span>
+          <span class="s">${plan.picked ? `your picks cost ${num(plan.need)} ${coin}` : 'pick what you want below'}</span>
+        </div>
+        <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${num(plan.have)} held + up to ${num(plan.toCome)} still to earn</span></div>
+        <div class="tile"><span class="k">Closes</span><span class="v">${plan.daysLeft} days</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
+      </div>
+      <div class="form-grid">
+        <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = v || 0; })} /></label>
+        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max})</span><${Stepper} label=${earn.name + 's claimed'} value=${saved.claims || 0} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
+      </div>
+      ${plan.short ? html`<p class="warnbox">Your picks cost ${num(plan.short)} ${coin} more than you can reach. Drop a pick, or lower a number.</p>` : null}
+      <div class="toolbar">
+        <label class="small"><input type="checkbox" checked=${onlyPicked} onChange=${(e) => setOnlyPicked(e.currentTarget.checked)} /> Only my picks</label>
+        ${plan.picked ? html`<button type="button" class="btn ghost" onClick=${() => set((x) => { x.want = {}; })}>Clear picks</button>` : null}
+      </div>
+      <div class="tbl-wrap"><table class="tbl shop-tbl">
+        <thead><tr><th>Item</th><th>Still to buy</th><th class="num">Cost</th></tr></thead>
+        <tbody>
+          ${rows.length === 0 ? html`<tr><td colspan="3"><span class="small muted">No picks yet.</span></td></tr>` : rows.map(({ item, want, cost }) => html`<tr class=${want ? '' : 'off'}>
+            <td>${item.name}
+              <div class="small muted">${num(item.cost)} each · limit ${limitText(item)}${item.note ? ' · ' + item.note : ''}${item.notChallenger && char && char.challenger ? ' · not sold in Challenger World' : ''}</div></td>
+            <td><${Stepper} label=${'Still to buy: ' + item.name} value=${want} max=${itemCap(item)} onChange=${(v) => set((x) => { if (v) x.want[item.id] = v; else delete x.want[item.id]; })} /></td>
+            <td class="num">${want ? num(cost) : '—'}</td>
+          </tr>`)}
+        </tbody>
+      </table></div>
+    <//>
+    <div class="grid">
+      <${Card} title="How it adds up">
+        <p class="note">${shop.scope}</p>
+        ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} claims a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
+          <p class="note">"Still to earn" assumes ${earn.perWeek} claims in every week that is left, up to the ${earn.max} total.</p>` : null}
+        <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold up to date.</p>
+        ${shop.useBy ? html`<p class="warnbox">Most items from this shop expire on ${fmtKst(Date.parse(shop.useBy))}. Use them before then.</p>` : null}
+      <//>
+      <${Fold} title="Source" meta="tap to open"><p class="note">${shop.sourceNote}</p><//>
+    </div>
+  </div>`;
+}
+
+// Events > Coin shop.
+export function ShopsView({ data, state, now }) {
+  const char = activeCharacter(state);
+  const shops = (data.shops && data.shops.shops) || [];
+  if (shops.length === 0) return html`<${Card} title="Coin shop"><${Empty}>No event shop is listed right now.<//><//>`;
+  return shops.map((shop) => html`<${Shop} key=${shop.id} shop=${{ ...shop, sourceNote: data.shops.source }} state=${state} char=${char} now=${now} />`);
+}

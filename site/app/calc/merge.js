@@ -1,7 +1,7 @@
 // Sync merge. Saved state is split into small units (one checklist tick, one character, one character's gear,
 // the meso planner…). Every unit carries the time it last changed (state.stamps), and merging two copies keeps
 // the newer side of each unit, so a tick on the phone no longer wipes a gear edit made on the PC.
-const PER_CHILD = new Set(['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'incomeHistory']);
+const PER_CHILD = new Set(['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'incomeHistory', 'pitch', 'shops']);
 const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
 // activeId (which character is on screen) is each device's own choice, so it is neither stamped nor merged.
 const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId']);

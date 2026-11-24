@@ -3,6 +3,7 @@ import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Tile, useNow, Seg, Empty } from '../ui.js';
 import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart } from '../calc/income.js';
 import { dayKey } from '../time.js';
+import { PitchedCard } from './pitched.js';
 
 // Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart.
 function IncomeRecorder({ income, state, now }) {
@@ -135,6 +136,7 @@ export function BossesPage({ data, state }) {
         <div class="card-h"><h3>Bosses you run</h3><span class="meta">Values for ${char.world === 'interactive' ? 'Interactive' : 'Heroic'}</span></div>
         <${Picker} char=${char} data=${data} picks=${picks} />
       </section>
+      <${PitchedCard} data=${data} state=${state} char=${char} now=${now} />
     </div>
     <p class="note">${data.bosses.source} Limits: ${data.bosses.limits.note}</p>`;
 }

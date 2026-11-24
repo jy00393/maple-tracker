@@ -1,0 +1,24 @@
+{
+ "source": "Odds: Nexon Korea's published Bonus Stats probabilities (maplestory.nexon.com/Guide/OtherProbability/game/gameAddOption), read 24 Nov 2026. Nexon does not publish them for GMS, so this assumes GMS matches. Values per tier, the flame rules and the 3,000,000 meso reset price: MapleStory Wiki, Bonus Stats and Bonus Stats/Stat Tables (edited 16 Nov 2026), read 24 Nov 2026.",
+ "sourceUrl": "https://maplestory.nexon.com/Guide/OtherProbability/game/gameAddOption",
+ "types": [
+  { "id": "reset", "name": "Meso reset", "odds": [0, 0.29, 0.45, 0.25, 0.01], "price": 3000000, "note": "Bonus Stats Reset in the Enhancement window: same odds as a Black Rebirth Flame." },
+  { "id": "black", "name": "Black Rebirth Flame", "odds": [0, 0.29, 0.45, 0.25, 0.01], "price": 0 },
+  { "id": "abyssal", "name": "Abyssal Rebirth Flame", "odds": [0, 0, 0.63, 0.34, 0.03], "price": 0 },
+  { "id": "burning", "name": "Burning Rebirth Flame", "odds": [0.2, 0.3, 0.36, 0.14, 0], "price": 0 }
+ ],
+ "oddsNote": "Odds are for stages 1 to 5. Flame-advantaged (boss) items count two stages higher, so tiers 3 to 7.",
+ "advantageShift": 2,
+ "lineCount": [0.4, 0.4, 0.16, 0.04],
+ "lineCountNote": "Chance of 1, 2, 3 or 4 lines from a Rebirth Flame. Flame-advantaged items always get 4.",
+ "armourLines": ["STR", "DEX", "INT", "LUK", "STR+DEX", "STR+INT", "STR+LUK", "DEX+INT", "DEX+LUK", "INT+LUK", "HP", "MP", "LEVEL", "DEF", "ATT", "MATT", "SPEED", "JUMP", "ALLSTAT"],
+ "linesNote": "Armour and accessories pick from these 19 lines with equal chance, never the same line twice. ATT and Magic ATT need item level 60+, All Stats % needs 70+.",
+ "minLevel": { "ATT": 60, "MATT": 60, "ALLSTAT": 70 },
+ "single": [[0, 1], [20, 2], [40, 3], [60, 4], [80, 5], [100, 6], [120, 7], [140, 8], [160, 9], [180, 10], [200, 11], [230, 12]],
+ "double": [[0, 1], [40, 2], [80, 3], [120, 4], [160, 5], [200, 6], [250, 7]],
+ "perTierNote": "Each pair is [item level from, value per tier]. A single-stat line gives that much of one stat per tier; a two-stat line gives that much of each. ATT, Magic ATT and All Stats % give 1 per tier on armour.",
+ "weights": { "att": 4, "allstat": 10, "secondary": 0.1 },
+ "weightsNote": "Flame score counts 1 main stat as 1 point. The other weights are common community values, not Nexon figures. Change them to suit your character.",
+ "noFlameSlots": ["secondary", "emblem", "badge", "ring1", "ring2", "ring3", "ring4", "shoulder", "heart"],
+ "noFlameNote": "Secondary weapons, emblems, badges, rings, shoulders and hearts cannot have flames. Weapons are not covered here: their ATT flame depends on the weapon's base ATT."
+}
