@@ -4606,7 +4606,7 @@
    "name": "MapleStory Cash Shop Update: Nov. 18",
    "category": "sale",
    "liveDate": "2026-11-17T16:00:01Z",
-   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "fetchedAt": "2026-11-24T13:36:57.016Z",
    "pv": 2,
    "events": [
     {
@@ -5113,7 +5113,7 @@
    "name": "Black Friday 2026!",
    "category": "sale",
    "liveDate": "2026-11-22T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "fetchedAt": "2026-11-24T13:36:57.016Z",
    "pv": 2,
    "events": [
     {
@@ -5636,7 +5636,7 @@
    "name": "[Completed] Scheduled Minor Patch - November 19, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-19T12:00:32Z",
-   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "fetchedAt": "2026-11-24T13:36:57.016Z",
    "pv": 2,
    "events": [
     {
@@ -5663,7 +5663,7 @@
    "name": "v.272 Public Test Server Best Tester Reward Notice",
    "category": "general",
    "liveDate": "2026-11-18T04:50:27Z",
-   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "fetchedAt": "2026-11-24T13:36:57.016Z",
    "pv": 2,
    "events": [],
    "sunny": []
@@ -5672,7 +5672,7 @@
    "name": "Maple Memo: Developer’s Note Regarding Event World: Quanah Adjustment",
    "category": "general",
    "liveDate": "2026-11-19T05:00:00Z",
-   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "fetchedAt": "2026-11-24T13:36:57.016Z",
    "pv": 2,
    "events": [],
    "sunny": []
@@ -5681,7 +5681,7 @@
    "name": "[Completed] Unscheduled Quanah World Channel Maintenance - November 20, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-20T18:21:08Z",
-   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "fetchedAt": "2026-11-24T13:36:57.016Z",
    "pv": 2,
    "events": [
     {
