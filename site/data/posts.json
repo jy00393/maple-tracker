@@ -2390,7 +2390,8 @@
    "name": "Cash Shop Update for September 16",
    "category": "sale",
    "liveDate": "2026-09-15T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "44528-royal-styles-update",
@@ -2460,7 +2461,8 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/44528"
     }
-   ]
+   ],
+   "sunny": []
   },
   "44597": {
    "name": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
@@ -2710,7 +2712,8 @@
    "name": "Cash Shop Update for September 23",
    "category": "sale",
    "liveDate": "2026-09-22T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "44949-premium-ssb-update",
@@ -2797,20 +2800,24 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/44949"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45230": {
    "name": "Maple Memo: Notice Regarding Account Sanctions Across Global MapleStory and Global MapleStory Classic World",
    "category": "general",
    "liveDate": "2026-09-22T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "45259": {
    "name": "Cash Shop Update for September 30",
    "category": "sale",
    "liveDate": "2026-09-29T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "45259-autumn-surprise-boxes",
@@ -2880,13 +2887,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/45259"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45330": {
    "name": "Defend the Omega Sector!",
    "category": "events",
    "liveDate": "2026-09-29T17:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "45330-mesotron-s-project",
@@ -3047,13 +3056,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/45330"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45359": {
    "name": "Cash Shop Update for October 7",
    "category": "sale",
    "liveDate": "2026-10-06T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "45359-royal-styles-update",
@@ -3140,13 +3151,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/45359"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45393": {
    "name": "Winter Countdown Event",
    "category": "events",
    "liveDate": "2026-10-06T17:00:30Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "45393-winter-countdown-event",
@@ -3165,13 +3178,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/45393"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45474": {
    "name": "Cash Shop Update for October 14",
    "category": "sale",
    "liveDate": "2026-10-13T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "45474-change-royal-styles",
@@ -3258,20 +3273,24 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/45474"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45500": {
    "name": "Sign Up for the v.272 Public Test Server!",
    "category": "general",
    "liveDate": "2026-10-07T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "45551": {
    "name": "Night of the Yeti",
    "category": "events",
    "liveDate": "2026-10-13T17:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "45551-night-of-the-yeti",
@@ -3292,27 +3311,33 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/45551"
     }
-   ]
+   ],
+   "sunny": []
   },
   "45681": {
    "name": "Inkwell on the Future of Global MapleStory and Classic World",
    "category": "general",
    "liveDate": "2026-10-02T13:44:41Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "46242": {
    "name": "Halloween Ethereal Atelier: Pumpkin Candles",
    "category": "sale",
    "liveDate": "2026-10-20T16:00:01Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "46292": {
    "name": "Cash Shop Update for October 21",
    "category": "sale",
    "liveDate": "2026-10-20T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "46292-halloween-effects",
@@ -3382,13 +3407,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/46292"
     }
-   ]
+   ],
+   "sunny": []
   },
   "46460": {
    "name": "MapleStory Cash Shop Update: Oct. 28",
    "category": "sale",
    "liveDate": "2026-10-27T16:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "46460-halloween-effects",
@@ -3424,20 +3451,24 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/46460"
     }
-   ]
+   ],
+   "sunny": []
   },
   "46613": {
    "name": "Inkwell's Note: Maplayer One",
    "category": "general",
    "liveDate": "2026-10-17T16:30:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "46661": {
    "name": "MapleStory Cash Shop Update: Nov. 4",
    "category": "sale",
    "liveDate": "2026-11-03T16:00:01Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "46661-gachapon-update",
@@ -3473,13 +3504,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/46661"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47132": {
    "name": "v.272 - Maplayer One Patch Notes",
    "category": "update",
    "liveDate": "2026-11-10T15:30:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47132-operation-ultima-events",
@@ -4160,13 +4193,87 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/update/47132"
     }
+   ],
+   "sunny": [
+    {
+     "date": "2026-11-15",
+     "perks": [
+      "Treasure Hunter EXP x3",
+      "Rune spawn and reuse cooldown reduced.",
+      "+100% Rune EXP buff effect",
+      "Combo Kill EXP +300%",
+      "+250% Monster Park Clear EXP",
+      "Does not apply to the Extreme Monster Parker quest.",
+      "2x Sol Erda when hunting",
+      "Sol Erda obtained through other methods is not increased."
+     ]
+    },
+    {
+     "date": "2026-11-22",
+     "perks": [
+      "Shining Star Force Time",
+      "30% off Star Force enhancements",
+      "Mesos used to safeguard are not eligible for the 30% discount.",
+      "30% reduced chance of item destruction when enhancing items at 21 Stars or below",
+      "50% off Ability resets"
+     ]
+    },
+    {
+     "date": "2026-11-29",
+     "perks": [
+      "50% off Ability resets",
+      "Treasure Hunter EXP x3",
+      "50% off Spell Trace Enhancements",
+      "1+1 Star Force upon a successful enhancement at 10-Star or below.",
+      "Can reach up to 12 Stars. Excludes Superior Equipment.",
+      "+250% Monster Park Clear EXP",
+      "Does not apply to the Extreme Monster Parker quest.",
+      "[HEXA Matrix] When Main Stat is Lv. 5+, the enhancement chance is increased 20%.",
+      "Multiplied by the existing enhancement chance.",
+      "5x chance to get Magnificent Soul from Soul Shards",
+      "+100% chance to register a new monster in Monster Collection",
+      "Mysterious Monsterbloom (x3): Untradable, Permanent .",
+      "Can be claimed 1 time per account.",
+      "Select ‘Special Sunny Sunday Gifts for All’ from the Event List and click ‘Participate’ to claim. Can be claimed until November 29, 2026 at 11:59 PM UTC.",
+      "Cannot be claimed in Challenger World.",
+      "Elite monster appearance increase",
+      "Elite Monsters summoned by a Rune of Darkness or when an Elite Boss appears are not affected."
+     ]
+    },
+    {
+     "date": "2026-12-06",
+     "perks": [
+      "Shining Star Force Time",
+      "30% off Star Force enhancements",
+      "Mesos used to safeguard are not eligible for the 30% discount.",
+      "30% reduced chance of item destruction when enhancing items at 21 Stars or below",
+      "2x Sol Erda when hunting",
+      "Sol Erda obtained through other methods is not increased.",
+      "+250% Monster Park Clear EXP",
+      "Does not apply to the Extreme Monster Parker quest."
+     ]
+    },
+    {
+     "date": "2026-12-13",
+     "perks": [
+      "Treasure Hunter EXP x3",
+      "Rune Appearance Cooldown reduction",
+      "+100% Rune EXP buff effect",
+      "Combo Kill EXP +300%",
+      "+250% Monster Park Clear EXP",
+      "Does not apply to the Extreme Monster Parker quest.",
+      "2x Sol Erda when hunting",
+      "Sol Erda obtained through other methods is not increased."
+     ]
+    }
    ]
   },
   "47254": {
    "name": "MapleStory Cash Shop Update: Nov. 11",
    "category": "sale",
    "liveDate": "2026-11-10T16:30:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47254-genesis-passes",
@@ -4236,13 +4343,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/47254"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47256": {
    "name": "[Completed] Scheduled Minor Patch Maintenance - October 29, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-04T10:00:19Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47256-completed-scheduled-minor-patch-maintenance-october-29-2026",
@@ -4261,13 +4370,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/maintenance/47256"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47292": {
    "name": "MapleStory Cash Shop Update: Nov. 18",
    "category": "sale",
    "liveDate": "2026-11-17T16:00:01Z",
-   "fetchedAt": "2026-11-24T03:58:11.771Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47292-royal-styles-update",
@@ -4371,13 +4482,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/47292"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47304": {
    "name": "Adventure in Event World: Quanah!",
    "category": "events",
    "liveDate": "2026-11-11T11:00:02Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47304-event-world-quanah",
@@ -4517,13 +4630,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/47304"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47305": {
    "name": "Maplayer One Challenger World and Burning Events!",
    "category": "events",
    "liveDate": "2026-11-11T11:00:01Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47305-challenger-world",
@@ -4735,13 +4850,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/47305"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47306": {
    "name": "Now Available: Lethe, Sovereign of Oaths!",
    "category": "events",
    "liveDate": "2026-11-11T11:00:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47306-new-recruit-support-mission",
@@ -4760,13 +4877,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/events/47306"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47555": {
    "name": "Black Friday 2026!",
    "category": "sale",
    "liveDate": "2026-11-22T16:00:00Z",
-   "fetchedAt": "2026-11-24T03:58:11.771Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47555-black-friday-surprise-style-box",
@@ -5227,13 +5346,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/sale/47555"
     }
-   ]
+   ],
+   "sunny": []
   },
   "47826": {
    "name": "[Completed] Scheduled Game Update - November 11, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-09T17:20:12Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "47826-completed-scheduled-game-update-november-11-2026",
@@ -5252,13 +5373,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/maintenance/47826"
     }
-   ]
+   ],
+   "sunny": []
   },
   "48440": {
    "name": "[Completed] Unscheduled Quanah World Channel Maintenance - November 12, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-12T17:10:00Z",
-   "fetchedAt": "2026-11-23T16:53:37.015Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "48440-completed-unscheduled-quanah-world-channel-maintenance-novem",
@@ -5277,13 +5400,15 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/maintenance/48440"
     }
-   ]
+   ],
+   "sunny": []
   },
   "48863": {
    "name": "[Completed] Scheduled Minor Patch - November 19, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-19T12:00:32Z",
-   "fetchedAt": "2026-11-24T03:58:11.771Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "48863-completed-scheduled-minor-patch-november-19-2026",
@@ -5302,27 +5427,33 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/maintenance/48863"
     }
-   ]
+   ],
+   "sunny": []
   },
   "48911": {
    "name": "v.272 Public Test Server Best Tester Reward Notice",
    "category": "general",
    "liveDate": "2026-11-18T04:50:27Z",
-   "fetchedAt": "2026-11-24T03:58:11.771Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "48935": {
    "name": "Maple Memo: Developer’s Note Regarding Event World: Quanah Adjustment",
    "category": "general",
    "liveDate": "2026-11-19T05:00:00Z",
-   "fetchedAt": "2026-11-24T03:58:11.771Z",
-   "events": []
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
+   "events": [],
+   "sunny": []
   },
   "48998": {
    "name": "[Completed] Unscheduled Quanah World Channel Maintenance - November 20, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-20T18:21:08Z",
-   "fetchedAt": "2026-11-24T03:58:11.771Z",
+   "fetchedAt": "2026-11-24T06:04:35.361Z",
+   "pv": 2,
    "events": [
     {
      "id": "48998-completed-unscheduled-quanah-world-channel-maintenance-novem",
@@ -5341,7 +5472,8 @@
      "isClassic": false,
      "url": "https://www.nexon.com/maplestory/news/maintenance/48998"
     }
-   ]
+   ],
+   "sunny": []
   }
  }
 }
