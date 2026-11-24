@@ -1,5 +1,5 @@
 // Offline support: network first (so updates show straight away), cached copy when there's no connection.
-const CACHE = 'maple-tracker-v2';
+const CACHE = 'maple-tracker-v3';
 const SHELL = ['./', './index.html', './styles.css', './manifest.webmanifest', './icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -22,7 +22,10 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin && !fonts) return;
   event.respondWith((async () => {
     try {
-      const res = await fetch(req);
+      // GitHub Pages lets browsers keep files for 10 minutes. Ask the server each time for our own files,
+      // so a new version shows on the next load and old and new files never mix.
+      // If that request is refused for any reason, fall back to the plain one.
+      const res = fonts ? await fetch(req) : await fetch(req, { cache: 'no-cache' }).catch(() => fetch(req));
       if (res && (res.ok || res.type === 'opaque')) {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
