@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from '../vendor/htm-preact.mjs';
 import { changedPaths, seedStamps, units } from './calc/merge.js';
 import { addBackup } from './calc/backups.js';
+import { sanitiseState } from './calc/sanitise.js';
 
 // Everything you enter lives in this browser (localStorage). Export a backup from Settings to move it.
 const KEY = 'maple-tracker:v1';
@@ -12,7 +13,7 @@ export function blankState() {
     v: 1,
     characters: [],
     activeId: null,
-    checklist: { items: {}, resets: {}, flags: {}, history: {}, owner: null },
+    checklist: { items: {}, resets: {}, flags: {}, history: {}, owner: null, ownerSet: false },
     bosses: {},
     symbols: {},
     liberation: {},
@@ -32,25 +33,18 @@ export function blankState() {
 function normalise(raw) {
   const base = blankState();
   if (!raw || typeof raw !== 'object') return base;
-  const out = { ...base, ...raw };
-  for (const key of ['checklist', 'ui', 'mesos']) out[key] = { ...base[key], ...(raw[key] || {}) };
-  if (!Array.isArray(out.mesos.goals)) out.mesos.goals = [];
-  if (!out.ui.hiddenEvents || typeof out.ui.hiddenEvents !== 'object') out.ui.hiddenEvents = {};
-  if (!out.ui.seasonDone || typeof out.ui.seasonDone !== 'object') out.ui.seasonDone = {};
-  for (const key of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'incomeHistory']) {
-    out[key] = raw[key] && typeof raw[key] === 'object' ? raw[key] : {};
-  }
-  out.checklist.items = out.checklist.items || {};
-  out.checklist.resets = out.checklist.resets || {};
-  out.checklist.flags = out.checklist.flags || {};
-  out.checklist.history = out.checklist.history || {};
+  // Whatever was stored, imported or synced is first brought into the shape the pages expect (calc/sanitise.js).
+  const out = sanitiseState(raw, base);
   // Ticks used to be one shared list. The first time this version loads, whatever was ticked is credited to the
   // character that was active, so that day's and week's ticks are not lost (see calc/checklist.js).
-  if (!out.checklist.owner && out.activeId && Object.keys(out.checklist.items).some((k) => !k.includes('|'))) out.checklist.owner = out.activeId;
-  out.characters = Array.isArray(raw.characters) ? raw.characters.filter((c) => c && c.id) : [];
-  if (!out.characters.some((c) => c.id === out.activeId)) out.activeId = out.characters[0]?.id ?? null;
+  // This is decided once (ownerSet): after that the owner only changes when its character is deleted.
+  if (!out.checklist.ownerSet && out.characters.length) {
+    if (!out.checklist.owner && Object.keys(out.checklist.items).some((k) => !k.includes('|'))) out.checklist.owner = out.activeId;
+    out.checklist.ownerSet = true;
+  }
+  if (out.checklist.owner && !out.characters.some((c) => c.id === out.checklist.owner)) out.checklist.owner = null;
   // Copies saved before sync merged part by part have no stamps: date every part by the copy's own updatedAt.
-  out.stamps = { ...seedStamps({ ...out, stamps: raw.stamps }) };
+  out.stamps = { ...seedStamps(out) };
   return out;
 }
 

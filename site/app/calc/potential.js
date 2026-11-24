@@ -97,3 +97,15 @@ export function refreshLines(pot, slotId, tier, itemLevel, potLines, opts = {}) 
     return opts.keepMissing ? l : { type: '' };
   });
 }
+
+// After a character's main stat changes: every table-backed line on its gear is classified again under the new
+// rule (a STR line stops being a main-stat line for a Demon Avenger, and so on). Changes gearState in place.
+export function reclassifyLines(data, gearState, mainStat) {
+  if (!gearState || !gearState.slots) return;
+  for (const slot of data.gear.slots) {
+    const e = gearState.slots[slot.id];
+    if (!e || !Array.isArray(e.potLines) || !e.pot) continue;
+    const level = e.ilvl || (slot.type === 'ring' && (e.tier || 0) <= 1 ? 120 : 160);
+    e.potLines = refreshLines(data.potential, slot.id, e.pot, level, e.potLines, { mainStat, keepMissing: true });
+  }
+}

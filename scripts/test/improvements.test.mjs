@@ -93,7 +93,7 @@ test('units split the checklist per item and per-character data per character', 
   assert.ok(paths.includes('checklist/items/a'));
   assert.ok(paths.includes('bosses/c1'));
   assert.ok(paths.includes('mesos'));
-  assert.ok(!paths.includes('stamps') && !paths.includes('updatedAt'));
+  assert.ok(!paths.includes('stamps') && !paths.includes('updatedAt') && !paths.includes('activeId'));
 });
 
 // ---------- QR ----------
@@ -788,7 +788,11 @@ test('6th job: a character starts on the template for its class', async () => {
   assert.equal(erdaTemplateFor(erda, { cls: ' erel light ' }, {}), 'erel');
   assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, null), 'hexa');
   assert.equal(erdaTemplateFor(erda, { cls: '' }, undefined), 'hexa');
-  assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, { template: 'erel' }), 'erel', 'a saved choice is kept');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, { template: 'erel', templateChosen: true }), 'erel', 'a choice the player made is kept');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, { template: 'erel' }), 'hexa', 'a template an older version filled in gives way to the class');
+  assert.equal(erdaTemplateFor(erda, { cls: '' }, { template: 'erel' }), 'erel', 'with no class typed in, the saved one stays');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Erel Light' }, { template: 'hexa' }), 'erel');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Erel Light' }, { template: 'hexa', templateChosen: true }), 'hexa');
   assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, { template: 'gone' }), 'hexa');
 });
 
@@ -821,4 +825,86 @@ test('main stat: Demon Avenger counts Max HP lines, Xenon counts STR, DEX and LU
 
   // An ordinary class is unchanged.
   assert.deepEqual([pick('STR +13%', 'STR').type, pick('DEX +13%', 'STR').type, pick('MaxHP +12%', 'STR').type], ['main', 'offstat', 'hp']);
+});
+
+// ---------- fixes from the second 24 Nov 2026 review ----------
+test('streak: looking at an alt never lowers the day the main already earned', async () => {
+  const { streakEntry } = await import('../../site/app/calc/checklist.js');
+  assert.deepEqual(streakEntry(undefined, 3, 9, 'A'), { done: 3, total: 9, by: 'A' });
+  assert.deepEqual(streakEntry({ done: 3, total: 9, by: 'A' }, 9, 9, 'A'), { done: 9, total: 9, by: 'A' });
+  assert.equal(streakEntry({ done: 9, total: 9, by: 'A' }, 9, 9, 'A'), null, 'no change, no write');
+  assert.equal(streakEntry({ done: 9, total: 9, by: 'A' }, 0, 6, 'B'), null, 'the alt has done less: the entry stays');
+  assert.deepEqual(streakEntry({ done: 4, total: 9, by: 'A' }, 6, 6, 'B'), { done: 6, total: 6, by: 'B' }, 'the alt finished everything: that counts');
+  assert.deepEqual(streakEntry({ done: 9, total: 9, by: 'A' }, 8, 9, 'A'), { done: 8, total: 9, by: 'A' }, 'unticking on the same character lowers it');
+  assert.deepEqual(streakEntry({ done: 2, total: 9 }, 5, 9, 'A'), { done: 5, total: 9, by: 'A' }, 'an entry from before this change is taken over');
+  assert.equal(streakEntry({ done: 2, total: 9 }, 5, 0, 'A'), null);
+});
+
+test('checklist: a leftover record from an earlier period does not hide a current tick from an older version', async () => {
+  const { itemStatus } = await import('../../site/app/calc/checklist.js');
+  const daily = checklist.groups.find((g) => g.key === 'daily');
+  const coupon = daily.items.find((i) => i.id === 'd-coupon');
+  const now = Date.parse('2026-11-25T02:00:00Z');
+  const cs = { items: { 'X|d-coupon': { p: 'daily:2026-11-24', d: 1 }, 'd-coupon': { p: periodKey('daily', now), d: 1 } }, resets: {}, flags: {}, history: {}, owner: 'X' };
+  assert.equal(itemStatus(coupon, daily, cs, now, { id: 'X' }).done, true);
+  assert.equal(itemStatus(coupon, daily, cs, now, { id: 'Y' }).done, false);
+  cs.items['X|d-coupon'] = { p: periodKey('daily', now), d: 0 };
+  assert.equal(itemStatus(coupon, daily, cs, now, { id: 'X' }).done, false, 'a current per-character record wins');
+});
+
+test('main stat: class changes and main-stat changes keep saved lines consistent', async () => {
+  const U = await import('../../site/app/calc/upgrades.js');
+  const P = await import('../../site/app/calc/potential.js');
+  assert.deepEqual(U.mainStatOnClassChange('', 'Xenon', 'STR'), { mainStat: 'XENON' });
+  assert.deepEqual(U.mainStatOnClassChange('Xenon', 'Hero', 'XENON'), { mainStat: 'STR' });
+  assert.deepEqual(U.mainStatOnClassChange('Hero', 'Paladin', 'DEX'), {}, 'an ordinary choice is left alone');
+  assert.deepEqual(U.mainStatOnClassChange('Hero', 'Bishop', 'HP'), {}, 'HP picked by hand on an ordinary class is left alone');
+  const data = { gear, potential: load('potential') };
+  const pick = (text, ms) => P.makeLine(data.potential, P.lineChoices(data.potential, 'hat', 4, 160, ms).find((c) => c.text === text && c.prime), 160, ms);
+  // Saved while the character was still set to STR.
+  const g = { slots: { hat: { tier: 2, ilvl: 160, pot: 4, potLines: [pick('MaxHP +12%', 'STR'), pick('STR +13%', 'STR'), pick('All Stats +10%', 'STR')] }, top: { tier: 2, pot: 4, potLines: [{ type: 'main', stat: 'STR', value: 13 }] } } };
+  assert.equal(U.lineTotals(gear.slots, g, 'STR').main, 36);
+  // Even before re-reading, an old Max HP line counts once the character is HP.
+  assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 2, potLines: [{ type: 'hp', value: 12 }] } } }, 'HP').main, 12);
+  P.reclassifyLines(data, g, 'HP');
+  assert.deepEqual(g.slots.hat.potLines.map((l) => l.type), ['main', 'offstat', 'offstat']);
+  assert.equal(U.lineTotals(gear.slots, { slots: { hat: g.slots.hat } }, 'HP').main, 12);
+  assert.equal(U.usefulLines(gear.slots.find((s) => s.id === 'hat'), g.slots.hat), 1);
+  assert.deepEqual(g.slots.top.potLines, [{ type: 'main', stat: 'STR', value: 13 }], 'lines entered before the real tables are left alone');
+  P.reclassifyLines(data, g, 'STR');
+  assert.deepEqual(g.slots.hat.potLines.map((l) => l.type), ['hp', 'main', 'allstat']);
+  P.reclassifyLines(data, undefined, 'STR');
+});
+
+// ---------- found by the full walk-through on 24 Nov 2026 ----------
+test('sync leaves each device on its own character', () => {
+  const base = edit(blank(), 100, (s) => { s.characters.push({ id: 'A', name: 'Main' }, { id: 'B', name: 'Alt' }); s.activeId = 'A'; });
+  const pc = edit(base, 200, (s) => { s.mesos.held = 1; });
+  const phone = edit(base, 900, (s) => { s.activeId = 'B'; s.mesos.held = 2; });
+  assert.equal(mergeStates(pc, phone, 1000).activeId, 'A');
+  assert.equal(mergeStates(phone, pc, 1000).activeId, 'B');
+  assert.equal(mergeStates(pc, phone, 1000).mesos.held, 2);
+  assert.ok(sameEntries(pc, { ...pc, activeId: 'B' }), 'a different character on screen is not a difference to sync');
+  // A copy stamped by an earlier version (which did merge activeId) no longer moves it.
+  const old = structuredClone(phone);
+  old.stamps.activeId = 950;
+  const merged = mergeStates(pc, old, 1000);
+  assert.equal(merged.activeId, 'A');
+  assert.ok(!('activeId' in merged.stamps));
+});
+
+test('checklist status says why an item is locked', async () => {
+  const { itemStatus } = await import('../../site/app/calc/checklist.js');
+  const daily = checklist.groups.find((g) => g.key === 'daily');
+  const arcus = daily.items.find((i) => i.id === 'd-arcus');
+  const now = Date.parse('2026-11-25T02:00:00Z');
+  const cs = { items: {}, resets: {}, flags: {}, history: {}, owner: null };
+  const who = (level) => ({ id: 'A', level });
+  assert.deepEqual([itemStatus(arcus, daily, cs, now, who(264)).tooLow, itemStatus(arcus, daily, cs, now, who(264)).gated], [true, true]);
+  cs.flags['A|lvl:d-arcus'] = true;
+  const half = itemStatus(arcus, daily, cs, now, who(264));
+  assert.deepEqual([half.tooLow, half.gated, half.locked], [false, true, true], 'level override set: only the quest lock is left');
+  cs.flags['A|arcus'] = true;
+  assert.equal(itemStatus(arcus, daily, cs, now, who(264)).locked, false);
+  assert.deepEqual([itemStatus(arcus, daily, { ...cs, flags: {} }, now, who(270)).tooLow, itemStatus(arcus, daily, { ...cs, flags: {} }, now, who(270)).gated], [false, true]);
 });

@@ -98,7 +98,7 @@ function SixthJob({ data, char, entry }) {
     <${Card} title="6th job levels" meta=${template.name}>
       ${notice ? html`<p class=${notice.due ? 'warnbox' : 'note'}>${notice.text}</p>` : null}
       <div class="toolbar">
-        <${Seg} label="6th job system" value=${templateId} onChange=${(v) => set((e) => { e.template = v; })}
+        <${Seg} label="6th job system" value=${templateId} onChange=${(v) => set((e) => { e.template = v; e.templateChosen = true; })}
           options=${Object.entries(data.erda.templates).map(([id, t]) => [id, id === 'erel' ? 'Erda Link (Erel)' : 'HEXA Matrix'])} />
       </div>
       ${template.steps.map((st) => html`<label class="small"><input type="checkbox" checked=${Boolean(steps[st.id])} onChange=${(e) => set((x) => { x.steps[st.id] = e.currentTarget.checked; })} /> ${st.label}</label>`)}

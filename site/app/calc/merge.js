@@ -3,7 +3,8 @@
 // the newer side of each unit, so a tick on the phone no longer wipes a gear edit made on the PC.
 const PER_CHILD = new Set(['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'incomeHistory']);
 const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
-const SKIP = new Set(['v', 'updatedAt', 'stamps']);
+// activeId (which character is on screen) is each device's own choice, so it is neither stamped nor merged.
+const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId']);
 const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const DAY = 86400000;
 
@@ -103,6 +104,7 @@ export function mergeStates(a, b, now = Date.now()) {
   const stamps = {};
   const paths = new Set([...ua.keys(), ...ub.keys(), ...Object.keys(sa), ...Object.keys(sb)]);
   paths.delete('characters');
+  paths.delete('activeId'); // stamped by earlier versions; no longer merged
   for (const path of paths) {
     const ta = stampOf(sa, path, now);
     const tb = stampOf(sb, path, now);
