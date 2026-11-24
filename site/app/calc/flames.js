@@ -61,7 +61,20 @@ function choose(n, k) {
 
 // Exact chance of every flame score from one flame: [[score, chance], ...], lowest score first.
 // opts: { level, mainStat, secondary, type (id in fl.types), advantaged, weights }.
+const cache = new Map();
 export function scoreDist(fl, opts) {
+  // The same item is asked about on every redraw, so answers are kept.
+  const id = JSON.stringify([opts.level, opts.mainStat, opts.secondary, opts.type, Boolean(opts.advantaged), opts.weights || fl.weights]);
+  let hit = cache.get(fl);
+  if (!hit) cache.set(fl, (hit = new Map()));
+  if (!hit.has(id)) {
+    if (hit.size > 300) hit.clear();
+    hit.set(id, computeDist(fl, opts));
+  }
+  return hit.get(id);
+}
+
+function computeDist(fl, opts) {
   const type = fl.types.find((t) => t.id === opts.type) || fl.types[0];
   const shift = opts.advantaged ? fl.advantageShift : 0;
   const tiers = type.odds.map((p, i) => [i + 1 + shift, p]).filter(([, p]) => p > 0);

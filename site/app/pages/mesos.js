@@ -144,6 +144,11 @@ function StarForce({ data, state }) {
         <div class="tile"><span class="k">Typical · bad luck</span><span class="v">${spread ? fmtBig(spread.p50) : '—'}</span><span class="s">${spread ? `1 in 10 runs costs over ${fmtBig(spread.p90)}` : 'shown for up to 15 stars at a time'}</span></div>
         <div class=${'tile' + (plan.noBoom > 0.8 ? ' ok' : '')}><span class="k">No boom</span><span class="v">${Math.round(plan.noBoom * 100)}%</span><span class="s">${plan.booms.toFixed(2)} booms expected</span></div>
       </div>
+      ${spread ? html`<div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>To be this sure</th><th class="num">Mesos</th></tr></thead>
+        <tbody>${[['50%', spread.p50], ['75%', spread.p75], ['90%', spread.p90], ['95%', spread.p95]].map(([label, v]) => html`<tr><td>${label}</td><td class="num">${fmtBig(v)}</td></tr>`)}</tbody>
+      </table></div>
+      <p class="note">From 2,500 simulated runs, booms included.</p>` : null}
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>Attempt</th><th class="num">Success</th><th class="num">Boom</th><th class="num">Cost per try</th></tr></thead>
         <tbody>${plan.steps.map((a) => html`<tr><td>${a.star} → ${a.star + 1}★${a.guard ? ' (Safeguard)' : ''}</td><td class="num">${(a.success * 100).toFixed(2)}%</td><td class="num">${a.destroy ? (a.destroy * 100).toFixed(2) + '%' : '—'}</td><td class="num">${fmtBig(a.cost)}</td></tr>`)}</tbody>
@@ -178,6 +183,10 @@ function Cubes({ data, state }) {
           <span class="s">${Math.round(plan.expected)} cubes on average · ${plan.n90} (${fmtBig(plan.cost90)}) to be 90% sure</span>
         </div>`)}
       </div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>To be this sure</th>${plans.map(({ cube }) => html`<th class="num">${cube.name}s</th><th class="num">Mesos</th>`)}</tr></thead>
+        <tbody>${[50, 75, 90, 95].map((q) => html`<tr><td>${q}%</td>${plans.map(({ cube, plan }) => html`<td class="num">${plan.sure[q].toLocaleString('en-US')}</td><td class="num">${fmtBig(plan.sure[q] * cube.price)}</td>`)}</tr>`)}</tbody>
+      </table></div>
       <p class="note">${cheaper.cube.name}s are the cheaper way to tier up here. ${c.heroicNoBonus}</p>`}
       <details>
         <summary class="small muted">Tier-up odds used (community estimates, editable)</summary>

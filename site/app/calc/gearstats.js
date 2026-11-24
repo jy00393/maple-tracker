@@ -144,7 +144,8 @@ export function damageGain(stats, gain) {
   const s = stats || {};
   const main = Number(s.main), sub = Number(s.sub) || 0, att = Number(s.att);
   if (!(main > 0) || !(att > 0)) return null;
-  const dMain = (gain.stat || 0) * (1 + (Number(s.mainPct) || 0) / 100);
+  // gain.stat raises main and secondary stat alike (Star Force); gain.main raises the main stat only (flames).
+  const dMain = ((gain.stat || 0) + (gain.main || 0)) * (1 + (Number(s.mainPct) || 0) / 100);
   const dSub = gain.stat || 0; // secondary stat % is not asked for, so its gain is counted flat (a slight underestimate)
   const dAtt = (gain.att || 0) * (1 + (Number(s.attPct) || 0) / 100);
   const before = (4 * main + sub) * att;

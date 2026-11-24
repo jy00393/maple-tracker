@@ -9,6 +9,7 @@ import { computeIncome, fmtMesos } from '../calc/income.js';
 import { endingSoon, eventKey } from '../calc/events.js';
 import { resetWarnings } from '../calc/reminders.js';
 import { upgradeOptions, affordableAt, bestUpgrade } from '../calc/advice.js';
+import { comingUp } from '../calc/upcoming.js';
 import { damageEstimateSupported } from '../calc/upgrades.js';
 import { weeklyIncome } from './mesos.js';
 import { QuickSetup } from './setup.js';
@@ -122,12 +123,13 @@ export function TodayPage({ data, state }) {
   const level = char ? levelOutlook(data, state, char, now) : null;
   const gate = level && level.gates[0];
   const gearGap = gear ? gear.gaps.find((r) => !r.entry.temporary) : null;
-  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null)) : null;
+  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
   const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
+  const coming = comingUp(data.upcoming, now, char, 5);
 
   return html`
     <${StreakRecorder} data=${data} state=${state} now=${now} />
@@ -148,7 +150,7 @@ export function TodayPage({ data, state }) {
       ${timing && timing.kind === 'wait' ? html`<span class="small" style=${{ color: 'var(--warn)' }}>Wait for the Star Force Sunny Sunday on ${fmtKst(timing.day.start)}: it saves about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'none' ? html`<span class="small muted">No Star Force Sunny Sunday is announced through ${fmtDate(timing.through)}, so there is no discount to wait for.</span>` : null}
       ${best.by === 'damage'
-        ? html`<span class="small muted">Most damage per meso among your Star Force upgrades: about <b>+${(best.dmg * 100).toFixed(2)}% damage</b>${best.dmgPartial ? ' or more (weapon ATT below 16 stars is not counted)' : ''}. An estimate from the stats you entered on Gear; potential tier-ups aren't ranked because their result depends on the lines you roll. <a href="#gear">Gear</a> · <a href="#mesos">Mesos</a></span>`
+        ? html`<span class="small muted">Most damage per meso among your Star Force upgrades and flame rerolls: about <b>+${(best.dmg * 100).toFixed(2)}% damage</b>${best.dmgPartial ? ' or more (weapon ATT below 16 stars is not counted)' : ''}${best.kind === 'flame' ? ` (a better flame turns up about 1 try in ${Math.max(1, Math.round(best.flames))}, worth about ${Math.round(best.flameGain)} more flame score)` : ''}. An estimate from the stats you entered on Gear; potential tier-ups aren't ranked because their result depends on the lines you roll. <a href="#gear">Gear</a> · <a href="#mesos">Mesos</a></span>`
         : html`<span class="small muted">Most gear score per meso among your permanent items (+${(best.gain * 100).toFixed(1)}% of your gear target). The score is this tracker's own, not a damage number. Enter your stats on <a href="#gear">Gear</a> to rank by estimated damage instead. <a href="#mesos">Mesos</a></span>`}</div>` : null}
     <div class="grid wide-left">
       <div class="grid">
@@ -165,6 +167,11 @@ export function TodayPage({ data, state }) {
         ${sunday ? html`<${Card} title=${sunday.active ? 'Sunny Sunday is on' : 'Next Sunny Sunday'} meta=${sunday.active ? `until ${fmtKst(sunday.end)}` : fmtKst(sunday.start)}>
           ${sunday.perks.filter((p) => !/^(Does not|Mesos used|Sol Erda obtained|Can be|Can reach|Select|Cannot|Multiplied|Elite Monsters summoned)/i.test(p)).slice(0, 6).map((p) => html`<div class="small" style=${isStarForcePerk(p) ? { color: 'var(--ok)', fontWeight: 600 } : null}>${p}</div>`)}
           <p class="note">From Nexon's patch notes. Runs Sunday 09:00 KST to Monday 08:59 KST.</p>
+        <//>` : null}
+        ${coming.length ? html`<${Card} title="Coming to GMS" meta="announced by Nexon" bodyClass="card-b tight">
+          ${coming.map((c) => html`<div class="goal"><div><b>${c.title}</b><div class="small muted">${c.note}</div></div>
+            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.days <= 1 ? 'within a day' : `in ${c.days} days`}</span></div>`)}
+          <p class="note" style=${{ padding: '6px 8px' }}>${data.upcoming.source}</p>
         <//>` : null}
         ${char ? html`<${Card} title="Next up">
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}

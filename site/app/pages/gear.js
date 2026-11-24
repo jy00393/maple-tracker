@@ -257,6 +257,7 @@ function SlotModal({ row, data, char, onClose }) {
             ${FLAME_FIELDS.map(([key, label, unit]) => html`<label class="field"><span>${key === 'main' ? msLabel : label}${unit ? ` ${unit}` : ''}</span><${NumberInput} className="input" label=${`Flame ${label}`} value=${(entry.flame || {})[key] ?? null} max=${999} onChange=${(v) => set({ flame: cleanFlame({ ...(entry.flame || {}), [key]: v }) })} /></label>`)}
           </div>
           <p class="note">Copy the green bonus numbers from the item's tooltip. Leave a box empty if the item doesn't have that stat.</p>
+          <label class="toggle"><input type="checkbox" checked=${entry.flameAdv !== false} onChange=${(e) => set({ flameAdv: e.currentTarget.checked })} /> Boss item (flame advantage: always 4 lines, higher tiers)</label>
         </details>
         <label class="toggle"><input type="checkbox" checked=${Boolean(entry.temporary)} onChange=${(e) => set({ temporary: e.currentTarget.checked })} /> Temporary item (Item Burning, event or rental)</label>
         <details>
@@ -321,7 +322,7 @@ export function GearPage({ data, state }) {
   const sets = detectSets(data.gearStats.sets, data.gear.slots, g);
   const stats = g.stats || {};
   const dmgOk = damageEstimateSupported(mainStat);
-  const dmgOpts = upgradeOptions(data.gear, g, data.upgrades, data.gearStats, dmgOk ? stats : null).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 5);
+  const dmgOpts = upgradeOptions(data.gear, g, data.upgrades, data.gearStats, dmgOk ? stats : null, { fl: data.flames, mainStat, weights: (state.ui.flameCalc || {}).weights }).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 8);
   const setStat = (key, v) => update((s) => { const x = charSlice(s, 'gear', char.id, blankGear); x.stats = { ...(x.stats || {}), [key]: v }; if (v === null) delete x.stats[key]; });
   const byId = Object.fromEntries(sum.slots.map((r) => [r.slot.id, r]));
   const openRow = open ? byId[open] : null;
@@ -378,9 +379,9 @@ export function GearPage({ data, state }) {
       <//>
       <${Fold} title="Your stats, for damage estimates" meta=${stats.main && stats.att ? 'entered · tap to change' : 'optional · tap to open'}>
         ${dmgOk ? null : html`<p class="warnbox">Not available for this character. The estimate uses the standard damage formula (4 × main stat + secondary stat), and the wiki's formula page doesn't give the Demon Avenger or Xenon versions. Upgrades are ranked by the tracker's gear score instead.</p>`}
-        <p class="note">Copy these totals from your in-game stat window. With them, Star Force upgrades are ranked by estimated damage per meso instead of the tracker's gear score.</p>
+        <p class="note">Copy these totals from your in-game stat window. With them, Star Force upgrades and flame rerolls (for items with a flame typed in) are ranked by estimated damage per meso instead of the tracker's gear score.</p>
         <div class="form-grid">${STAT_FIELDS.map(([key, label, ph]) => html`<label class="field"><span>${key === 'main' ? `${msLabel} (total)` : key === 'mainPct' ? `${msLabel} %` : label}</span><${NumberInput} className="input" label=${label} value=${stats[key] ?? null} max=${9999999} onChange=${(v) => setStat(key, v)} /><span class="small muted">${ph}</span></label>`)}</div>
-        ${dmgOpts.length ? html`<div><b>Star Force by damage per meso</b>${dmgOpts.map((o) => html`<div class="small">${o.label}: about +${(o.dmg * 100).toFixed(2)}% damage${o.dmgPartial ? ' or more' : ''} for ≈ ${fmtBig(o.cost)}</div>`)}</div>` : html`<p class="note">${stats.main && stats.att ? 'No Star Force upgrade is open on your permanent items.' : 'Enter at least your main stat and Attack Power to see estimates.'}</p>`}
+        ${dmgOpts.length ? html`<div><b>Star Force and flames by damage per meso</b>${dmgOpts.map((o) => html`<div class="small">${o.label}: about +${(o.dmg * 100).toFixed(2)}% damage${o.dmgPartial ? ' or more' : ''} for ≈ ${fmtBig(o.cost)}</div>`)}</div>` : html`<p class="note">${stats.main && stats.att ? 'No Star Force upgrade is open on your permanent items.' : 'Enter at least your main stat and Attack Power to see estimates.'}</p>`}
         <p class="note">${data.gearStats.damage.note} Damage is taken as proportional to (4 × main stat + secondary stat) × Attack Power, per the wiki's Damage Formula page; skills, boss defense and buffs are left out, so treat it as a ranking aid, not a prediction. ${data.gearStats.source}</p>
       <//>
     </div>

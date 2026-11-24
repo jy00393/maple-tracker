@@ -1,0 +1,27 @@
+{
+ "source": "MapleStory Wiki, Legion Champion (edited 14 Nov 2026), read 24 Nov 2026. The 5th slot and the Champion Coin dates are from Nexon's v.272 Maplayer One Patch Notes (news id 47132).",
+ "sourceUrl": "https://maplestorywiki.net/w/Legion_Champion",
+ "requirement": "Needs one character at Lv. 260 or higher and a Legion level of 8,000.",
+ "maxSlots": 5,
+ "ranks": [
+  { "id": "C", "trial": "Given when the character is registered." },
+  { "id": "B", "trial": "Solo Hard Lotus in Champion mode (30% less final damage).", "insignia": { "allStats": 20, "hp": 1000 } },
+  { "id": "A", "trial": "Solo Hard Verus Hilla in Champion mode (30% less final damage).", "insignia": { "att": 10 } },
+  { "id": "S", "trial": "Solo Hard Black Mage in Champion mode (25% less final damage).", "insignia": { "boss": 5 } },
+  { "id": "SS", "trial": "Solo Hard Chosen Seren in Champion mode (30% less final damage).", "insignia": { "critDmg": 3 } },
+  { "id": "SSS", "trial": "Solo Normal Kalos the Guardian in Champion mode (30% less final damage).", "insignia": { "ied": 5 } }
+ ],
+ "slots": [
+  { "slot": 1, "need": null },
+  { "slot": 2, "need": null },
+  { "slot": 3, "need": { "champions": 2, "rank": "A" } },
+  { "slot": 4, "need": { "champions": 3, "rank": "A" } },
+  { "slot": 5, "need": { "champions": 4, "rank": "S" } }
+ ],
+ "insigniaNote": "Insignia stats apply to every registered Champion and add up across Champions. The totals here assume a Champion keeps the insignia of every rank it has passed; the wiki lists one insignia per rank and does not say so outright.",
+ "rules": "Two Champions cannot share a job. Removing a Champion costs 1,000,000,000 mesos and resets its rank.",
+ "raid": {
+  "name": "Champion Raid: Draco Isle",
+  "note": "Monthly, 6 stages. It pays Champion Coins for the Champion's Renown skill. Coins can be used until 23:59 UTC on the 7th of the following month (08:59 KST on the 8th)."
+ }
+}

@@ -5,6 +5,7 @@ import { symbolPlan, liberationPlan, erdaNextSteps, erdaTemplateFor } from '../c
 import { fmtMesos } from '../calc/income.js';
 import { fmtDate } from '../time.js';
 import { LevelView, ErdaCosts } from './level.js';
+import { ChampionsView } from './champions.js';
 
 const days = (n) => (Number.isFinite(n) ? `${n} day${n === 1 ? '' : 's'}` : '—');
 
@@ -169,14 +170,16 @@ export function ProgressPage({ data, state }) {
       <${Liberation} which="destiny" def=${data.liberation.destiny} char=${char} entry=${lib.destiny || {}} bossById=${data.bossById} />
       <p class="note span2">${data.liberation.source}</p>
     </div>`;
+  } else if (view === 'champions') {
+    body = html`<${ChampionsView} data=${data} state=${state} />`;
   } else if (view === 'sixth') {
     body = html`<${SixthJob} data=${data} char=${char} entry=${state.erda[char.id] || {}} />`;
   } else {
     body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} />`;
   }
   return html`
-    <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job and Item Burning.<//>
+    <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job, Legion Champions and Item Burning.<//>
     <div class="toolbar"><${Seg} label="Progress section" value=${view} onChange=${setView}
-      options=${[['level', 'Level'], ['symbols', 'Symbols'], ['liberation', 'Liberation'], ['sixth', '6th job'], ['ibp', 'Item Burning']]} /></div>
+      options=${[['level', 'Level'], ['symbols', 'Symbols'], ['liberation', 'Liberation'], ['sixth', '6th job'], ['champions', 'Champions'], ['ibp', 'Item Burning']]} /></div>
     ${body}`;
 }

@@ -2,6 +2,7 @@
 // imported backup file or in a synced copy. Valid data passes through unchanged; only values of the wrong kind
 // are dropped or reset. Unknown extra fields are kept, so a newer version's data survives an older one.
 import { cleanDrops } from './pitched.js';
+import { cleanChampions } from './champions.js';
 
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const obj = (v) => (isObj(v) ? v : {});
@@ -169,6 +170,7 @@ export function sanitiseState(raw, base) {
   out.level = mapOf(raw.level, levelOf);
   out.pitch = mapOf(raw.pitch, (p) => ({ ...p, drops: cleanDrops(p.drops) }));
   out.shops = mapOf(raw.shops, shopOf);
+  out.champions = cleanChampions(raw.champions);
   out.incomeHistory = mapOf(raw.incomeHistory, (h) => ({ ...h, earned: num(h.earned, 0, 0), planned: num(h.planned, 0, 0) }));
 
   out.updatedAt = num(raw.updatedAt, 0, 0);

@@ -12,13 +12,14 @@ export function cubePlan(cube, fromTier, toTier) {
     expected += 1 / p;
   }
   // 90% bound for the whole path: smallest n with P(sum of the geometric legs <= n) >= 0.9, by dynamic programming.
-  let n90 = 0;
+  // The same sum gives the cubes needed to be 50%, 75%, 90% and 95% sure.
+  const sure = { 50: 0, 75: 0, 90: 0, 95: 0 };
   if (legs.length) {
     const L = legs.length;
     // state[i] = chance of being on leg i after n cubes; state[L] = reached the target tier.
     let state = Array.from({ length: L + 1 }, (_, i) => (i === 0 ? 1 : 0));
     let n = 0;
-    while (state[L] < 0.9 && n < 20000) {
+    while (state[L] < 0.95 && n < 20000) {
       const next = new Array(L + 1).fill(0);
       next[L] = state[L];
       for (let i = 0; i < L; i++) {
@@ -27,10 +28,12 @@ export function cubePlan(cube, fromTier, toTier) {
       }
       state = next;
       n++;
+      for (const q of [50, 75, 90, 95]) if (!sure[q] && state[L] >= q / 100) sure[q] = n;
     }
-    n90 = n;
+    for (const q of [50, 75, 90, 95]) if (!sure[q]) sure[q] = n;
   }
-  return { legs, expected, cost: expected * cube.price, n90, cost90: n90 * cube.price };
+  const n90 = sure[90];
+  return { legs, expected, cost: expected * cube.price, n90, cost90: n90 * cube.price, sure };
 }
 
 // ---------- potential lines ----------
