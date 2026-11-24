@@ -2,6 +2,7 @@ import { html, useEffect } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
 import { Card, Seg } from '../ui.js';
 import { itemStatus, setRecord, dailyProgress, whoOf, recordKey } from './checklist.js';
+import { streakEntry } from '../calc/checklist.js';
 import { DAY, dayKey, nextReset } from '../time.js';
 import { knownLevel } from './level.js';
 
@@ -61,18 +62,19 @@ export function SessionPlanner({ data, state, now }) {
 
 // Saves today's core-daily progress for the streak calendar (one entry per UTC day, the game's day).
 export function StreakRecorder({ data, state, now }) {
-  const prog = dailyProgress(data.checklist, state.checklist, now, whoOf(data, state));
+  const who = whoOf(data, state);
+  const prog = dailyProgress(data.checklist, state.checklist, now, who);
   const key = dayKey(now);
   useEffect(() => {
-    const h = (state.checklist.history || {})[key];
-    if (!prog.total || (h && h.done === prog.done && h.total === prog.total)) return;
+    const entry = streakEntry((state.checklist.history || {})[key], prog.done, prog.total, who.id);
+    if (!entry) return;
     update((s) => {
       s.checklist.history = s.checklist.history || {};
-      s.checklist.history[key] = { done: prog.done, total: prog.total };
+      s.checklist.history[key] = entry;
       const keys = Object.keys(s.checklist.history).sort();
       for (const k of keys.slice(0, Math.max(0, keys.length - 400))) delete s.checklist.history[k];
     });
-  }, [key, prog.done, prog.total]);
+  }, [key, prog.done, prog.total, who.id]);
   return null;
 }
 

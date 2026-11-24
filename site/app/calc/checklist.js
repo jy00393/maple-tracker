@@ -42,9 +42,14 @@ export function resetOf(item, group, checklistState) {
 }
 
 function record(checklistState, item, suffix, kind, now, w) {
-  let r = checklistState.items[recordKey(item, w, suffix)];
-  if (!r && w.id && item.scope !== 'account' && isOwner(checklistState, w)) r = checklistState.items[item.id + suffix];
-  return r && r.p === periodKey(kind, now) ? r : null;
+  const p = periodKey(kind, now);
+  const r = checklistState.items[recordKey(item, w, suffix)];
+  if (r && r.p === p) return r;
+  if (w.id && item.scope !== 'account' && isOwner(checklistState, w)) {
+    const old = checklistState.items[item.id + suffix];
+    if (old && old.p === p) return old;
+  }
+  return null;
 }
 
 export function itemStatus(item, group, checklistState, now, who) {
@@ -52,19 +57,32 @@ export function itemStatus(item, group, checklistState, now, who) {
   const kind = resetOf(item, group, checklistState);
   // "lvl:<id>" is the player's own override ("Mark unlocked"), e.g. when the tracker's level is behind.
   const tooLow = Boolean(item.minLevel && Number.isFinite(w.level) && w.level < item.minLevel && !flagOn(checklistState, `lvl:${item.id}`, w));
-  const locked = Boolean(item.gate && !flagOn(checklistState, item.gate, w)) || tooLow;
+  const gated = Boolean(item.gate && !flagOn(checklistState, item.gate, w));
+  const locked = gated || tooLow;
   const notForChar = Boolean(item.only === 'challenger' && w.id && !w.challenger);
   const expired = Boolean((item.until && Date.parse(item.until) < now) || notForChar);
   if (item.type === 'count') {
     const r = record(checklistState, item, '', kind, now, w);
     const count = r ? r.c || 0 : 0;
-    return { kind, locked, expired, count, done: count >= item.target };
+    return { kind, locked, tooLow, gated, expired, count, done: count >= item.target };
   }
   if (item.type === 'chips') {
     const on = item.chips.map(([cid]) => Boolean(record(checklistState, item, `_${cid}`, kind, now, w)?.d));
-    return { kind, locked, expired, on, done: on.every(Boolean) };
+    return { kind, locked, tooLow, gated, expired, on, done: on.every(Boolean) };
   }
-  if (item.type === 'link') return { kind, locked, expired, done: false, link: true };
+  if (item.type === 'link') return { kind, locked, tooLow, gated, expired, done: false, link: true };
   const r = record(checklistState, item, '', kind, now, w);
-  return { kind, locked, expired, done: Boolean(r && r.d) };
+  return { kind, locked, tooLow, gated, expired, done: Boolean(r && r.d) };
+}
+
+// The account's streak calendar has one entry per day. Decide what today's entry should be when character
+// `by` has done `done` of `total`: the same character's progress replaces it (up or down); another character
+// only replaces it by doing better, so looking at an alt never breaks the main's streak. Returns null for "leave it".
+export function streakEntry(existing, done, total, by) {
+  if (!total) return null;
+  const next = { done, total, ...(by ? { by } : {}) };
+  if (!existing || !existing.total) return next;
+  if (existing.done === done && existing.total === total && (existing.by || null) === (by || null)) return null;
+  if (!existing.by || !by || existing.by === by) return existing.done === done && existing.total === total ? null : next;
+  return done / total > existing.done / existing.total ? next : null;
 }

@@ -156,8 +156,13 @@ export function gearProjection(history = [], current, now = Date.now()) {
 
 // Which 6th-job template a character starts on: the one that lists its class, otherwise the general one.
 export function erdaTemplateFor(erda, char, entry) {
-  if (entry && entry.template && erda.templates[entry.template]) return entry.template;
+  const saved = entry && entry.template && erda.templates[entry.template] ? entry.template : null;
+  if (saved && entry.templateChosen) return saved;
   const cls = String((char && char.cls) || '').trim().toLowerCase();
-  for (const [id, t] of Object.entries(erda.templates)) if ((t.classes || []).some((c) => c.toLowerCase() === cls)) return id;
-  return erda.templates[erda.defaultTemplate] ? erda.defaultTemplate : Object.keys(erda.templates)[0];
+  let byClass = null;
+  for (const [id, t] of Object.entries(erda.templates)) if ((t.classes || []).some((c) => c.toLowerCase() === cls)) byClass = byClass || id;
+  // With no class typed in there is nothing to go on, so a saved template stays as it is.
+  if (saved && !cls) return saved;
+  if (byClass) return byClass;
+  return erda.templates[erda.defaultTemplate] ? erda.defaultTemplate : saved || Object.keys(erda.templates)[0];
 }

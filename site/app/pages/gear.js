@@ -145,6 +145,7 @@ function LineEditor({ slot, entry, set, pot, mainStat }) {
       const l = lines[i] || {};
       const fromTable = l.type && l.pid !== undefined && l.pid !== null;
       const current = fromTable ? choices.find((c) => c.pid === l.pid && c.prime === Boolean(l.prime)) : null;
+      // Shown as-is when it isn't one of this tier's lines (entered before the tables, or left from another tier).
       const legacy = l.type && !current;
       const kind = lineKind(slot, l);
       return html`<label class="field"><span>Potential line ${i + 1}${current ? (current.prime ? ' · prime' : ' · non-prime') : ''}${kind === 'farm' ? ' · farming' : kind === 'damage' ? ' · damage' : ''}</span>
@@ -156,7 +157,7 @@ function LineEditor({ slot, entry, set, pot, mainStat }) {
           if (c) setLine(i, makeLine(pot, c, lvl, mainStat));
         }}>
           <option value="">— none —</option>
-          ${legacy ? html`<option value="legacy">${lineLabel(l, mainStat)} (entered earlier)</option>` : null}
+          ${legacy ? html`<option value="legacy">${lineLabel(l, mainStat)} (${fromTable ? 'not a line for this tier' : 'entered earlier'})</option>` : null}
           ${group(`Prime · ${POT[tier]}`, prime)}
           ${group(`Non-prime · ${POT[tier - 1] === 'None' ? 'Rare' : POT[tier - 1]}`, nonPrime)}
         </select></label>`;
@@ -230,8 +231,9 @@ function SlotModal({ row, data, char, onClose }) {
           ${hasPotential(slot) ? html`<label class="field"><span>Potential tier</span>
             <select class=${'select pot-' + (entry.pot || 0)} value=${String(entry.pot || 0)} onChange=${(e) => {
               const pot = Number(e.currentTarget.value);
-              // Lines entered before the real tables existed are kept; only table lines the new tier can't have are dropped.
-              const kept = refreshLines(data.potential, slot.id, pot, lvl, entry.potLines, { mainStat });
+              // Lines are kept through a tier change: ones the new tier can't have stay listed as "entered earlier"
+              // until you re-pick them, so a slip on this dropdown loses nothing. Choosing None clears them.
+              const kept = refreshLines(data.potential, slot.id, pot, lvl, entry.potLines, { mainStat, keepMissing: true });
               set({ pot, potLines: pot && kept.some((l) => l.type) ? kept : [] });
             }}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>` : null}
           ${!heroic && hasPotential(slot) ? html`<label class="field"><span>Bonus potential</span>

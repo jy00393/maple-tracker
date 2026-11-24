@@ -51,6 +51,14 @@ export function mainStatForClass(cls) {
   const c = String(cls || '').trim().toLowerCase();
   return c === 'demon avenger' ? 'HP' : c === 'xenon' ? 'XENON' : null;
 }
+// What picking a class does to the main stat: a special class sets its own; leaving a special class whose stat
+// was set that way goes back to STR; otherwise the player's choice is left alone. Returns {} or { mainStat }.
+export function mainStatOnClassChange(oldCls, newCls, mainStat) {
+  const special = mainStatForClass(newCls);
+  if (special) return { mainStat: special };
+  if ((mainStat === 'HP' || mainStat === 'XENON') && mainStatForClass(oldCls) === mainStat) return { mainStat: 'STR' };
+  return {};
+}
 // The damage estimate only knows the standard formula.
 export function damageEstimateSupported(mainStat) {
   return mainStat !== 'HP' && mainStat !== 'XENON';
@@ -146,6 +154,7 @@ export function lineTotals(slots, gearState, mainStat = 'STR') {
     for (const l of e.potLines) {
       const v = Number(l.value) || 0;
       if (l.type === 'main' && isMainStat(l.stat || 'STR', mainStat)) out.main += v;
+      else if (l.type === 'hp' && mainStat === 'HP') out.main += v;
       else if (l.type === 'allstat' && mainStat !== 'HP') out.main += v; // All Stats does not raise HP
       else if (l.type === 'boss') out.boss += v;
       else if (l.type === 'meso') out.meso += v;

@@ -328,3 +328,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .linkbtn { padding: 6px 2px; }
 }
 details > summary { cursor: pointer; padding: 6px 0; }
+@media (max-width: 900px) {
+  .pill { min-height: 32px; display: inline-flex; align-items: center; }
+  .modal-h .iconbtn { width: 38px; height: 38px; flex: none; }
+  .tl-label button { min-height: 32px; }
+}

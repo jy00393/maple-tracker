@@ -107,6 +107,7 @@ function BackupsCard() {
         : html`<button type="button" class="btn" onClick=${() => setConfirm(b.at)}>Restore</button>`}</div>
     </div>`)}
     ${msg ? html`<p class="okbox" role="status">${msg}</p>` : null}
+    ${confirm !== null && syncConfig() ? html`<p class="warnbox" role="alert">Sync is on: restoring replaces your entries on <b>every synced device</b> with this copy, including characters added since. What you have now is kept here as a “before restore” copy.</p>` : null}
     ${syncConfig() ? html`<p class="note">With Sync on, a restored copy is sent to your other devices too.</p>` : null}
   <//>`;
 }

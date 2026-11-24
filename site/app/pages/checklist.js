@@ -74,11 +74,12 @@ function Item({ item, group, cs, now, who }) {
         s.checklist.resets[item.id] = next;
       })}>${names[0]} reset</button>`);
   }
-  if (item.minLevel && st.locked && Number.isFinite(level) && level < item.minLevel) {
+  if (st.tooLow) {
     right.push(html`<span class="pill">from Lv. ${item.minLevel}</span>`);
     right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[flagKey(`lvl:${item.id}`, who)] = true; })}>Mark unlocked</button>`);
   }
-  if (item.gate && st.locked) {
+  // While the level lock is on, only that one is offered; the quest unlock comes after it.
+  if (st.gated && !st.tooLow) {
     right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[flagKey(item.gate, who)] = true; })}>Mark unlocked</button>`);
   }
   const label = item.type === 'check' || !item.type

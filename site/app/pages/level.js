@@ -21,7 +21,7 @@ export function levelReadings(data, state, char) {
 // rankings history. Used for level locks, so a stale stored level never hides something you can already do.
 export function knownLevel(data, state, char) {
   if (!char) return undefined;
-  const levels = [Number(char.level), ...levelReadings(data, state, char).map((r) => Number(r.level))].filter(Number.isFinite);
+  const levels = [Number(char.level), ...levelReadings(data, state, char).map((r) => Number(r.level))].filter((n) => Number.isFinite(n) && n > 0);
   return levels.length ? Math.max(...levels) : undefined;
 }
 

@@ -3,6 +3,8 @@ import { update, newId } from '../store.js';
 import { Card, PageHead, NumberInput, Empty } from '../ui.js';
 import { worldLabel } from '../calc/income.js';
 import { MAIN_STAT_CHOICES, mainStatForClass } from '../calc/upgrades.js';
+import { reclassifyLines } from '../calc/potential.js';
+import { mainStatOnClassChange } from '../calc/upgrades.js';
 import { fmtKst } from '../time.js';
 
 export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
@@ -20,7 +22,7 @@ function CharacterForm({ initial, onSave, onCancel, saveLabel }) {
   return html`<form class="card-b" onSubmit=${(e) => { e.preventDefault(); if (valid) onSave({ ...f, name: f.name.trim() }); }}>
     <div class="form-grid">
       <label class="field"><span>Name (in-game)</span><input id="char-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
-      <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; const ms = mainStatForClass(cls); set(ms ? { cls, mainStat: ms } : { cls }); }} /></label>
+      <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat) }); }} /></label>
       <label class="field"><span>Level</span><${NumberInput} id="char-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
       <label class="field"><span>Region</span><select id="char-region" class="select" value=${f.region} onChange=${(e) => set({ region: e.currentTarget.value })}><option value="na">North America</option><option value="eu">Europe</option></select></label>
       <label class="field"><span>World type</span><select id="char-world" class="select" value=${f.world} onChange=${(e) => set({ world: e.currentTarget.value })}><option value="heroic">Heroic (no trading)</option><option value="interactive">Interactive</option></select></label>
@@ -52,7 +54,11 @@ export function CharactersPage({ data, state }) {
           const n = nexonFor(c);
           if (editing === c.id) {
             return html`<${CharacterForm} initial=${c} saveLabel="Save" onCancel=${() => setEditing(null)}
-              onSave=${(f) => { update((s) => { const i = s.characters.findIndex((x) => x.id === c.id); s.characters[i] = { ...c, ...f }; }); setEditing(null); }} />`;
+              onSave=${(f) => { update((s) => {
+                const i = s.characters.findIndex((x) => x.id === c.id);
+                s.characters[i] = { ...c, ...f };
+                if ((c.mainStat || 'STR') !== (f.mainStat || 'STR')) reclassifyLines(data, s.gear[c.id], f.mainStat || 'STR');
+              }); setEditing(null); }} />`;
           }
           return html`<div class="row">
             <input type="radio" name="active-char" id=${'act-' + c.id} checked=${state.activeId === c.id} aria-label=${'Show ' + c.name}
@@ -80,7 +86,7 @@ export function CharactersPage({ data, state }) {
       <//>
       <${Card} title="Add a character" bodyClass="">
         <${CharacterForm} key=${state.characters.length} initial=${blankForm()} saveLabel="Add character"
-          onSave=${(f) => update((s) => { const id = newId(); s.characters.push({ id, ...f }); s.activeId = id; })} />
+          onSave=${(f) => update((s) => { const id = newId(); if (s.characters.length === 0) { s.checklist.owner = id; s.checklist.ownerSet = true; } s.characters.push({ id, ...f }); s.activeId = id; })} />
       <//>
       <${Card} title="Automatic level updates" className="span2">
         <p class="note">To have your level and class refreshed from Nexon's rankings every 6 hours, list the character in <code>config/characters.json</code> in your GitHub repo, like <code>[{"name": "YourName", "region": "na"}]</code>. The next run adds it here with a button to copy the level across. Names you list there are visible to anyone who can see the repo; Nexon's own rankings already show them publicly.</p>
