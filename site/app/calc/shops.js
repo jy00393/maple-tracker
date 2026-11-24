@@ -9,13 +9,14 @@ export function shopItems(shop, char) {
   return (shop.items || []).filter((it) => !it.only || it.only === world);
 }
 
-// Most you can buy of an item in total. Daily and weekly limits have no fixed total.
+// Most you can buy of an item in total. Daily and weekly limits, and items with no limit, have no fixed total.
 export function itemCap(item) {
-  return item.per ? undefined : item.limit;
+  return item.per || !(item.limit > 0) ? undefined : item.limit;
 }
 
 export function limitText(item) {
   if (item.limitNote) return item.limitNote;
+  if (!(item.limit > 0)) return 'none';
   if (item.per === 'day') return `${item.limit} a day`;
   if (item.per === 'week') return `${item.limit} a week`;
   return String(item.limit);

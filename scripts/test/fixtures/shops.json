@@ -1,0 +1,225 @@
+{
+ "source": "A fixed copy of the Alliance Credit Shop for tests. The live file is rewritten by the data job.",
+ "shops": [
+  {
+   "id": "alliance-credit",
+   "name": "Alliance Credit Shop",
+   "event": "Operation Ultima",
+   "currency": "Alliance Credit",
+   "scope": "Shared by every character on the account.",
+   "start": "2026-11-11T00:00:00.000Z",
+   "end": "2027-02-09T23:59:00.000Z",
+   "useBy": "2027-02-10T02:00:00Z",
+   "earn": {
+    "name": "Defense Mission",
+    "perClaim": 800,
+    "perWeek": 5,
+    "max": 60,
+    "note": "Defeat 10,000 monsters near your level each week: 5 claims of 800. Missed weeks can be bought back for 3,000 Maple Points per mission."
+   },
+   "items": [
+    {
+     "id": "karma-bonus-mystical-cube",
+     "name": "Karma Bonus Mystical Cube",
+     "only": "interactive",
+     "cost": 100,
+     "limit": 100
+    },
+    {
+     "id": "karma-solid-cube",
+     "name": "Karma Solid Cube",
+     "cost": 100,
+     "limit": 100
+    },
+    {
+     "id": "epic-potential-scroll",
+     "name": "Epic Potential Scroll 100%",
+     "cost": 300,
+     "limit": 5
+    },
+    {
+     "id": "special-bonus-potential-scroll",
+     "name": "Special Bonus Potential Scroll 100%",
+     "only": "interactive",
+     "cost": 300,
+     "limit": 5
+    },
+    {
+     "id": "innocence-scroll",
+     "name": "Innocence Scroll 100%",
+     "only": "interactive",
+     "cost": 100,
+     "limit": 20
+    },
+    {
+     "id": "pet-equipment-scroll",
+     "name": "Pet Equipment Scroll Selector Coupon",
+     "only": "interactive",
+     "cost": 500,
+     "limit": 20,
+     "note": "ATT or Magic ATT, 100%."
+    },
+    {
+     "id": "black-rebirth-flame",
+     "name": "Black Rebirth Flame",
+     "only": "heroic",
+     "cost": 10,
+     "limit": 200
+    },
+    {
+     "id": "pure-clean-slate-scroll",
+     "name": "Pure Clean Slate Scroll 100%",
+     "only": "interactive",
+     "cost": 200,
+     "limit": 10
+    },
+    {
+     "id": "event-ring-selector",
+     "name": "Event Ring Selector Coupon",
+     "cost": 3000,
+     "limit": 3
+    },
+    {
+     "id": "event-ring-solid-cube",
+     "name": "Event Ring Exclusive Solid Cube",
+     "cost": 150,
+     "limit": 50
+    },
+    {
+     "id": "event-ring-legendary-scroll",
+     "name": "Event Ring Exclusive Legendary Potential Scroll 100%",
+     "cost": 4000,
+     "limit": 3
+    },
+    {
+     "id": "karma-unique-potential-scroll",
+     "name": "Karma Unique Potential Scroll 100%",
+     "cost": 3000,
+     "limit": 4
+    },
+    {
+     "id": "karma-bonus-epic-potential-scroll",
+     "name": "Karma Bonus Epic Potential Scroll 100%",
+     "only": "interactive",
+     "cost": 3000,
+     "limit": 4
+    },
+    {
+     "id": "karma-special-heart-scroll",
+     "name": "Karma Special Heart Scroll Selector Coupon",
+     "only": "interactive",
+     "cost": 2000,
+     "limit": 10,
+     "note": "Attack or Magic ATT, 100%."
+    },
+    {
+     "id": "ap-reset-scroll",
+     "name": "AP Reset Scroll",
+     "cost": 50,
+     "limit": 3
+    },
+    {
+     "id": "sp-reset-scroll",
+     "name": "SP Reset Scroll",
+     "cost": 50,
+     "limit": 3
+    },
+    {
+     "id": "mysterious-monsterbloom",
+     "name": "Mysterious Monsterbloom",
+     "notChallenger": true,
+     "cost": 300,
+     "limit": 40,
+     "limitNote": "40 per world"
+    },
+    {
+     "id": "trait-boost-potion",
+     "name": "Trait Boost Potion",
+     "cost": 300,
+     "limit": 20
+    },
+    {
+     "id": "selective-8-slot-coupon",
+     "name": "Selective 8-slot Coupon",
+     "cost": 100,
+     "limit": 15
+    },
+    {
+     "id": "infinite-revitalizer",
+     "name": "Infinite Revitalizer",
+     "cost": 10,
+     "limit": 5,
+     "per": "day"
+    },
+    {
+     "id": "character-slot-coupon",
+     "name": "Character Slot Expansion Coupon",
+     "notChallenger": true,
+     "cost": 200,
+     "limit": 5
+    },
+    {
+     "id": "experience-nodestone",
+     "name": "Experience Nodestone",
+     "cost": 150,
+     "limit": 200
+    },
+    {
+     "id": "chaos-circulator",
+     "name": "Chaos Circulator",
+     "cost": 800,
+     "limit": 20
+    },
+    {
+     "id": "black-circulator",
+     "name": "Black Circulator",
+     "cost": 1500,
+     "limit": 10
+    },
+    {
+     "id": "legendary-circulator",
+     "name": "Legendary Circulator",
+     "cost": 2000,
+     "limit": 3
+    },
+    {
+     "id": "strawberry-farm-pass",
+     "name": "Spiegelette's Golden Strawberry Farm One-Time Entry Pass",
+     "note": "Can only be used by characters Lv. 101 - Lv. 259 (Zero characters must have completed Story Quest Act 2).",
+     "cost": 200,
+     "limit": 5,
+     "per": "week"
+    },
+    {
+     "id": "extreme-growth-potion",
+     "name": "Extreme Growth Potion",
+     "cost": 70,
+     "limit": 200,
+     "note": "Burning characters can't use it."
+    },
+    {
+     "id": "growth-potion-200-249",
+     "name": "Growth Potion (200 - 249)",
+     "cost": 5000,
+     "limit": 2
+    },
+    {
+     "id": "growth-potion-200-259",
+     "name": "Growth Potion (200 - 259)",
+     "cost": 10000,
+     "limit": 1
+    },
+    {
+     "id": "sol-erda",
+     "name": "Sol Erda",
+     "cost": 8000,
+     "limit": 3
+    }
+   ],
+   "postId": 47132,
+   "postName": "v.272 - Maplayer One Patch Notes",
+   "liveDate": "2026-11-10T15:30:00Z",
+   "url": "https://www.nexon.com/maplestory/news/update/47132"
+  }
+ ]
+}

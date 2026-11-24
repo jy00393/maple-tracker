@@ -7,6 +7,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { parsePost, postUrl, findRanked, findSunnySchedule } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
+import { findShops, mergeShops } from './lib/shops.mjs';
 import { WZ_URL, ITEMS_URL, MIN_LEVEL, ITEMS_SCHEMA, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
 
 const LIST_URL = 'https://g.nexonstatic.com/maplestory/cms/v1/news';
@@ -26,7 +27,7 @@ const DETAIL_CATEGORIES = new Set(['events', 'update', 'sale', 'general', 'maint
 const MAX_DETAIL_FETCHES = 30;
 const NEWS_KEEP = 150;
 // Raise this when the parser learns something new, so cached posts are read again (a few per run).
-const PARSER_VERSION = 2;
+const PARSER_VERSION = 3;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -120,7 +121,9 @@ async function updateNewsAndEvents(errors) {
         fetchedAt: new Date(now).toISOString(),
         pv: PARSER_VERSION,
         events: parsePost(post, detail.body || ''),
-        sunny: post.category === 'maintenance' ? [] : findSunnySchedule(detail.body || '')
+        sunny: post.category === 'maintenance' ? [] : findSunnySchedule(detail.body || ''),
+        // Event coin shops (item, price, limit) from patch notes and event posts.
+        shops: post.category === 'update' || post.category === 'events' ? findShops(detail.body || '', post) : []
       };
     } catch (err) {
       errors.push(`post ${post.id}: ${err.message}`);
@@ -142,12 +145,16 @@ async function updateNewsAndEvents(errors) {
   }
   const sunny = [...sunnyByDate.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
 
+  // Coin shops: what the posts list, merged over the current file so hand-added notes and saved ids survive.
+  const shops = mergeShops(await readJson('shops.json', { shops: [] }), Object.values(posts).flatMap((p) => p.shops || []), now);
+
   const changed = [];
+  if (await writeJsonIfChanged('shops.json', shops)) changed.push('shops');
   if (await writeJsonIfChanged('news.json', { items: news })) changed.push('news');
   if (await writeJsonIfChanged('posts.json', { posts })) changed.push('posts');
   if (await writeJsonIfChanged('events.json', { events, sunny })) changed.push('events');
   if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now))) changed.push('calendar');
-  return { changed, fetched, posts: list.length, events: events.length };
+  return { changed, fetched, posts: list.length, events: events.length, shops: shops.shops.length };
 }
 
 async function updateCharacters(errors) {

@@ -10,7 +10,8 @@ import { mergeStates } from '../../site/app/calc/merge.js';
 
 const load = (name) => JSON.parse(readFileSync(new URL(`../../site/data/${name}.json`, import.meta.url), 'utf8'));
 const fl = load('flames');
-const shops = load('shops');
+// A fixed copy: the live shops.json is rewritten by the data job as Nexon's shops come and go.
+const shops = JSON.parse(readFileSync(new URL('./fixtures/shops.json', import.meta.url), 'utf8'));
 const pitched = load('pitched');
 const near = (a, b, eps = 1e-12) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} is not ${b}`);
 
@@ -117,7 +118,7 @@ test('flames needed, weights and the typed flame score', () => {
 });
 
 test('coin shop: items, limits and what you can still earn', () => {
-  const shop = shops.shops[0];
+  const shop = shops.shops.find((s) => s.id === 'alliance-credit');
   const ids = shop.items.map((i) => i.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const item of shop.items) assert.ok(item.cost > 0 && item.limit > 0 && item.name, item.id);
@@ -139,7 +140,7 @@ test('coin shop: items, limits and what you can still earn', () => {
 });
 
 test('coin shop plan: short, left over, and limits respected', () => {
-  const shop = shops.shops[0];
+  const shop = shops.shops.find((s) => s.id === 'alliance-credit');
   const now = Date.parse('2026-11-24T00:00:00Z');
   const char = { world: 'heroic', challenger: true };
   const plan = shopPlan(shop, { have: 5000, claims: 10, want: { 'sol-erda': 9, 'black-rebirth-flame': 200, 'innocence-scroll': 20, nonsense: 4 } }, char, now);

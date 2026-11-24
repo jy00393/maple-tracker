@@ -17,20 +17,21 @@ function Shop({ shop, state, char, now }) {
   const coin = shop.currency;
   if (!plan.open) return html`<${Card} title=${shop.name} meta="closed"><${Empty}>This shop closed on ${fmtKst(Date.parse(shop.end))}.<//><//>`;
   return html`<div class="grid wide-left">
-    <${Card} title=${shop.name} meta=${`${shop.event} · ${plan.daysLeft} days left`}>
+    <${Card} title=${shop.name} meta=${`${shop.event ? shop.event + ' · ' : ''}${plan.daysLeft} days left`}>
       <div class="tiles">
         <div class=${'tile ' + (plan.short ? 'accent' : 'ok')}>
           <span class="k">${plan.short ? 'Short by' : 'Left over'}</span>
           <span class="v">${num(plan.short || plan.spare)}</span>
           <span class="s">${plan.picked ? `your picks cost ${num(plan.need)} ${coin}` : 'pick what you want below'}</span>
         </div>
-        <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${num(plan.have)} held + up to ${num(plan.toCome)} still to earn</span></div>
+        <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${earn ? `${num(plan.have)} held + up to ${num(plan.toCome)} still to earn` : 'the amount you hold now'}</span></div>
         <div class="tile"><span class="k">Closes</span><span class="v">${plan.daysLeft} days</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
       </div>
       <div class="form-grid">
         <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = Math.floor(v || 0); })} /></label>
         ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max})</span><${Stepper} label=${earn.name + 's claimed'} value=${Math.min(saved.claims || 0, earn.max)} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
       </div>
+      ${shop.note ? html`<p class="warnbox">${shop.note}</p>` : null}
       ${plan.short ? html`<p class="warnbox">Your picks cost ${num(plan.short)} ${coin} more than you can reach. Drop a pick, or lower a number.</p>` : null}
       <div class="toolbar">
         <label class="small"><input type="checkbox" checked=${onlyPicked} onChange=${(e) => setOnlyPicked(e.currentTarget.checked)} /> Only my picks</label>
@@ -50,7 +51,8 @@ function Shop({ shop, state, char, now }) {
     <//>
     <div class="grid">
       <${Card} title="How it adds up">
-        <p class="note">${shop.scope}</p>
+        ${shop.scope ? html`<p class="note">${shop.scope}</p>` : null}
+        ${earn ? null : html`<p class="note">How ${coin} is earned is not listed here, so only the amount you hold is counted. Keep it up to date.</p>`}
         ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} claims a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
           <p class="note">"Still to earn" assumes ${earn.perWeek} claims in every week that is left, up to the ${earn.max} total.</p>` : null}
         <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold up to date.</p>
@@ -65,6 +67,13 @@ function Shop({ shop, state, char, now }) {
 export function ShopsView({ data, state, now }) {
   const char = activeCharacter(state);
   const shops = (data.shops && data.shops.shops) || [];
-  if (shops.length === 0) return html`<${Card} title="Coin shop"><${Empty}>No event shop is listed right now.<//><//>`;
-  return shops.map((shop) => html`<${Shop} key=${shop.id} shop=${{ ...shop, sourceNote: data.shops.source }} state=${state} char=${char} now=${now} />`);
+  // Open shops first; a closed one is only shown when nothing is open.
+  // Challenger World shops are only for Challenger World characters.
+  const mine = shops.filter((s) => !/^challenger world/i.test(s.name) || Boolean(char && char.challenger));
+  const open = mine.filter((s) => Date.parse(s.end) > now);
+  const list = open.length ? open : mine.slice(-1);
+  if (list.length === 0) return html`<${Card} title="Coin shop"><${Empty}>No event shop is listed right now.<//><//>`;
+  const shop = list.find((s) => s.id === state.ui.shopId) || list[0];
+  return html`${list.length > 1 ? html`<div class="toolbar"><label class="field"><span>Shop (${list.length} open)</span><select id="shop-pick" class="select" value=${shop.id} onChange=${(e) => { const v = e.currentTarget.value; update((s) => { s.ui.shopId = v; }); }}>${list.map((s) => html`<option value=${s.id}>${s.name}</option>`)}</select></label></div>` : null}
+    <${Shop} key=${shop.id} shop=${{ ...shop, sourceNote: data.shops.source }} state=${state} char=${char} now=${now} />`;
 }
