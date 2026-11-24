@@ -13,7 +13,8 @@ export function applySetup(s, form, bossIds, id, now = Date.now()) {
     challenger: Boolean(form.challenger),
     quanah: Boolean(form.quanah),
     mainStat: form.mainStat || 'STR',
-    beyondBurning: Boolean(form.beyondBurning)
+    beyondBurning: Boolean(form.beyondBurning),
+    ...(form.cp > 0 ? { cp: Math.floor(form.cp) } : {})
   });
   s.activeId = id;
   const picks = {};

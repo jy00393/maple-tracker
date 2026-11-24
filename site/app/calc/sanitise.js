@@ -27,6 +27,8 @@ function character(c) {
   out.world = c.world === 'interactive' ? 'interactive' : 'heroic';
   out.mainStat = ['STR', 'DEX', 'INT', 'LUK', 'HP', 'XENON'].includes(c.mainStat) ? c.mainStat : 'STR';
   for (const k of ['challenger', 'quanah', 'beyondBurning']) out[k] = bool(c[k]);
+  // Combat Power from the Character Info window, when typed in.
+  if ('cp' in out) { const cp = num(c.cp, null, 1, 1e15); if (cp === null) delete out.cp; else out.cp = Math.floor(cp); }
   return out;
 }
 

@@ -1,6 +1,7 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
-import { Card, NumberInput } from '../ui.js';
+import { Card, NumberInput, MesoInput } from '../ui.js';
+import { suggestBosses, fmtCp } from '../calc/bosscp.js';
 import { applySetup } from '../calc/setup.js';
 import { crystalValue, fmtMesos } from '../calc/income.js';
 import { CLASSES } from './characters.js';
@@ -22,6 +23,7 @@ export function QuickSetup({ data }) {
         <label class="field"><span>Character name</span><input id="qs-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
         <label class="field"><span>Class</span><input id="qs-class" class="input" list="qs-class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat) }); }} /></label>
         <label class="field"><span>Level</span><${NumberInput} id="qs-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
+        <label class="field"><span>Combat Power (optional)</span><${MesoInput} label="Combat Power" placeholder="e.g. 45M" value=${f.cp || null} onChange=${(v) => set({ cp: v || null })} /></label>
         <label class="field"><span>EXP % (optional)</span><${NumberInput} id="qs-pct" className="input" label="EXP percent" value=${f.pct} min=${0} max=${99.999} step=${0.001} onChange=${(v) => set({ pct: v })} /></label>
         <label class="field"><span>World type</span><select id="qs-world" class="select" value=${f.world} onChange=${(e) => set({ world: e.currentTarget.value })}><option value="heroic">Heroic (no trading)</option><option value="interactive">Interactive</option></select></label>
         <label class="field"><span>Main stat</span><select id="qs-stat" class="select" value=${f.mainStat} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${MAIN_STAT_CHOICES.map(([v, label]) => html`<option value=${v}>${label}</option>`)}</select></label>
@@ -31,6 +33,7 @@ export function QuickSetup({ data }) {
         <label class="small"><input id="qs-beyond" type="checkbox" checked=${f.beyondBurning} onChange=${(e) => set({ beyondBurning: e.currentTarget.checked })} /> Beyond Burning</label>
       </div>
       <div class="field"><span>Weekly bosses you clear · ${ids.length} picked${ids.length > cap ? ` (only the best ${cap} crystals count)` : ''}${total ? ` · ${fmtMesos(total)} a week` : ''}</span>
+        ${f.cp > 0 && data.bossCp ? html`<div class="toolbar"><button type="button" id="qs-suggest" class="btn" onClick=${() => setPicked(Object.fromEntries(suggestBosses(data.bosses, data.bossCp, f.cp, 1, f).ids.map((id) => [id, true])))}>Pick what ${fmtCp(f.cp)} Combat Power can enter</button><span class="small muted">The best-paying difficulty of each boss, by the game's solo entry minimums. Change it freely.</span></div>` : null}
         <div class="chipbox">${weekly.map((b) => html`<button type="button" class="chip" aria-pressed=${String(Boolean(picked[b.id]))}
           onClick=${() => setPicked((p) => ({ ...p, [b.id]: !p[b.id] }))}>${b.difficulty} ${b.boss} · ${fmtMesos(crystalValue(b, f, data.bosses))}</button>`)}</div>
       </div>
