@@ -304,6 +304,18 @@ test('Gear: the equipment window and the list show the same slots, and the star 
   close(el);
 });
 
+test('a change saved in the instant after a page first draws still shows', async () => {
+  store.replaceState(richState(), true);
+  const el = new FakeNode('div');
+  mounted.push(el);
+  const App = () => html`<${PAGES.bosses} data=${DATA} state=${store.useStore()} />`;
+  render(html`<${App} />`, el);
+  // No wait here: the page has drawn but is not listening to the store yet.
+  store.update((s) => { s.activeId = 'mule'; });
+  assert.ok(await until(() => /Mule: tick clears/.test(el.text)), 'the page redraws for the character picked during that gap');
+  close(el);
+});
+
 test('Bosses logs pitched drops for the active character, and removes them', async () => {
   store.replaceState(richState(), true);
   const el = await show('bosses');

@@ -141,7 +141,12 @@ export function subscribe(fn) {
 
 export function useStore() {
   const [, force] = useReducer((x) => x + 1, 0);
-  useEffect(() => subscribe(() => force()), []);
+  // The page starts listening a moment after it first draws. If something was saved in that gap, draw again.
+  const drawn = state;
+  useEffect(() => {
+    if (state !== drawn) force();
+    return subscribe(() => force());
+  }, []);
   return state;
 }
 
