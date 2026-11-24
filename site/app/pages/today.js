@@ -129,7 +129,7 @@ export function TodayPage({ data, state }) {
   const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
-  const coming = comingUp(data.upcoming, now, char, 5);
+  const coming = comingUp(data.upcoming, now, char, 5, data.events.events);
 
   return html`
     <${StreakRecorder} data=${data} state=${state} now=${now} />
@@ -171,7 +171,7 @@ export function TodayPage({ data, state }) {
         ${coming.length ? html`<${Card} title="Coming to GMS" meta="announced by Nexon" bodyClass="card-b tight">
           ${coming.map((c) => html`<div class="goal"><div><b>${c.title}</b><div class="small muted">${c.note}</div></div>
             <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.days < 1 ? 'today' : c.days <= 1 ? 'within a day' : `in ${c.days} days`}</span></div>`)}
-          <p class="note" style=${{ padding: '6px 8px' }}>${data.upcoming.source}</p>
+          <p class="note" style=${{ padding: '6px 8px' }}>Event start dates are read from Nexon's posts every 6 hours. The rest: ${(data.upcoming && data.upcoming.source) || 'typed in by hand.'}</p>
         <//>` : null}
         ${char ? html`<${Card} title="Next up">
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}

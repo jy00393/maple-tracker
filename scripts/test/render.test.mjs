@@ -349,7 +349,9 @@ test('Events > Coin shop plans picks against coins, and hides items for the othe
   const s = richState();
   s.ui = { ...(s.ui || {}), eventsView: 'shops' };
   store.replaceState(s, true);
-  const data = loadData();
+  // A fixed copy of one shop first (the live file changes with Nexon's posts); several shops are tested below.
+  const every = loadData().shops.shops;
+  const data = loadData({ shops: JSON.parse(readFileSync(fileURLToPath(new URL('./fixtures/shops.json', import.meta.url)), 'utf8')) });
   data.shops.shops[0].end = new Date(Date.now() + 30 * 86400000).toISOString(); // keep the shop open whenever the test runs
   const el = await show('events', data);
   const text = el.text.replace(/\s+/g, ' ');
@@ -377,6 +379,42 @@ test('Events > Coin shop plans picks against coins, and hides items for the othe
   assert.match(inter.text.replace(/\s+/g, ' '), /Innocence Scroll/);
   assert.doesNotMatch(inter.text.replace(/\s+/g, ' '), /Black Rebirth Flame/);
   close(inter);
+  // Several shops open at once: a picker switches between them, and Challenger World shops are only
+  // offered to a Challenger World character.
+  const soon = new Date(Date.now() + 30 * 86400000).toISOString();
+  const shop = (id, name, extra = {}) => ({ id, name, currency: 'Test Coin', start: '2020-01-01T00:00:00Z', end: soon, items: [{ id: 'thing', name: `${name} item`, cost: 7, limit: null }], ...extra });
+  const many = loadData({ shops: { source: 'Test.', shops: [shop('a', 'First Shop'), shop('b', 'Second Shop', { note: 'Check this tab in game.' }), shop('c', 'Challenger World Shop: Normal'), shop('old', 'Old Shop', { end: '2020-02-01T00:00:00Z' })] } });
+  store.update((x) => { x.activeId = 'mule'; x.ui.shopId = null; });
+  let el2 = await show('events', many);
+  let t2 = el2.text.replace(/\s+/g, ' ');
+  assert.match(t2, /Shop \(2 open\)/);
+  assert.match(t2, /First Shop item/);
+  assert.match(t2, /limit none/);
+  assert.match(t2, /How Test Coin is earned is not listed here/);
+  assert.doesNotMatch(t2, /Challenger World Shop|Old Shop/);
+  assert.equal(t2.match(BAD), null);
+  const pick = el2.find((n) => n.attrs.id === 'shop-pick');
+  pick.value = 'b';
+  pick.fire('change', { currentTarget: pick });
+  await tick(5);
+  assert.equal(store.getState().ui.shopId, 'b');
+  close(el2);
+  el2 = await show('events', many);
+  t2 = el2.text.replace(/\s+/g, ' ');
+  assert.match(t2, /Second Shop item/);
+  assert.match(t2, /Check this tab in game\./);
+  close(el2);
+  store.update((x) => { x.activeId = 'main'; });
+  el2 = await show('events', many);
+  assert.match(el2.text.replace(/\s+/g, ' '), /Shop \(3 open\)/);
+  close(el2);
+  // The real file as the job writes it draws for every shop in it.
+  for (const s of every) {
+    store.update((x) => { x.ui.shopId = s.id; });
+    const real = await show('events', loadData());
+    assert.equal(real.text.replace(/\s+/g, ' ').match(BAD), null, s.id);
+    close(real);
+  }
 });
 
 test('Mesos > Flames gives an answer for every character and every setting, and never prints junk', async () => {
@@ -490,9 +528,20 @@ test('Progress > Level shows what Monster Park and potions are worth, and Today 
   const main = await show('today', data);
   assert.match(main.text.replace(/\s+/g, ' '), /Challenger thing/);
   close(main);
-  const none = await show('today', loadData({ upcoming: { items: [] } }));
+  const none = await show('today', loadData({ upcoming: { items: [] }, events: { events: [] } }));
   assert.doesNotMatch(none.text.replace(/\s+/g, ' '), /Coming to GMS/);
   close(none);
+  // An event from Nexon's posts that has not started yet is listed without anyone typing it in.
+  const soon = new Date(Date.now() + 3 * 86400000).toISOString();
+  const later = new Date(Date.now() + 30 * 86400000).toISOString();
+  const ev = (id, title, category, extra = {}) => ({ id, title, start: soon, end: later, category, postName: 'A Nexon post', ...extra });
+  const auto = await show('today', loadData({ upcoming: { items: [] }, events: { events: [ev('1', 'Winter Festival', 'events'), ev('2', 'Lucky Box Sale', 'sale'), ev('3', 'Server check', 'maintenance'), ev('4', 'Classic thing', 'events', { isClassic: true })] } }));
+  const a = auto.text.replace(/\s+/g, ' ');
+  assert.match(a, /Coming to GMS/);
+  assert.match(a, /Winter Festival starts/);
+  assert.match(a, /in 3 days/);
+  assert.doesNotMatch(a, /Lucky Box Sale starts|Server check starts|Classic thing starts/);
+  close(auto);
 });
 
 test('Mesos calculators show the 50 to 95% spread, and Gear ranks a flame reroll once stats are entered', async () => {

@@ -81,11 +81,11 @@ These change only with big patches. Each file says where it came from:
 | `site/data/season.json` | Challenger World end-of-season deadlines and steps | Nexon's Challenger World notice (news id 47305) |
 | `site/data/gear.json`, `erda.json` | Gear tiers, targets, 6th-job order | Editable presets |
 | `site/data/flames.json` | Flame (Bonus Stats) tier odds, line rules, values per tier, the meso reset price, flame score weights | Odds: Nexon Korea's published probabilities (not published for GMS); values: MapleStory Wiki; weights are community values |
-| `site/data/shops.json` | The current event coin shop: items, prices, limits, how coins are earned | Nexon patch notes (v.272, news id 47132) |
+| `site/data/shops.json` | Event coin shops: items, prices, limits. Written by the job from Nexon's patch notes; how coins are earned is typed in by hand where known | Nexon patch notes |
 | `site/data/pitched.json` | Pitched and Brilliant boss set items and where each drops | MapleStory Wiki set and item pages |
 | `site/data/champions.json` | Legion Champion ranks, trials, slot rules, insignia | MapleStory Wiki; Nexon v.272 patch notes |
 | `site/data/expsources.json` | Monster Park EXP per dungeon, growth potion level ranges | MapleStory Wiki |
-| `site/data/upcoming.json` | Dated things Nexon has announced (typed in by hand) | Nexon patch notes and Inkwell's Note |
+| `site/data/upcoming.json` | Dated things Nexon has announced, typed in by hand. Event start dates are added to the same list automatically from `events.json` | Nexon patch notes and Inkwell's Note |
 | `site/data/upgrades.json` | Star Force rates and costs, cube prices and tier-up odds, potential line values, EXP table 260-300, Sol Erda costs | MapleStory Wiki, Nexon v.269/v.271 notes; cube odds are community estimates (Nexon doesn't publish GMS odds) |
 
 ## Run it locally
