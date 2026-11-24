@@ -12,7 +12,9 @@
      "label": "Claim the Ultima Supply Report and Challenger rewards",
      "min": "3 min",
      "note": "One Supply Report claim per account per day. Take the day's three 3x EXP coupons too; 15 of them trade for one 4x.",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "scope": "account",
+     "only": "challenger"
     },
     {
      "id": "d-coupon",
@@ -24,7 +26,8 @@
      "id": "d-cernium",
      "label": "Cernium daily: 30 Cernium symbols",
      "min": "35–40 min",
-     "note": "Your grind block. The same kills fill Shadow Supplies and the weekly hunts. Heroic gives 30 a day (MapleStory Wiki)."
+     "note": "Your grind block. The same kills fill Shadow Supplies and the weekly hunts. Heroic gives 30 a day (MapleStory Wiki).",
+     "minLevel": 260
     },
     {
      "id": "d-shadow",
@@ -39,7 +42,8 @@
      "label": "Hotel Arcus daily: 15 Arcus symbols",
      "min": "8–10 min",
      "gate": "arcus",
-     "note": "Opens at Lv. 265 after the Arcus questline."
+     "note": "Opens at Lv. 265 after the Arcus questline.",
+     "minLevel": 265
     },
     {
      "id": "d-ursus",
@@ -72,7 +76,8 @@
      "label": "Use 3 Arcane Seal wands",
      "min": "2 min",
      "note": "Resets daily at 00:00 UTC (Nexon). Up to 20 wands can be held.",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "only": "challenger"
     },
     {
      "id": "d-cards",
@@ -136,7 +141,8 @@
      "id": "w-cwprog",
      "label": "Challenger World weekly progression missions",
      "note": "Progress resets every Wednesday at 00:00 UTC (Nexon's Challenger World notice).",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "only": "challenger"
     },
     {
      "id": "w-specter",
@@ -164,7 +170,8 @@
      "id": "w-pass",
      "label": "Challenger Pass weekly missions",
      "note": "Up to 500 points a week; resets Thursday 00:00 UTC (Nexon).",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "only": "challenger"
     },
     {
      "id": "w-crest",
@@ -172,20 +179,24 @@
      "type": "count",
      "target": 5,
      "note": "Monsters within 20 levels. Resets Thursday 00:00 UTC (Nexon).",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "only": "challenger"
     },
     {
      "id": "w-kai",
      "label": "Normal Kai",
      "note": "Challenger World only, solo. No crystal.",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "only": "challenger"
     },
     {
      "id": "w-mayrin",
      "label": "Mayrin (from Lv. 270)",
      "minLevel": 270,
      "note": "Season boss, once a week per account. Golden Meso Pouches, +3% ATT soul.",
-     "until": "2027-02-09T23:59:00Z"
+     "until": "2027-02-09T23:59:00Z",
+     "scope": "account",
+     "only": "challenger"
     },
     {
      "id": "w-bounty",
@@ -240,5 +251,6 @@
     }
    ]
   }
- ]
+ ],
+ "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (Cernium 260 and Arcus 265 are the symbol areas' unlock levels in symbols.json; Mayrin 270 is in Nexon's notice)."
 }

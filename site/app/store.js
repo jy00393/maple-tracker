@@ -12,7 +12,7 @@ export function blankState() {
     v: 1,
     characters: [],
     activeId: null,
-    checklist: { items: {}, resets: {}, flags: {}, history: {} },
+    checklist: { items: {}, resets: {}, flags: {}, history: {}, owner: null },
     bosses: {},
     symbols: {},
     liberation: {},
@@ -44,6 +44,9 @@ function normalise(raw) {
   out.checklist.resets = out.checklist.resets || {};
   out.checklist.flags = out.checklist.flags || {};
   out.checklist.history = out.checklist.history || {};
+  // Ticks used to be one shared list. The first time this version loads, whatever was ticked is credited to the
+  // character that was active, so that day's and week's ticks are not lost (see calc/checklist.js).
+  if (!out.checklist.owner && out.activeId && Object.keys(out.checklist.items).some((k) => !k.includes('|'))) out.checklist.owner = out.activeId;
   out.characters = Array.isArray(raw.characters) ? raw.characters.filter((c) => c && c.id) : [];
   if (!out.characters.some((c) => c.id === out.activeId)) out.activeId = out.characters[0]?.id ?? null;
   // Copies saved before sync merged part by part have no stamps: date every part by the copy's own updatedAt.

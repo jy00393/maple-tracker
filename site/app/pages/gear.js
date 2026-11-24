@@ -8,7 +8,7 @@ import { Card, PageHead, Bar, Seg, NumberInput, Empty, Modal, PotBadge, fmtBig }
 import { gearSummary, gearProjection } from '../calc/progress.js';
 import { maxStarsFor } from '../calc/starforce.js';
 import { itemLevel, slotOutlook } from '../calc/advice.js';
-import { cubePlan, lineOptions, defaultValue, lineTotals, lineLabel, lineKind, hasPotential, MAIN_STATS, LINE_TYPES } from '../calc/upgrades.js';
+import { cubePlan, lineOptions, defaultValue, lineTotals, lineLabel, lineKind, hasPotential, MAIN_STATS, LINE_TYPES, mainStatLabel, damageEstimateSupported } from '../calc/upgrades.js';
 import { dayKey, fmtDate } from '../time.js';
 
 export { itemLevel, slotOutlook };
@@ -192,6 +192,7 @@ function SlotModal({ row, data, char, onClose }) {
   const set = (patch) => setSlot(char.id, slot.id, patch, data.gear);
   const setTarget = (patch) => set({ target: { ...(entry.target || {}), ...patch } });
   const mainStat = char.mainStat || 'STR';
+  const msLabel = mainStatLabel(mainStat);
   const outlook = slotOutlook(slot, entry, target, up);
   const lines = (entry.potLines || []).filter((l) => l && l.type);
   const lvl = itemLevel(slot, entry);
@@ -207,12 +208,12 @@ function SlotModal({ row, data, char, onClose }) {
           <div class="title">${entry.note || tiers[(entry.tier || 0) - 1] || 'Empty slot'}</div>
           <div class="small muted" style=${{ textAlign: 'center' }}>${slot.name} · Lv. ${lvl}${entry.temporary ? html` · <span class="flag">expires</span>` : ''}</div>
           ${slot.sf ? html`<div style=${{ textAlign: 'center' }}><span class="stars">★ ${entry.stars || 0}</span><span class="muted small"> / ${max}</span></div>` : null}
-          ${slot.sf && entry.stars ? (() => { const ss = starStats(data.gearStats.starforce, slot, lvl, entry.stars); return ss.stat || ss.att ? html`<div class="small muted" style=${{ textAlign: 'center' }}>Stars give ${mainStat} +${ss.stat}${ss.att ? `, ATT +${ss.att}` : ''}${ss.partial ? ' and more (not all of it is in the table)' : ''}</div>` : null; })() : null}
+          ${slot.sf && entry.stars ? (() => { const ss = starStats(data.gearStats.starforce, slot, lvl, entry.stars); return ss.stat || ss.att ? html`<div class="small muted" style=${{ textAlign: 'center' }}>Stars give ${msLabel} +${ss.stat}${ss.att ? `, ATT +${ss.att}` : ''}${ss.partial ? ' and more (not all of it is in the table)' : ''}</div>` : null; })() : null}
           <hr />
           ${entry.pot ? html`<div class=${'pot-' + entry.pot} style=${{ fontWeight: 700 }}><${PotBadge} tier=${entry.pot} /> Potential: ${POT[entry.pot]}</div>
             ${lines.length ? lines.map((l) => html`<div class=${'pot-line' + (lineKind(slot, l) === 'farm' ? ' pot-4' : '')}>${lineLabel(l, mainStat)}</div>`) : html`<div class="small muted">No lines entered yet.</div>`}`
             : html`<div class="small muted">${hasPotential(slot) ? 'No potential' : 'No potential on this slot'}</div>`}
-          ${cleanFlame(entry.flame) ? html`<div class="small" style=${{ color: 'var(--ok)' }}>Flame: ${flameLabel(entry.flame, mainStat)}</div>` : null}
+          ${cleanFlame(entry.flame) ? html`<div class="small" style=${{ color: 'var(--ok)' }}>Flame: ${flameLabel(entry.flame, msLabel)}</div>` : null}
         </div>
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
@@ -238,9 +239,9 @@ function SlotModal({ row, data, char, onClose }) {
         </div>
         <${LineEditor} slot=${slot} entry=${entry} set=${set} pot=${data.potential} mainStat=${mainStat} />
         <details open=${flameOpen} onToggle=${(e) => setFlameOpen(e.currentTarget.open)}>
-          <summary class="small muted">Bonus stats (flame)${cleanFlame(entry.flame) ? `: ${flameLabel(entry.flame, mainStat)}` : ': none entered'}</summary>
+          <summary class="small muted">Bonus stats (flame)${cleanFlame(entry.flame) ? `: ${flameLabel(entry.flame, msLabel)}` : ': none entered'}</summary>
           <div class="form-grid" style=${{ marginTop: '10px' }}>
-            ${FLAME_FIELDS.map(([key, label, unit]) => html`<label class="field"><span>${key === 'main' ? mainStat : label}${unit ? ` ${unit}` : ''}</span><${NumberInput} className="input" label=${`Flame ${label}`} value=${(entry.flame || {})[key] ?? null} max=${999} onChange=${(v) => set({ flame: cleanFlame({ ...(entry.flame || {}), [key]: v }) })} /></label>`)}
+            ${FLAME_FIELDS.map(([key, label, unit]) => html`<label class="field"><span>${key === 'main' ? msLabel : label}${unit ? ` ${unit}` : ''}</span><${NumberInput} className="input" label=${`Flame ${label}`} value=${(entry.flame || {})[key] ?? null} max=${999} onChange=${(v) => set({ flame: cleanFlame({ ...(entry.flame || {}), [key]: v }) })} /></label>`)}
           </div>
           <p class="note">Copy the green bonus numbers from the item's tooltip. Leave a box empty if the item doesn't have that stat.</p>
         </details>
@@ -284,11 +285,13 @@ export function GearPage({ data, state }) {
   const sum = gearSummary(data.gear, g);
   const proj = gearProjection(g.history, sum.overall);
   const mainStat = char.mainStat || 'STR';
+  const msLabel = mainStatLabel(mainStat);
   const totals = lineTotals(data.gear.slots, g, mainStat);
   const flames = flameTotals(data.gear.slots, g);
   const sets = detectSets(data.gearStats.sets, data.gear.slots, g);
   const stats = g.stats || {};
-  const dmgOpts = upgradeOptions(data.gear, g, data.upgrades, data.gearStats, stats).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 5);
+  const dmgOk = damageEstimateSupported(mainStat);
+  const dmgOpts = upgradeOptions(data.gear, g, data.upgrades, data.gearStats, dmgOk ? stats : null).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 5);
   const setStat = (key, v) => update((s) => { const x = charSlice(s, 'gear', char.id, blankGear); x.stats = { ...(x.stats || {}), [key]: v }; if (v === null) delete x.stats[key]; });
   const byId = Object.fromEntries(sum.slots.map((r) => [r.slot.id, r]));
   const openRow = open ? byId[open] : null;
@@ -302,8 +305,8 @@ export function GearPage({ data, state }) {
     </div>
     <div class="tiles">
       <div class="tile"><span class="k">Overall vs ${sum.preset.name}</span><span class="v">${Math.round(sum.overall * 100)}%</span><${Bar} pct=${sum.overall} big /></div>
-      <div class="tile"><span class="k">${mainStat} % from potential</span><span class="v">${totals.main}%</span><span class="s">${totals.damageLines} damage lines${totals.boss ? ` · Boss +${totals.boss}%` : ''}${totals.ied ? ` · IED ${totals.ied}%` : ''}</span></div>
-      ${flames.items ? html`<div class="tile"><span class="k">Flames · ${flames.items} item${flames.items === 1 ? '' : 's'}</span><span class="v">${mainStat} +${flames.main}</span><span class="s">ATT +${flames.att} · All Stats +${flames.allstat}%${flames.boss ? ` · Boss +${flames.boss}%` : ''}${flames.dmg ? ` · Damage +${flames.dmg}%` : ''}</span></div>` : null}
+      <div class="tile"><span class="k">${msLabel} % from potential</span><span class="v">${totals.main}%</span><span class="s">${totals.damageLines} damage lines${totals.boss ? ` · Boss +${totals.boss}%` : ''}${totals.ied ? ` · IED ${totals.ied}%` : ''}</span></div>
+      ${flames.items ? html`<div class="tile"><span class="k">Flames · ${flames.items} item${flames.items === 1 ? '' : 's'}</span><span class="v">${msLabel} +${flames.main}</span><span class="s">ATT +${flames.att} · All Stats +${flames.allstat}%${flames.boss ? ` · Boss +${flames.boss}%` : ''}${flames.dmg ? ` · Damage +${flames.dmg}%` : ''}</span></div>` : null}
       <div class="tile ok"><span class="k">Farming lines</span><span class="v">${totals.meso}% · ${totals.drop}%</span><span class="s">Meso obtained · Item drop rate</span></div>
       <div class="tile"><span class="k">Pace</span><span class="v">${proj ? `${(proj.perWeek * 100).toFixed(1)} pts/wk` : '—'}</span>
         <span class="s">${proj ? (proj.eta ? `100% around ${fmtDate(proj.eta)}` : 'no progress in the saved history yet') : 'shows after a few days of edits'}</span><${Spark} history=${g.history} /></div>
@@ -336,8 +339,9 @@ export function GearPage({ data, state }) {
         <p class="note">${data.gearStats.sets.note}</p>
       <//>
       <${Card} title="Your stats, for damage estimates" meta="optional">
+        ${dmgOk ? null : html`<p class="warnbox">Not available for this character. The estimate uses the standard damage formula (4 × main stat + secondary stat), and the wiki's formula page doesn't give the Demon Avenger or Xenon versions. Upgrades are ranked by the tracker's gear score instead.</p>`}
         <p class="note">Copy these totals from your in-game stat window. With them, Star Force upgrades are ranked by estimated damage per meso instead of the tracker's gear score.</p>
-        <div class="form-grid">${STAT_FIELDS.map(([key, label, ph]) => html`<label class="field"><span>${key === 'main' ? `${mainStat} (total)` : key === 'mainPct' ? `${mainStat} %` : label}</span><${NumberInput} className="input" label=${label} value=${stats[key] ?? null} max=${9999999} onChange=${(v) => setStat(key, v)} /><span class="small muted">${ph}</span></label>`)}</div>
+        <div class="form-grid">${STAT_FIELDS.map(([key, label, ph]) => html`<label class="field"><span>${key === 'main' ? `${msLabel} (total)` : key === 'mainPct' ? `${msLabel} %` : label}</span><${NumberInput} className="input" label=${label} value=${stats[key] ?? null} max=${9999999} onChange=${(v) => setStat(key, v)} /><span class="small muted">${ph}</span></label>`)}</div>
         ${dmgOpts.length ? html`<div><b>Star Force by damage per meso</b>${dmgOpts.map((o) => html`<div class="small">${o.label}: about +${(o.dmg * 100).toFixed(2)}% damage${o.dmgPartial ? ' or more' : ''} for ≈ ${fmtBig(o.cost)}</div>`)}</div>` : html`<p class="note">${stats.main && stats.att ? 'No Star Force upgrade is open on your permanent items.' : 'Enter at least your main stat and Attack Power to see estimates.'}</p>`}
         <p class="note">${data.gearStats.damage.note} Damage is taken as proportional to (4 × main stat + secondary stat) × Attack Power, per the wiki's Damage Formula page; skills, boss defense and buffs are left out, so treat it as a ranking aid, not a prediction. ${data.gearStats.source}</p>
       <//>

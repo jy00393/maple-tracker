@@ -728,3 +728,97 @@ test('best upgrade ignores options without a usable cost', async () => {
   assert.equal(bestUpgrade([{ dmg: 0.01, cost: 0, label: 'free' }, { dmg: 0.5, cost: 100, label: 'real' }]).label, 'real');
   assert.equal(bestUpgrade([{ dmg: 0.2, cost: NaN, label: 'nan' }, { dmg: 0.1, cost: 100, label: 'real' }]).label, 'real');
 });
+
+// ---------- any class, any number of characters ----------
+test('checklist: each character has its own ticks; account items are shared; Challenger items follow the character', async () => {
+  const { itemStatus, recordKey, flagKey } = await import('../../site/app/calc/checklist.js');
+  const daily = checklist.groups.find((g) => g.key === 'daily');
+  const thu = checklist.groups.find((g) => g.key === 'thu');
+  const item = (id) => checklist.groups.flatMap((g) => g.items).find((i) => i.id === id);
+  const now = Date.parse('2026-11-25T02:00:00Z');
+  const main = { id: 'A', level: 264, challenger: true };
+  const mule = { id: 'B', level: 210, challenger: false };
+  const cs = { items: {}, resets: {}, flags: {}, history: {}, owner: null };
+
+  // A tick on the main is not a tick on the mule.
+  assert.equal(recordKey(item('d-ursus'), main), 'A|d-ursus');
+  cs.items[recordKey(item('d-ursus'), main)] = { p: periodKey('daily', now), d: 1 };
+  assert.equal(itemStatus(item('d-ursus'), daily, cs, now, main).done, true);
+  assert.equal(itemStatus(item('d-ursus'), daily, cs, now, mule).done, false);
+  // Chips and counters too.
+  cs.items[recordKey(item('d-bosses'), mule, '_cyg')] = { p: periodKey('daily', now), d: 1 };
+  assert.deepEqual(itemStatus(item('d-bosses'), daily, cs, now, mule).on, [true, false, false]);
+  assert.deepEqual(itemStatus(item('d-bosses'), daily, cs, now, main).on, [false, false, false]);
+
+  // Account-wide items are one tick for everyone; Challenger-only items are hidden for a regular-world mule.
+  assert.equal(item('w-mayrin').scope, 'account');
+  assert.equal(recordKey(item('w-mayrin'), main), 'w-mayrin');
+  assert.equal(itemStatus(item('w-pass'), thu, cs, now, main).expired, false);
+  assert.equal(itemStatus(item('w-pass'), thu, cs, now, mule).expired, true);
+  assert.equal(itemStatus(item('w-pass'), thu, cs, now, {}).expired, false, 'with no character yet, everything shows');
+
+  // Level locks: Cernium needs 260, so the mule's core dailies are fewer.
+  assert.equal(itemStatus(item('d-cernium'), daily, cs, now, mule).locked, true);
+  assert.equal(itemStatus(item('d-cernium'), daily, cs, now, main).locked, false);
+  // Unlock flags are per character.
+  cs.flags[flagKey('arcus', { id: 'A', level: 270 })] = true;
+  assert.equal(itemStatus(item('d-arcus'), daily, cs, now, { id: 'A', level: 270 }).locked, false);
+  assert.equal(itemStatus(item('d-arcus'), daily, cs, now, { id: 'B', level: 270 }).locked, true);
+
+  // Ticks saved before this change (plain keys) stay with the character that owned the list.
+  const old = { items: { 'd-sauna': { p: periodKey('daily', now), d: 1 } }, resets: {}, flags: { arcus: true }, history: {}, owner: 'A' };
+  assert.equal(itemStatus(item('d-sauna'), daily, old, now, main).done, true);
+  assert.equal(itemStatus(item('d-sauna'), daily, old, now, mule).done, false);
+  assert.equal(itemStatus(item('d-arcus'), daily, old, now, { id: 'A', level: 270 }).locked, false);
+  assert.equal(itemStatus(item('d-arcus'), daily, old, now, { id: 'B', level: 270 }).locked, true);
+  // A bare level (the old call style) still works.
+  assert.equal(itemStatus(item('d-cernium'), daily, cs, now, 210).locked, true);
+
+  // Reset warnings follow the character.
+  const wMain = resetWarnings(checklist, cs, [], now, { who: main })[0].items;
+  const wMule = resetWarnings(checklist, cs, [], now, { who: mule })[0]?.items || [];
+  assert.ok(wMain.includes('Challenger Pass weekly missions'));
+  assert.ok(!wMule.includes('Challenger Pass weekly missions'));
+});
+
+test('6th job: a character starts on the template for its class', async () => {
+  const { erdaTemplateFor } = await import('../../site/app/calc/progress.js');
+  const erda = load('erda');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Erel Light' }, null), 'erel');
+  assert.equal(erdaTemplateFor(erda, { cls: ' erel light ' }, {}), 'erel');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, null), 'hexa');
+  assert.equal(erdaTemplateFor(erda, { cls: '' }, undefined), 'hexa');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, { template: 'erel' }), 'erel', 'a saved choice is kept');
+  assert.equal(erdaTemplateFor(erda, { cls: 'Hero' }, { template: 'gone' }), 'hexa');
+});
+
+test('main stat: Demon Avenger counts Max HP lines, Xenon counts STR, DEX and LUK', async () => {
+  const P = await import('../../site/app/calc/potential.js');
+  const U = await import('../../site/app/calc/upgrades.js');
+  const pot = load('potential');
+  const pick = (text, ms) => P.makeLine(pot, P.lineChoices(pot, 'hat', 4, 160, ms).find((c) => c.text === text && c.prime), 160, ms);
+  assert.deepEqual([U.mainStatForClass('Demon Avenger'), U.mainStatForClass('xenon'), U.mainStatForClass('Hero')], ['HP', 'XENON', null]);
+  assert.deepEqual([U.mainStatLabel('HP'), U.mainStatLabel('XENON'), U.mainStatLabel('LUK'), U.mainStatLabel(undefined)], ['Max HP', 'STR+DEX+LUK', 'LUK', 'STR']);
+  assert.deepEqual([U.damageEstimateSupported('STR'), U.damageEstimateSupported('HP'), U.damageEstimateSupported('XENON')], [true, false, false]);
+  const hat = gear.slots.find((s) => s.id === 'hat');
+
+  // Demon Avenger
+  const hp = pick('MaxHP +12%', 'HP');
+  const str = pick('STR +13%', 'HP');
+  const all = pick('All Stats +10%', 'HP');
+  assert.deepEqual([hp.type, hp.stat, str.type, all.type], ['main', 'HP', 'offstat', 'offstat']);
+  assert.equal(U.usefulLines(hat, { potLines: [hp, str, all] }), 1);
+  assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: [hp, str, all] } } }, 'HP').main, 12);
+  const daOrder = P.lineChoices(pot, 'hat', 4, 160, 'HP').filter((c) => c.prime);
+  assert.ok(daOrder.find((c) => c.text === 'MaxHP +12%').useful);
+  assert.ok(!daOrder.find((c) => c.text === 'STR +13%').useful);
+
+  // Xenon
+  const xs = ['STR +13%', 'DEX +13%', 'LUK +13%', 'INT +13%'].map((t) => pick(t, 'XENON'));
+  assert.deepEqual(xs.map((l) => l.type), ['main', 'main', 'main', 'offstat']);
+  assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: xs.slice(0, 3) } } }, 'XENON').main, 39);
+  assert.equal(U.usefulLines(hat, { potLines: xs }), 3);
+
+  // An ordinary class is unchanged.
+  assert.deepEqual([pick('STR +13%', 'STR').type, pick('DEX +13%', 'STR').type, pick('MaxHP +12%', 'STR').type], ['main', 'offstat', 'hp']);
+});

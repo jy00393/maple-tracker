@@ -4,6 +4,7 @@ import { Card, NumberInput } from '../ui.js';
 import { applySetup } from '../calc/setup.js';
 import { crystalValue, fmtMesos } from '../calc/income.js';
 import { CLASSES } from './characters.js';
+import { MAIN_STAT_CHOICES, mainStatForClass } from '../calc/upgrades.js';
 
 // First-run setup on Today: one short form fills the character, the boss list and the first level reading.
 export function QuickSetup({ data }) {
@@ -19,11 +20,11 @@ export function QuickSetup({ data }) {
     <form class="grid" onSubmit=${(e) => { e.preventDefault(); if (valid) update((s) => { applySetup(s, f, ids, newId()); }); }}>
       <div class="form-grid">
         <label class="field"><span>Character name</span><input id="qs-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
-        <label class="field"><span>Class</span><input id="qs-class" class="input" list="qs-class-list" value=${f.cls} onInput=${(e) => set({ cls: e.currentTarget.value })} /></label>
+        <label class="field"><span>Class</span><input id="qs-class" class="input" list="qs-class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; const ms = mainStatForClass(cls); set(ms ? { cls, mainStat: ms } : { cls }); }} /></label>
         <label class="field"><span>Level</span><${NumberInput} id="qs-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
         <label class="field"><span>EXP % (optional)</span><${NumberInput} id="qs-pct" className="input" label="EXP percent" value=${f.pct} min=${0} max=${99.999} step=${0.001} onChange=${(v) => set({ pct: v })} /></label>
         <label class="field"><span>World type</span><select id="qs-world" class="select" value=${f.world} onChange=${(e) => set({ world: e.currentTarget.value })}><option value="heroic">Heroic (no trading)</option><option value="interactive">Interactive</option></select></label>
-        <label class="field"><span>Main stat</span><select id="qs-stat" class="select" value=${f.mainStat} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${['STR', 'DEX', 'INT', 'LUK'].map((m) => html`<option value=${m}>${m}</option>`)}</select></label>
+        <label class="field"><span>Main stat</span><select id="qs-stat" class="select" value=${f.mainStat} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${MAIN_STAT_CHOICES.map(([v, label]) => html`<option value=${v}>${label}</option>`)}</select></label>
       </div>
       <div class="toolbar">
         <label class="small"><input id="qs-challenger" type="checkbox" checked=${f.challenger} onChange=${(e) => set({ challenger: e.currentTarget.checked })} /> Challenger World character</label>

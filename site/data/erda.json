@@ -145,7 +145,10 @@
      30
     ]
    ],
-   "lockedNote": "Sol Janus stays at the Challenger-supported Lv. 30; don't spend Sol Erda on it in Challenger World."
+   "lockedNote": "Sol Janus stays at the Challenger-supported Lv. 30; don't spend Sol Erda on it in Challenger World.",
+   "classes": [
+    "Erel Light"
+   ]
   },
   "hexa": {
    "name": "Other classes: HEXA Matrix",
@@ -264,5 +267,6 @@
    ],
    "lockedNote": "A generic order; check your class Discord for the exact one."
   }
- }
+ },
+ "defaultTemplate": "hexa"
 }

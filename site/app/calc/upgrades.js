@@ -35,6 +35,26 @@ export function cubePlan(cube, fromTier, toTier) {
 
 // ---------- potential lines ----------
 const MAIN = ['STR', 'DEX', 'INT', 'LUK'];
+
+// A character's main stat setting: one of the four stats, 'HP' (Demon Avenger) or 'XENON' (STR, DEX and LUK).
+export const MAIN_STAT_CHOICES = [['STR', 'STR'], ['DEX', 'DEX'], ['INT', 'INT'], ['LUK', 'LUK'], ['HP', 'Max HP (Demon Avenger)'], ['XENON', 'STR + DEX + LUK (Xenon)']];
+export function mainStatLabel(mainStat) {
+  return mainStat === 'HP' ? 'Max HP' : mainStat === 'XENON' ? 'STR+DEX+LUK' : mainStat || 'STR';
+}
+// Does a line for `stat` count as main stat for this character?
+export function isMainStat(stat, mainStat) {
+  if (mainStat === 'XENON') return stat === 'STR' || stat === 'DEX' || stat === 'LUK';
+  return stat === (mainStat || 'STR');
+}
+// Special-case classes get their main stat set when the class is picked.
+export function mainStatForClass(cls) {
+  const c = String(cls || '').trim().toLowerCase();
+  return c === 'demon avenger' ? 'HP' : c === 'xenon' ? 'XENON' : null;
+}
+// The damage estimate only knows the standard formula.
+export function damageEstimateSupported(mainStat) {
+  return mainStat !== 'HP' && mainStat !== 'XENON';
+}
 export const LINE_TYPES = {
   main: { label: (ms) => `${ms} %`, unit: '%' },
   allstat: { label: () => 'All Stats %', unit: '%' },
@@ -125,8 +145,8 @@ export function lineTotals(slots, gearState, mainStat = 'STR') {
     if (!e || !Array.isArray(e.potLines) || !e.tier) continue;
     for (const l of e.potLines) {
       const v = Number(l.value) || 0;
-      if (l.type === 'main' && (l.stat || 'STR') === mainStat) out.main += v;
-      else if (l.type === 'allstat') out.main += v;
+      if (l.type === 'main' && isMainStat(l.stat || 'STR', mainStat)) out.main += v;
+      else if (l.type === 'allstat' && mainStat !== 'HP') out.main += v; // All Stats does not raise HP
       else if (l.type === 'boss') out.boss += v;
       else if (l.type === 'meso') out.meso += v;
       else if (l.type === 'drop') out.drop += v;

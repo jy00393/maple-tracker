@@ -1,7 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Seg, NumberInput, Bar, Tile, Empty } from '../ui.js';
-import { symbolPlan, liberationPlan, erdaNextSteps } from '../calc/progress.js';
+import { symbolPlan, liberationPlan, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos } from '../calc/income.js';
 import { fmtDate } from '../time.js';
 import { LevelView, ErdaCosts } from './level.js';
@@ -83,12 +83,12 @@ export function reviewNotice(review, now) {
 
 function SixthJob({ data, char, entry }) {
   const notice = reviewNotice(data.erda.review, Date.now());
-  const templateId = entry.template || 'erel';
+  const templateId = erdaTemplateFor(data.erda, char, entry);
   const template = data.erda.templates[templateId];
   const levels = entry.levels || {};
   const steps = entry.steps || {};
   const set = (fn) => update((s) => {
-    const e = charSlice(s, 'erda', char.id, () => ({ template: 'erel', levels: {}, steps: {} }));
+    const e = charSlice(s, 'erda', char.id, () => ({ template: templateId, levels: {}, steps: {} }));
     e.levels = e.levels || {};
     e.steps = e.steps || {};
     fn(e);

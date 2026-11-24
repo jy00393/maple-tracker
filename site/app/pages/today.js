@@ -2,17 +2,18 @@ import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
 import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig } from '../ui.js';
 import { DAY, fmtDate, fmtKst, fmtLeft } from '../time.js';
-import { dailyProgress } from './checklist.js';
+import { dailyProgress, whoOf } from './checklist.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
 import { computeIncome, fmtMesos } from '../calc/income.js';
 import { endingSoon, eventKey } from '../calc/events.js';
 import { resetWarnings } from '../calc/reminders.js';
 import { upgradeOptions, affordableAt, bestUpgrade } from '../calc/advice.js';
+import { damageEstimateSupported } from '../calc/upgrades.js';
 import { weeklyIncome } from './mesos.js';
 import { QuickSetup } from './setup.js';
 import { sunnyDays, starForceTiming, isStarForcePerk } from '../calc/sunny.js';
 import { seasonOutlook } from '../calc/season.js';
-import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps } from '../calc/progress.js';
+import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
 import { levelOutlook, knownLevel } from './level.js';
 
@@ -80,8 +81,8 @@ function hideEvent(e, now) {
 export function TodayPage({ data, state }) {
   const now = useNow(30000);
   const char = activeCharacter(state);
-  const charLevel = knownLevel(data, state, char);
-  const prog = dailyProgress(data.checklist, state.checklist, now, charLevel);
+  const who = whoOf(data, state);
+  const prog = dailyProgress(data.checklist, state.checklist, now, who);
   const { streak } = streakInfo(state.checklist.history || {}, now);
   const soon = endingSoon(liveEvents(data, state, now), now, { showSales: state.ui.todaySales, hidden: state.ui.hiddenEvents });
   const ending = soon.shown;
@@ -90,15 +91,15 @@ export function TodayPage({ data, state }) {
   const gear = char ? gearSummary(data.gear, state.gear[char.id]) : null;
   const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now) : null;
   const erdaState = char ? state.erda[char.id] : null;
-  const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaState?.template || 'erel'], erdaState || {}, 2) : [];
+  const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
   const symbols = char ? nextSymbolLevels(data, state, char.id) : [];
   const level = char ? levelOutlook(data, state, char, now) : null;
   const gate = level && level.gates[0];
   const gearGap = gear ? gear.gaps.find((r) => !r.entry.temporary) : null;
-  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, (state.gear[char.id] || {}).stats)) : null;
+  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null)) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
-  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { level: charLevel });
+  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
 

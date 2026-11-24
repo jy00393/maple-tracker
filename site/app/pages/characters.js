@@ -2,6 +2,7 @@ import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
 import { Card, PageHead, NumberInput, Empty } from '../ui.js';
 import { worldLabel } from '../calc/income.js';
+import { MAIN_STAT_CHOICES, mainStatForClass } from '../calc/upgrades.js';
 import { fmtKst } from '../time.js';
 
 export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
@@ -19,11 +20,11 @@ function CharacterForm({ initial, onSave, onCancel, saveLabel }) {
   return html`<form class="card-b" onSubmit=${(e) => { e.preventDefault(); if (valid) onSave({ ...f, name: f.name.trim() }); }}>
     <div class="form-grid">
       <label class="field"><span>Name (in-game)</span><input id="char-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
-      <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => set({ cls: e.currentTarget.value })} /></label>
+      <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; const ms = mainStatForClass(cls); set(ms ? { cls, mainStat: ms } : { cls }); }} /></label>
       <label class="field"><span>Level</span><${NumberInput} id="char-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
       <label class="field"><span>Region</span><select id="char-region" class="select" value=${f.region} onChange=${(e) => set({ region: e.currentTarget.value })}><option value="na">North America</option><option value="eu">Europe</option></select></label>
       <label class="field"><span>World type</span><select id="char-world" class="select" value=${f.world} onChange=${(e) => set({ world: e.currentTarget.value })}><option value="heroic">Heroic (no trading)</option><option value="interactive">Interactive</option></select></label>
-      <label class="field"><span>Main stat</span><select id="char-stat" class="select" value=${f.mainStat || 'STR'} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${['STR', 'DEX', 'INT', 'LUK'].map((m) => html`<option value=${m}>${m}</option>`)}</select></label>
+      <label class="field"><span>Main stat</span><select id="char-stat" class="select" value=${f.mainStat || 'STR'} onChange=${(e) => set({ mainStat: e.currentTarget.value })}>${MAIN_STAT_CHOICES.map(([v, label]) => html`<option value=${v}>${label}</option>`)}</select></label>
     </div>
     <div class="toolbar">
       <label class="small"><input id="char-challenger" type="checkbox" checked=${f.challenger} onChange=${(e) => set({ challenger: e.currentTarget.checked })} /> Challenger World character</label>
@@ -63,6 +64,9 @@ export function CharactersPage({ data, state }) {
                 ? html`<button type="button" class="btn danger" onClick=${() => { update((s) => {
                     s.characters = s.characters.filter((x) => x.id !== c.id);
                     for (const k of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear']) delete s[k][c.id];
+                    // Its checklist ticks and unlock flags go too.
+                    for (const part of ['items', 'flags']) for (const k of Object.keys(s.checklist[part])) if (k.startsWith(`${c.id}|`)) delete s.checklist[part][k];
+                    if (s.checklist.owner === c.id) s.checklist.owner = null;
                     if (s.activeId === c.id) s.activeId = s.characters[0]?.id ?? null;
                   }); setConfirmDelete(null); }}>Delete for good</button>
                   <button type="button" class="btn" onClick=${() => setConfirmDelete(null)}>Keep</button>`

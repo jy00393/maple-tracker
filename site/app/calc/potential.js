@@ -25,6 +25,8 @@ export function lineText(line, itemLevel) {
   return v === null ? line[0] : line[0].replace('{v}', String(v));
 }
 
+import { isMainStat } from './upgrades.js';
+
 // What a line means for the tracker's totals. Lines the totals don't use are 'other'.
 export function classify(line, itemLevel) {
   const t = line[0];
@@ -58,7 +60,9 @@ export function lineChoices(pot, slotId, tier, itemLevel, mainStat) {
     .map((pid) => {
       const c = classify(pot.lines[pid], itemLevel);
       // With the character's main stat known, the other three stat lines are not useful ones.
-      const useful = USEFUL.has(c.type) && (c.type !== 'main' || !mainStat || c.stat === mainStat);
+      const useful = mainStat === 'HP'
+        ? c.type === 'hp' || (USEFUL.has(c.type) && c.type !== 'main' && c.type !== 'allstat')
+        : USEFUL.has(c.type) && (c.type !== 'main' || !mainStat || isMainStat(c.stat, mainStat));
       return { pid, prime, text: lineText(pot.lines[pid], itemLevel), useful };
     })
     .sort((a, b) => Number(b.useful) - Number(a.useful));
@@ -69,9 +73,14 @@ export function lineChoices(pot, slotId, tier, itemLevel, mainStat) {
 export function makeLine(pot, choice, itemLevel, mainStat) {
   const c = classify(pot.lines[choice.pid], itemLevel);
   // A stat line for a stat other than the character's is saved as 'offstat', which no total or score counts.
-  const type = c.type === 'main' && mainStat && c.stat !== mainStat ? 'offstat' : c.type;
+  let type = c.type;
+  let stat = c.stat;
+  if (mainStat === 'HP') {
+    // Demon Avenger: Max HP % is the main-stat line; the four stats and All Stats are not.
+    if (c.type === 'hp') { type = 'main'; stat = 'HP'; } else if (c.type === 'main' || c.type === 'allstat') type = 'offstat';
+  } else if (c.type === 'main' && mainStat && !isMainStat(c.stat, mainStat)) type = 'offstat';
   const out = { pid: choice.pid, prime: choice.prime, text: choice.text, type, value: c.value };
-  if (c.stat) out.stat = c.stat;
+  if (stat) out.stat = stat;
   return out;
 }
 

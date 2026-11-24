@@ -21,7 +21,7 @@ export function resetWarnings(checklistData, checklistState, bossLines, now, opt
     if (group.optional) continue;
     for (const item of group.items) {
       if (item.optional) continue;
-      const st = itemStatus(item, group, checklistState, now, opts.level);
+      const st = itemStatus(item, group, checklistState, now, opts.who ?? opts.level);
       if (st.done || st.locked || st.expired || st.link) continue;
       if (!close(st.kind)) continue;
       slot(st.kind).items.push(item.label);

@@ -2,7 +2,7 @@ import { html } from '../../vendor/htm-preact.mjs';
 import { update, charSlice } from '../store.js';
 import { Card, NumberInput, Empty, fmtBig } from '../ui.js';
 import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
-import { erdaNextSteps } from '../calc/progress.js';
+import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtKst } from '../time.js';
 
 // Readings: your own log, plus the Nexon rankings history if this character is listed in config/characters.json.
@@ -103,7 +103,7 @@ export function ErdaCosts({ data, char, entry, template }) {
   const weekly = { ...up.weeklyDefault, ...(entry.weekly || {}) };
   const costs = entry.costs || {};
   const set = (fn) => update((s) => {
-    const e = charSlice(s, 'erda', char.id, () => ({ template: 'erel', levels: {}, steps: {} }));
+    const e = charSlice(s, 'erda', char.id, () => ({ template: erdaTemplateFor(data.erda, char, entry), levels: {}, steps: {} }));
     fn(e);
   });
   const steps = erdaNextSteps(template, entry, 6).filter((st) => st.node);

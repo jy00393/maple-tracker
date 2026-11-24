@@ -153,3 +153,11 @@ export function gearProjection(history = [], current, now = Date.now()) {
   const weeks = (1 - current) / perWeek;
   return { perWeek, eta: now + weeks * 7 * DAY };
 }
+
+// Which 6th-job template a character starts on: the one that lists its class, otherwise the general one.
+export function erdaTemplateFor(erda, char, entry) {
+  if (entry && entry.template && erda.templates[entry.template]) return entry.template;
+  const cls = String((char && char.cls) || '').trim().toLowerCase();
+  for (const [id, t] of Object.entries(erda.templates)) if ((t.classes || []).some((c) => c.toLowerCase() === cls)) return id;
+  return erda.templates[erda.defaultTemplate] ? erda.defaultTemplate : Object.keys(erda.templates)[0];
+}
