@@ -296,31 +296,6 @@
    "fetchedAt": "2026-11-23T21:03:55.425Z",
    "events": []
   },
-  "42362": {
-   "name": "Notice Regarding 6/26 Accessory Miracle Time Issue Compensation",
-   "category": "general",
-   "liveDate": "2026-06-27T01:00:00Z",
-   "fetchedAt": "2026-11-23T21:03:55.425Z",
-   "events": [
-    {
-     "id": "42362-notice-regarding-6-26-accessory-miracle-time-issue-compensat",
-     "title": "Notice Regarding 6/26 Accessory Miracle Time Issue Compensation",
-     "start": "2026-06-26T00:00:00.000Z",
-     "end": "2026-06-26T23:59:00.000Z",
-     "startApprox": false,
-     "endApprox": false,
-     "afterMaintenance": false,
-     "raw": "June 26, 2026 12:00 AM UTC - June 26, 2026 11:59 PM UTC",
-     "resets": [],
-     "postId": 42362,
-     "postName": "Notice Regarding 6/26 Accessory Miracle Time Issue Compensation",
-     "liveDate": "2026-06-27T01:00:00Z",
-     "category": "general",
-     "isClassic": false,
-     "url": "https://www.nexon.com/maplestory/news/general/42362"
-    }
-   ]
-  },
   "42364": {
    "name": "Sign Up for Global MapleStory Classic World Closed Online Test #2",
    "category": "general",
@@ -4292,7 +4267,7 @@
    "name": "MapleStory Cash Shop Update: Nov. 18",
    "category": "sale",
    "liveDate": "2026-11-17T16:00:01Z",
-   "fetchedAt": "2026-11-23T22:05:18.872Z",
+   "fetchedAt": "2026-11-24T03:58:11.771Z",
    "events": [
     {
      "id": "47292-royal-styles-update",
@@ -4791,7 +4766,7 @@
    "name": "Black Friday 2026!",
    "category": "sale",
    "liveDate": "2026-11-22T16:00:00Z",
-   "fetchedAt": "2026-11-23T22:05:18.872Z",
+   "fetchedAt": "2026-11-24T03:58:11.771Z",
    "events": [
     {
      "id": "47555-black-friday-surprise-style-box",
@@ -5308,7 +5283,7 @@
    "name": "[Completed] Scheduled Minor Patch - November 19, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-19T12:00:32Z",
-   "fetchedAt": "2026-11-23T22:05:18.872Z",
+   "fetchedAt": "2026-11-24T03:58:11.771Z",
    "events": [
     {
      "id": "48863-completed-scheduled-minor-patch-november-19-2026",
@@ -5333,21 +5308,21 @@
    "name": "v.272 Public Test Server Best Tester Reward Notice",
    "category": "general",
    "liveDate": "2026-11-18T04:50:27Z",
-   "fetchedAt": "2026-11-23T22:05:18.872Z",
+   "fetchedAt": "2026-11-24T03:58:11.771Z",
    "events": []
   },
   "48935": {
    "name": "Maple Memo: Developer’s Note Regarding Event World: Quanah Adjustment",
    "category": "general",
    "liveDate": "2026-11-19T05:00:00Z",
-   "fetchedAt": "2026-11-23T22:05:18.872Z",
+   "fetchedAt": "2026-11-24T03:58:11.771Z",
    "events": []
   },
   "48998": {
    "name": "[Completed] Unscheduled Quanah World Channel Maintenance - November 20, 2026",
    "category": "maintenance",
    "liveDate": "2026-11-20T18:21:08Z",
-   "fetchedAt": "2026-11-23T22:05:18.872Z",
+   "fetchedAt": "2026-11-24T03:58:11.771Z",
    "events": [
     {
      "id": "48998-completed-unscheduled-quanah-world-channel-maintenance-novem",

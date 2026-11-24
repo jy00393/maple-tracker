@@ -1,6 +1,26 @@
 {
  "items": [
   {
+   "id": 48436,
+   "name": "v.272 Known Issues",
+   "category": "maintenance",
+   "liveDate": "2026-11-23T18:14:40Z",
+   "summary": "Here you’ll find a list of known and resolved issues from the v.272 - Maplayer One update.",
+   "featured": false,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/48436"
+  },
+  {
+   "id": 49052,
+   "name": "Scheduled Maintenance - November 24, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-23T16:00:04Z",
+   "summary": "MapleStory Classic World will be performing a scheduled maintenance starting on Tuesday, November 24, 2026 at 7:00 AM PST.",
+   "featured": true,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/49052"
+  },
+  {
    "id": 47555,
    "name": "Black Friday 2026!",
    "category": "sale",
@@ -39,16 +59,6 @@
    "featured": false,
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/maintenance/48863"
-  },
-  {
-   "id": 48436,
-   "name": "v.272 Known Issues",
-   "category": "maintenance",
-   "liveDate": "2026-11-19T09:55:40Z",
-   "summary": "Here you’ll find a list of known and resolved issues from the v.272 - Maplayer One update.",
-   "featured": false,
-   "isClassic": false,
-   "url": "https://www.nexon.com/maplestory/news/maintenance/48436"
   },
   {
    "id": 48938,
@@ -1489,16 +1499,6 @@
    "featured": false,
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/maintenance/41982"
-  },
-  {
-   "id": 40929,
-   "name": "Cash Shop Update for June 10",
-   "category": "sale",
-   "liveDate": "2026-06-09T16:00:00Z",
-   "summary": "Unicube 10-Pack, Cash Shop Transfer Event, and more!",
-   "featured": false,
-   "isClassic": false,
-   "url": "https://www.nexon.com/maplestory/news/sale/40929"
   }
  ]
 }
