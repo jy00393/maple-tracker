@@ -1,5 +1,5 @@
 {
- "source": "Nexon patch notes (news id 47132), read by the 6-hourly job. How coins are earned (\"earn\"), \"scope\" and \"useBy\" are typed in by hand where present.",
+ "source": "Nexon patch notes (news ids 47132, 47305), read by the 6-hourly job. How coins are earned (\"earn\"), \"scope\" and \"useBy\" are typed in by hand where present.",
  "sourceUrl": "https://www.nexon.com/maplestory/news/update/47132",
  "shops": [
   {
@@ -562,10 +562,10 @@
      "limit": null
     }
    ],
-   "postId": 47132,
-   "postName": "v.272 - Maplayer One Patch Notes",
-   "liveDate": "2026-11-10T15:30:00Z",
-   "url": "https://www.nexon.com/maplestory/news/update/47132"
+   "postId": 47305,
+   "postName": "Maplayer One Challenger World and Burning Events!",
+   "liveDate": "2026-11-11T11:00:01Z",
+   "url": "https://www.nexon.com/maplestory/news/events/47305"
   },
   {
    "id": "challenger-world-shop-special",
@@ -606,10 +606,10 @@
      "limit": 20
     }
    ],
-   "postId": 47132,
-   "postName": "v.272 - Maplayer One Patch Notes",
-   "liveDate": "2026-11-10T15:30:00Z",
-   "url": "https://www.nexon.com/maplestory/news/update/47132",
+   "postId": 47305,
+   "postName": "Maplayer One Challenger World and Burning Events!",
+   "liveDate": "2026-11-11T11:00:01Z",
+   "url": "https://www.nexon.com/maplestory/news/events/47305",
    "note": "Nexon's post names one coin for this shop (Challenger Coins) and does not say whether the Special tab uses a different one. Check the tab in game before planning."
   }
  ]
