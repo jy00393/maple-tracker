@@ -1,6 +1,16 @@
 {
  "items": [
   {
+   "id": 49052,
+   "name": "[Completed] Scheduled Maintenance - November 24, 2026",
+   "category": "maintenance",
+   "liveDate": "2026-11-24T09:00:04Z",
+   "summary": " The maintenance has been completed and we have extended Cash Shop items in your inventory for 3 hours. ",
+   "featured": false,
+   "isClassic": true,
+   "url": "https://www.nexon.com/maplestory/news/maintenance/49052"
+  },
+  {
    "id": 48436,
    "name": "v.272 Known Issues",
    "category": "maintenance",
@@ -9,16 +19,6 @@
    "featured": false,
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/maintenance/48436"
-  },
-  {
-   "id": 49052,
-   "name": "Scheduled Maintenance - November 24, 2026",
-   "category": "maintenance",
-   "liveDate": "2026-11-23T16:00:04Z",
-   "summary": "MapleStory Classic World will be performing a scheduled maintenance starting on Tuesday, November 24, 2026 at 7:00 AM PST.",
-   "featured": true,
-   "isClassic": true,
-   "url": "https://www.nexon.com/maplestory/news/maintenance/49052"
   },
   {
    "id": 47555,

@@ -341,8 +341,8 @@
    "name": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
    "category": "update",
    "liveDate": "2026-07-21T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42415-defeat-boss-event-god-devourer",
@@ -1110,14 +1110,186 @@
       "5x Magnificent Soul chance from soul shards"
      ]
     }
+   ],
+   "shops": [
+    {
+     "id": "challenger-world-shop-general",
+     "name": "Challenger World Shop: General",
+     "currency": "Challenger Coins",
+     "start": "2026-06-17T00:00:00.000Z",
+     "end": "2026-09-08T23:59:00.000Z",
+     "items": [
+      {
+       "id": "frozen-secondary-weapon-box",
+       "name": "Frozen Secondary Weapon Box",
+       "cost": 100,
+       "limit": 1
+      },
+      {
+       "id": "3x-exp-coupon-30-min",
+       "name": "3x EXP Coupon (30 min)",
+       "cost": 100,
+       "limit": 7,
+       "per": "week"
+      },
+      {
+       "id": "vip-buff-selector-coupon",
+       "name": "VIP Buff Selector Coupon",
+       "cost": 30,
+       "limit": null
+      },
+      {
+       "id": "karma-black-rebirth-flame",
+       "name": "Karma Black Rebirth Flame",
+       "cost": 50,
+       "limit": 1000
+      },
+      {
+       "id": "sol-erda-fragment",
+       "name": "Sol Erda Fragment",
+       "cost": 40,
+       "limit": 500
+      },
+      {
+       "id": "sol-erda",
+       "name": "Sol Erda",
+       "cost": 2000,
+       "limit": 5
+      },
+      {
+       "id": "mystical-cube",
+       "name": "Mystical Cube",
+       "cost": 5,
+       "limit": 1000
+      },
+      {
+       "id": "karma-solid-cube",
+       "name": "Karma Solid Cube",
+       "cost": 100,
+       "limit": 100
+      },
+      {
+       "id": "karma-bonus-mystical-cube",
+       "name": "Karma Bonus Mystical Cube",
+       "only": "interactive",
+       "cost": 20,
+       "limit": 1000
+      },
+      {
+       "id": "pet-equipment-scroll-selector-coupon",
+       "name": "Pet Equipment Scroll Selector Coupon",
+       "only": "interactive",
+       "cost": 500,
+       "limit": 100
+      },
+      {
+       "id": "epic-potential-scroll-100",
+       "name": "Epic Potential Scroll 100%",
+       "cost": 150,
+       "limit": 30
+      },
+      {
+       "id": "bonus-potential-scroll-100-interactive-only",
+       "name": "Bonus Potential Scroll 100% (Interactive only)",
+       "cost": 150,
+       "limit": 30
+      },
+      {
+       "id": "karma-premium-scroll-pet-equipment-selector-coupon-interacti",
+       "name": "Karma Premium Scroll - Pet Equipment Selector Coupon (Interactive only)",
+       "cost": 1000,
+       "limit": 10
+      },
+      {
+       "id": "innocence-scroll-100-interactive-only",
+       "name": "Innocence Scroll 100% (Interactive only)",
+       "cost": 50,
+       "limit": 10
+      },
+      {
+       "id": "pure-clean-slate-scroll-100-interactive-only",
+       "name": "Pure Clean Slate Scroll 100% (Interactive only)",
+       "cost": 100,
+       "limit": 10
+      },
+      {
+       "id": "karma-star-force-17-star-enhancement-lv-160",
+       "name": "Karma Star Force 17-Star Enhancement (Lv. 160)",
+       "cost": 3000,
+       "limit": 3
+      },
+      {
+       "id": "karma-premium-scroll-accessory-selector-coupon-interactive-o",
+       "name": "Karma Premium Scroll - Accessory Selector Coupon (Interactive only)",
+       "cost": 1000,
+       "limit": 10
+      },
+      {
+       "id": "spell-trace-x1-000",
+       "name": "Spell Trace (x1,000)",
+       "only": "interactive",
+       "cost": 100,
+       "limit": null
+      }
+     ],
+     "postId": 42415,
+     "postName": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
+     "liveDate": "2026-07-21T16:00:00Z",
+     "url": "https://www.nexon.com/maplestory/news/update/42415"
+    },
+    {
+     "id": "challenger-world-shop-special",
+     "name": "Challenger World Shop: Special",
+     "currency": "Challenger Coins",
+     "start": "2026-06-17T00:00:00.000Z",
+     "end": "2026-09-08T23:59:00.000Z",
+     "items": [
+      {
+       "id": "karma-abyssal-rebirth-flame",
+       "name": "Karma Abyssal Rebirth Flame",
+       "cost": 1,
+       "limit": 250
+      },
+      {
+       "id": "sol-erda-fragment-x10",
+       "name": "Sol Erda Fragment (x10)",
+       "cost": 1,
+       "limit": 10
+      },
+      {
+       "id": "sol-erda",
+       "name": "Sol Erda",
+       "cost": 3,
+       "limit": 20
+      },
+      {
+       "id": "karma-bright-cube",
+       "name": "Karma Bright Cube",
+       "cost": 1,
+       "limit": 20
+      },
+      {
+       "id": "karma-bonus-bright-cube",
+       "name": "Karma Bonus Bright Cube",
+       "only": "interactive",
+       "cost": 2,
+       "limit": 20
+      }
+     ],
+     "postId": 42415,
+     "postName": "[Updated 9/9] v.270 - Ride the Lightning Patch Notes",
+     "liveDate": "2026-07-21T16:00:00Z",
+     "url": "https://www.nexon.com/maplestory/news/update/42415",
+     "note": "Nexon's post names one coin for this shop (Challenger Coins) and does not say whether the Special tab uses a different one. Check the tab in game before planning."
+    }
    ]
   },
   "42446": {
    "name": "Cash Shop Update for July 22",
    "category": "sale",
    "liveDate": "2026-07-21T17:10:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42446-coloring-prism-and-prism-color-restore",
@@ -1188,14 +1360,15 @@
      "url": "https://www.nexon.com/maplestory/news/sale/42446"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42465": {
    "name": "Kinesis Redux!",
    "category": "events",
    "liveDate": "2026-07-22T11:41:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42465-kinesis",
@@ -1232,14 +1405,15 @@
      "url": "https://www.nexon.com/maplestory/news/events/42465"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42466": {
    "name": "[Update Aug 13] Mystic Frontier Champions",
    "category": "events",
    "liveDate": "2026-07-22T12:40:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42466-mystic-frontier-champions",
@@ -1276,14 +1450,15 @@
      "url": "https://www.nexon.com/maplestory/news/events/42466"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42467": {
    "name": "Ride or Die Revamp!",
    "category": "events",
    "liveDate": "2026-07-22T11:38:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42467-ride-or-die",
@@ -1322,14 +1497,15 @@
      "url": "https://www.nexon.com/maplestory/news/events/42467"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42477": {
    "name": "Operation: Dive Phase 2",
    "category": "events",
    "liveDate": "2026-07-22T11:39:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42477-operation-dive",
@@ -1385,14 +1561,15 @@
      "url": "https://www.nexon.com/maplestory/news/events/42477"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42634": {
    "name": "Cash Shop Update for July 29",
    "category": "sale",
    "liveDate": "2026-07-28T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42634-gachapon-update",
@@ -1514,7 +1691,8 @@
      "url": "https://www.nexon.com/maplestory/news/sale/42634"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42797": {
    "name": "Maple Memo: Addressing the Unique tier Familiar Boss Damage Potential",
@@ -1529,8 +1707,8 @@
    "name": "Summer Ethereal Atelier: Lucky Turtles",
    "category": "sale",
    "liveDate": "2026-08-04T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42846-the-atelier-reliquary",
@@ -1550,14 +1728,15 @@
      "url": "https://www.nexon.com/maplestory/news/sale/42846"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42853": {
    "name": "Cash Shop Update for August 5",
    "category": "sale",
    "liveDate": "2026-08-04T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42853-the-atelier-reliquary",
@@ -1696,23 +1875,25 @@
      "url": "https://www.nexon.com/maplestory/news/sale/42853"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42854": {
    "name": "Brazil Digital ECA Update",
    "category": "general",
    "liveDate": "2026-07-22T13:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "42856": {
    "name": "Cash Shop Update for August 12",
    "category": "sale",
    "liveDate": "2026-08-11T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "42856-coloring-prism-and-prism-color-restore",
@@ -1834,14 +2015,15 @@
      "url": "https://www.nexon.com/maplestory/news/sale/42856"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43431": {
    "name": "Miracle Summer 2026 Redux",
    "category": "events",
    "liveDate": "2026-08-06T18:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "43431-accessories-emblems-hearts-rings-august-14",
@@ -1946,14 +2128,15 @@
      "url": "https://www.nexon.com/maplestory/news/events/43431"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43487": {
    "name": "[Update Aug 26] Cash Shop Update for August 19",
    "category": "sale",
    "liveDate": "2026-08-18T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "43487-premium-ssb-update",
@@ -2075,14 +2258,15 @@
      "url": "https://www.nexon.com/maplestory/news/sale/43487"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43492": {
    "name": "Momentum Pass Continues!",
    "category": "events",
    "liveDate": "2026-08-04T17:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "43492-momentum-pass",
@@ -2104,32 +2288,35 @@
      "url": "https://www.nexon.com/maplestory/news/events/43492"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43716": {
    "name": "v.270 Public Test Server Best Tester Reward Notice",
    "category": "general",
    "liveDate": "2026-07-30T15:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43807": {
    "name": "Maple Memo: Addressing Recent Instances of Hacking Activity",
    "category": "general",
    "liveDate": "2026-08-05T18:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43821": {
    "name": "[Update Aug 26] Cash Shop Update for August 26",
    "category": "sale",
    "liveDate": "2026-08-25T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "43821-gachapon-update",
@@ -2251,23 +2438,25 @@
      "url": "https://www.nexon.com/maplestory/news/sale/43821"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43833": {
    "name": "The Marvel Machine Returns August 27!",
    "category": "sale",
    "liveDate": "2026-08-24T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43991": {
    "name": "Cash Shop Update for September 2",
    "category": "sale",
    "liveDate": "2026-09-01T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "43991-gachapon-update",
@@ -2355,14 +2544,15 @@
      "url": "https://www.nexon.com/maplestory/news/sale/43991"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "43992": {
    "name": "[Update Aug 26] Fantasia Finale Event",
    "category": "events",
    "liveDate": "2026-08-25T17:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "43992-update-aug-26-fantasia-finale-event",
@@ -2384,32 +2574,35 @@
      "url": "https://www.nexon.com/maplestory/news/events/43992"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44154": {
    "name": "Spanish Language Support (Beta) Notice",
    "category": "general",
    "liveDate": "2026-08-27T12:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44159": {
    "name": "Auction House Item Claim Reminder Notice",
    "category": "general",
    "liveDate": "2026-09-03T12:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44225": {
    "name": "Cash Shop Update for September 9",
    "category": "sale",
    "liveDate": "2026-09-08T16:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "44225-premium-coloring-prism-and-prism-color-restore",
@@ -2480,52 +2673,58 @@
      "url": "https://www.nexon.com/maplestory/news/sale/44225"
     }
    ],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44291": {
    "name": "Signature Style Collection",
    "category": "sale",
    "liveDate": "2026-09-09T13:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44314": {
    "name": "Philosopher's Book",
    "category": "sale",
    "liveDate": "2026-09-09T13:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44348": {
    "name": "Special Petite Luna Pets",
    "category": "sale",
    "liveDate": "2026-09-09T13:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44414": {
    "name": "[Update Sept 11] Frieren's Spell Collection",
    "category": "events",
    "liveDate": "2026-09-09T11:01:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44415": {
    "name": "Adventure with Frieren's Companions",
    "category": "events",
    "liveDate": "2026-09-09T11:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44528": {
    "name": "Cash Shop Update for September 16",
@@ -2610,8 +2809,8 @@
    "name": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
    "category": "update",
    "liveDate": "2026-09-08T18:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [
     {
      "id": "44597-special-skill-ring-changes",
@@ -2927,16 +3126,18 @@
       "Combo Kill EXP +300%"
      ]
     }
-   ]
+   ],
+   "shops": []
   },
   "44705": {
    "name": "v.271 Update Preview",
    "category": "update",
    "liveDate": "2026-09-02T14:00:00Z",
-   "fetchedAt": "2026-11-24T06:14:42.735Z",
-   "pv": 2,
+   "fetchedAt": "2026-11-24T17:48:11.265Z",
+   "pv": 3,
    "events": [],
-   "sunny": []
+   "sunny": [],
+   "shops": []
   },
   "44949": {
    "name": "Cash Shop Update for September 23",
