@@ -32,7 +32,7 @@ function loadData(overrides = {}) {
     bosses: load('bosses'), symbols: load('symbols'), liberation: load('liberation'), ibp: load('ibp'), checklist: load('checklist'),
     gear: load('gear'), erda: load('erda'), upgrades: load('upgrades'), potential: load('potential'), gearStats: load('gearstats'),
     events: load('events'), news: load('news'), nexonCharacters: load('characters'), meta: load('meta'), tables: load('tables'), season: load('season'),
-    pitched: load('pitched'), shops: load('shops'), flames: load('flames'),
+    pitched: load('pitched'), shops: load('shops'), flames: load('flames'), champions: load('champions'), expSources: load('expsources'), upcoming: load('upcoming'),
     ...overrides
   };
   data.events = data.events || { events: [] };
@@ -114,6 +114,7 @@ function richState() {
     ibp: { main: { stage: 3 } },
     pitch: { main: { drops: [{ id: 'p1', item: 'berserked', d: '2026-10-03' }, { id: 'p2', item: 'dreamy-belt', d: '2026-11-01' }] } },
     shops: { 'alliance-credit': { have: 5000, claims: 10, want: { 'sol-erda': 2, 'black-rebirth-flame': 200 } } },
+    champions: { slots: [{ name: 'Main', rank: 2 }, { name: 'Mule', rank: 2 }, { name: 'Third', rank: 0 }], raid: { '2026-10': 900000000, [new Date(now).toISOString().slice(0, 7)]: 1200000000 } },
     erda: { main: { template: 'erel', levels: { lugh: 3, origin: 1 }, steps: {} }, mule: { template: 'erel', levels: {}, steps: {} } },
     gear: {
       main: {
@@ -410,6 +411,90 @@ test('Mesos > Flames gives an answer for every character and every setting, and 
   close(el);
 });
 
+test('Progress > Champions tracks slots, ranks and the raid score for the whole account', async () => {
+  const s = richState();
+  s.ui = { ...(s.ui || {}), progressView: 'champions' };
+  store.replaceState(s, true);
+  const el = await show('progress');
+  const text = el.text.replace(/\s+/g, ' ');
+  assert.match(text, /3 of 3 open slots used/); // two rank-A Champions open the third slot
+  assert.match(text, /All Stats \+40 · Max HP\/MP \+2,000 · ATT \+20/);
+  assert.match(text, /Slot 4 opens when your first 3 Champions are all rank A or higher/);
+  assert.match(text, /Next, rank B: Solo Hard Lotus/);
+  assert.match(text, /October 2026: 900M/);
+  assert.equal(text.match(BAD), null);
+  // Raising the third Champion to rank A opens the fourth slot.
+  el.find((n) => n.attrs.role === 'group' && n.attrs['aria-label'] === 'Rank of slot 3' || n.attrs['aria-label'] === 'Rank of slot 3').find((n) => n.localName === 'button' && n.text.trim() === 'A').fire('click');
+  await tick(5);
+  assert.equal(store.getState().champions.slots[2].rank, 2);
+  close(el);
+  const again = await show('progress');
+  assert.match(again.text.replace(/\s+/g, ' '), /3 of 4 open slots used/);
+  close(again);
+  // Same list whichever character is on screen.
+  store.update((x) => { x.activeId = 'mule'; });
+  const mule = await show('progress');
+  assert.match(mule.text.replace(/\s+/g, ' '), /3 of 4 open slots used/);
+  close(mule);
+});
+
+test('Progress > Level shows what Monster Park and potions are worth, and Today lists what is coming', async () => {
+  const s = richState();
+  s.ui = { ...(s.ui || {}), progressView: 'level' };
+  store.replaceState(s, true);
+  const el = await show('progress');
+  const text = el.text.replace(/\s+/g, ' ');
+  assert.match(text, /Where EXP comes from at Lv\. 264/);
+  assert.match(text, /2 clears a day of Cernium: 37\.5B EXP each/);
+  assert.match(text, /Growth Potion \(200 - 269\), Growth Potion \(200 - 279\)/);
+  assert.equal(text.match(BAD), null);
+  close(el);
+  // A level-210 character has no share of a level (the EXP table starts at 260) but still gets the dungeon.
+  store.update((x) => { x.activeId = 'mule'; });
+  const mule = await show('progress');
+  assert.match(mule.text.replace(/\s+/g, ' '), /Chu Chu Island/);
+  assert.equal(mule.text.replace(/\s+/g, ' ').match(BAD), null);
+  close(mule);
+  // Today: dates that have not passed are listed; a list with nothing left shows no card.
+  const future = new Date(Date.now() + 9 * 86400000).toISOString();
+  const data = loadData({ upcoming: { source: 'Test source.', items: [{ id: 'a', at: future, title: 'Test patch arrives', note: 'A note.' }, { id: 'b', at: future, title: 'Challenger thing', note: 'Only there.', only: 'challenger' }, { id: 'c', at: '2020-01-01T00:00:00Z', title: 'Long gone', note: 'Old.' }] } });
+  const today = await show('today', data);
+  const t = today.text.replace(/\s+/g, ' ');
+  assert.match(t, /Coming to GMS/);
+  assert.match(t, /Test patch arrives/);
+  assert.match(t, /in 9 days/);
+  assert.doesNotMatch(t, /Challenger thing|Long gone/); // the active character is not in Challenger World
+  close(today);
+  store.update((x) => { x.activeId = 'main'; });
+  const main = await show('today', data);
+  assert.match(main.text.replace(/\s+/g, ' '), /Challenger thing/);
+  close(main);
+  const none = await show('today', loadData({ upcoming: { items: [] } }));
+  assert.doesNotMatch(none.text.replace(/\s+/g, ' '), /Coming to GMS/);
+  close(none);
+});
+
+test('Mesos calculators show the 50 to 95% spread, and Gear ranks a flame reroll once stats are entered', async () => {
+  for (const view of ['starforce', 'cubes']) {
+    const s = richState();
+    s.ui = { ...(s.ui || {}), mesosView: view };
+    store.replaceState(s, true);
+    const el = await show('mesos');
+    const text = el.text.replace(/\s+/g, ' ');
+    assert.match(text, /To be this sure/);
+    assert.match(text, /95%/);
+    assert.equal(text.match(BAD), null, view);
+    close(el);
+  }
+  store.replaceState(richState(), true);
+  const gear = await show('gear');
+  const text = gear.text.replace(/\s+/g, ' ');
+  assert.match(text, /Star Force and flames by damage per meso/);
+  assert.match(text, /Hat: reroll the flame \(score 130 now\): about \+/);
+  assert.equal(text.match(BAD), null);
+  close(gear);
+});
+
 // A seeded generator so a failure can be reproduced.
 function rng(seed) { let x = seed >>> 0; return () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; }; }
 const JUNK = [null, undefined, -1, 0, 1e15, NaN, 'abc', '', [], {}, true];
@@ -436,7 +521,8 @@ test('damaged saved data never crashes a page (120 random cases)', async () => {
     damage(raw, rand);
     raw.v = 1;
     // Every third case opens the flame calculator and the coin shop instead of the default views.
-    if (seed % 3 === 0 && raw.ui && typeof raw.ui === 'object' && !Array.isArray(raw.ui)) { raw.ui.mesosView = 'flames'; raw.ui.eventsView = 'shops'; }
+    if (seed % 3 === 0 && raw.ui && typeof raw.ui === 'object' && !Array.isArray(raw.ui)) { raw.ui.mesosView = 'flames'; raw.ui.eventsView = 'shops'; raw.ui.progressView = 'champions'; }
+    if (seed % 3 === 1 && raw.ui && typeof raw.ui === 'object' && !Array.isArray(raw.ui)) { raw.ui.mesosView = seed % 2 ? 'cubes' : 'starforce'; }
     try {
       store.replaceState(structuredClone(raw), true);
     } catch (err) {

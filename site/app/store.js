@@ -23,6 +23,7 @@ export function blankState() {
     level: {},
     pitch: {},
     shops: {},
+    champions: { slots: [], raid: {} },
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},
     ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },

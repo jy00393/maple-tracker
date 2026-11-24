@@ -4,6 +4,7 @@ import { Card, NumberInput, Empty, fmtBig } from '../ui.js';
 import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtKst } from '../time.js';
+import { ExpSourcesCard } from './expsources.js';
 
 // Readings: your own log, plus the Nexon rankings history if this character is listed in config/characters.json.
 export function levelReadings(data, state, char) {
@@ -94,6 +95,7 @@ export function LevelView({ data, state, char, now }) {
       ${!o.rate ? html`<p class="note">Dates show once you've logged your level on two different days.</p>` : null}
       <p class="note">${exp.source}</p>
     <//>
+    <${ExpSourcesCard} data=${data} level=${last ? last.level : null} />
   </div>`;
 }
 

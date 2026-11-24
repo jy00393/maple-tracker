@@ -1,0 +1,55 @@
+{
+ "source": "MapleStory Wiki, read 24 Nov 2026: Monster Park (edited 16 Nov 2026) and Growth Potion (edited 23 Sep 2026). Potion names follow Nexon's v.272 patch notes, which renamed them to plain level ranges.",
+ "sourceUrl": "https://maplestorywiki.net/w/Monster_Park",
+ "note": "VIP and Luxe Sauna, EXP coupons and daily quests are not listed: no EXP-per-level table for them was found in a source.",
+ "monsterPark": {
+  "freePerDay": 2,
+  "maxPerCharacter": 7,
+  "sundayBonus": 0.5,
+  "note": "2 free clears a day per world, up to 7 a day per character with passes or Maple Points. Sunday (server time) gives 50% more. Lv. 260+ also has a weekly quest for 5 Advanced Dungeon clears.",
+  "dungeons": [
+   { "name": "Auto Security Area", "from": 105, "to": 114, "exp": 7816440 },
+   { "name": "Mossy Tree Forest", "from": 115, "to": 124, "exp": 11979350 },
+   { "name": "Secret Pirate Hideout", "from": 125, "to": 134, "exp": 16259640 },
+   { "name": "Otherworld Battleground", "from": 135, "to": 144, "exp": 23048030 },
+   { "name": "Dangerously Isolated Forest", "from": 140, "to": 149, "exp": 23330340 },
+   { "name": "Clandestine Ruins", "from": 150, "to": 159, "exp": 30623340 },
+   { "name": "Ruined City", "from": 160, "to": 169, "exp": 39581470 },
+   { "name": "Forest of Dead Trees", "from": 170, "to": 179, "exp": 53900060 },
+   { "name": "Dragon Nest", "from": 180, "to": 189, "exp": 67153960 },
+   { "name": "Knight Stronghold", "from": 190, "to": 199, "exp": 79551600 },
+   { "name": "Spirit Valley", "from": 200, "to": 209, "exp": 81300870 },
+   { "name": "Vanishing Journey", "from": 200, "to": 209, "exp": 359915080, "needs": "Vanishing Journey symbol quest done" },
+   { "name": "Chu Chu Island", "from": 210, "to": 219, "exp": 1285078680, "needs": "Chu Chu Island story done" },
+   { "name": "Lachelein", "from": 220, "to": 229, "exp": 3217660990, "needs": "Lachelein story done" },
+   { "name": "Arcana", "from": 230, "to": 239, "exp": 4707573370, "needs": "Arcana story done" },
+   { "name": "Morass", "from": 235, "to": 245, "exp": 5993511040, "needs": "Morass story done" },
+   { "name": "Esfera", "from": 240, "to": 250, "exp": 6919667370, "needs": "Esfera story done" },
+   { "name": "Sellas", "from": 245, "to": 250, "exp": 8712814920, "needs": "Sellas story done" },
+   { "name": "Moonbridge", "from": 250, "to": 255, "exp": 11716616500, "needs": "Moonbridge story done" },
+   { "name": "Labyrinth of Suffering", "from": 255, "to": 260, "exp": 14058901000, "needs": "Labyrinth of Suffering story done" },
+   { "name": "Limina", "from": 260, "to": 265, "exp": 15552557400, "needs": "Limina story done" },
+   { "name": "Cernium", "from": 260, "to": 265, "exp": 37474604460, "needs": "Cernium story done" },
+   { "name": "Arcus", "from": 265, "to": 270, "exp": 44435446300, "needs": "Hotel Arcus story done" },
+   { "name": "Odium", "from": 270, "to": 275, "exp": 52818835200, "needs": "Odium story done" },
+   { "name": "Shangri-La", "from": 275, "to": 280, "exp": 76639838000, "needs": "Shangri-La story done" },
+   { "name": "Arteria", "from": 280, "to": 285, "exp": 107204032000, "needs": "Arteria story done" },
+   { "name": "Carcion", "from": 285, "to": 290, "exp": 156017856000, "needs": "Carcion story done" },
+   { "name": "Tallahart", "from": 290, "to": 295, "exp": 218575316000, "needs": "Tallahart story done" },
+   { "name": "Geardock", "from": 295, "to": 300, "exp": 316934208200, "needs": "Geardock story done" }
+  ]
+ },
+ "potions": {
+  "note": "Each gives one full level when used inside its level range. They come from events and shops.",
+  "list": [
+   { "name": "Growth Potion (200 - 209)", "from": 200, "to": 209 },
+   { "name": "Growth Potion (200 - 219)", "from": 200, "to": 219 },
+   { "name": "Growth Potion (200 - 229)", "from": 200, "to": 229 },
+   { "name": "Growth Potion (200 - 239)", "from": 200, "to": 239 },
+   { "name": "Growth Potion (200 - 249)", "from": 200, "to": 249 },
+   { "name": "Growth Potion (200 - 259)", "from": 200, "to": 259 },
+   { "name": "Growth Potion (200 - 269)", "from": 200, "to": 269 },
+   { "name": "Growth Potion (200 - 279)", "from": 200, "to": 279 }
+  ]
+ }
+}

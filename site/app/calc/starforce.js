@@ -104,10 +104,10 @@ function rng(seed) {
   };
 }
 
-// Spread of outcomes from simulated runs: median, 75th and 90th percentile cost.
+// Spread of outcomes from simulated runs: median, 75th, 90th and 95th percentile cost.
 export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, runs = 3000, seed = 7) {
   const target = Math.min(to, maxStarsFor(sf, itemLevel));
-  if (from >= target) return { p50: 0, p75: 0, p90: 0 };
+  if (from >= target) return { p50: 0, p75: 0, p90: 0, p95: 0 };
   const { at } = table(sf, itemLevel, from, target, opts);
   const rand = rng(seed);
   const costs = [];
@@ -128,5 +128,5 @@ export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, 
   }
   costs.sort((a, b) => a - b);
   const q = (p) => costs[Math.min(costs.length - 1, Math.floor(p * costs.length))];
-  return { p50: q(0.5), p75: q(0.75), p90: q(0.9) };
+  return { p50: q(0.5), p75: q(0.75), p90: q(0.9), p95: q(0.95) };
 }

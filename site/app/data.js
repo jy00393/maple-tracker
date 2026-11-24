@@ -19,7 +19,10 @@ const FILES = {
   season: 'data/season.json',
   pitched: 'data/pitched.json',
   shops: 'data/shops.json',
-  flames: 'data/flames.json'
+  flames: 'data/flames.json',
+  champions: 'data/champions.json',
+  expSources: 'data/expsources.json',
+  upcoming: 'data/upcoming.json'
 };
 const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season']);
 
