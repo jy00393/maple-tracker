@@ -28,8 +28,8 @@ function Shop({ shop, state, char, now }) {
         <div class="tile"><span class="k">Closes</span><span class="v">${plan.daysLeft} days</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
       </div>
       <div class="form-grid">
-        <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = v || 0; })} /></label>
-        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max})</span><${Stepper} label=${earn.name + 's claimed'} value=${saved.claims || 0} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
+        <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = Math.floor(v || 0); })} /></label>
+        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max})</span><${Stepper} label=${earn.name + 's claimed'} value=${Math.min(saved.claims || 0, earn.max)} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
       </div>
       ${plan.short ? html`<p class="warnbox">Your picks cost ${num(plan.short)} ${coin} more than you can reach. Drop a pick, or lower a number.</p>` : null}
       <div class="toolbar">
@@ -42,7 +42,7 @@ function Shop({ shop, state, char, now }) {
           ${rows.length === 0 ? html`<tr><td colspan="3"><span class="small muted">No picks yet.</span></td></tr>` : rows.map(({ item, want, cost }) => html`<tr class=${want ? '' : 'off'}>
             <td>${item.name}
               <div class="small muted">${num(item.cost)} each · limit ${limitText(item)}${item.note ? ' · ' + item.note : ''}${item.notChallenger && char && char.challenger ? ' · not sold in Challenger World' : ''}</div></td>
-            <td><${Stepper} label=${'Still to buy: ' + item.name} value=${want} max=${itemCap(item)} onChange=${(v) => set((x) => { if (v) x.want[item.id] = v; else delete x.want[item.id]; })} /></td>
+            <td><${Stepper} label=${'Still to buy: ' + item.name} value=${want} max=${itemCap(item) ?? 9999} onChange=${(v) => set((x) => { if (v) x.want[item.id] = v; else delete x.want[item.id]; })} /></td>
             <td class="num">${want ? num(cost) : '—'}</td>
           </tr>`)}
         </tbody>

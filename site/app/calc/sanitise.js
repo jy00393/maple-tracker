@@ -38,6 +38,8 @@ function gearSlot(e) {
   numField(out, 'bpot', 0, 4);
   numField(out, 'lines', 0, 3);
   numField(out, 'ilvl', 0, 300);
+  // These are whole numbers in the game; a typed decimal is rounded down.
+  for (const k of ['tier', 'stars', 'pot', 'bpot', 'lines', 'ilvl']) if (k in out) out[k] = Math.floor(out[k]);
   if ('itemId' in out && num(out.itemId, null, 1) === null) { delete out.itemId; delete out.iconVer; }
   if ('iconVer' in out && typeof out.iconVer !== 'string') delete out.iconVer;
   if ('note' in out && typeof out.note !== 'string') delete out.note;
@@ -59,7 +61,7 @@ function gearSlot(e) {
   }
   if ('target' in out) {
     const t = {};
-    for (const [k, v] of Object.entries(obj(out.target))) if (num(v, null, 0, 30) !== null) t[k] = v;
+    for (const [k, v] of Object.entries(obj(out.target))) if (num(v, null, 0, 30) !== null) t[k] = Math.floor(v);
     out.target = t;
   }
   if ('temporary' in out) out.temporary = bool(out.temporary);
@@ -159,6 +161,12 @@ export function sanitiseState(raw, base) {
   const m = obj(raw.mesos);
   out.mesos = { ...base.mesos, ...m, held: num(m.held, 0, 0, 1e15), ursusRuns: num(m.ursusRuns, 1, 0, 3) };
   for (const k of ['ursus', 'farmPerHour', 'farmHours', 'other']) out.mesos[k] = num(m[k], null, 0, 1e15);
+  if ('cubeRates' in out.mesos) {
+    // Hand-typed tier-up odds: three chances per cube between 0.1% and 100%, or the entry is dropped.
+    const rates = {};
+    for (const [k, v] of Object.entries(obj(out.mesos.cubeRates))) if (Array.isArray(v) && v.length === 3 && v.every((p) => num(p, null, 0.001, 1) !== null)) rates[k] = v;
+    if (Object.keys(rates).length) out.mesos.cubeRates = rates; else delete out.mesos.cubeRates;
+  }
   out.mesos.goals = Array.from(Array.isArray(m.goals) ? m.goals : []).filter(isObj).map((g, i) => ({ ...g, id: str(g.id) || `goal${i}`, name: str(g.name, 'Goal'), cost: num(g.cost, 0, 0, 1e15) }));
 
   out.bosses = mapOf(raw.bosses, bossesOf);

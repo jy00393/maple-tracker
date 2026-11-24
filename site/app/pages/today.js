@@ -170,7 +170,7 @@ export function TodayPage({ data, state }) {
         <//>` : null}
         ${coming.length ? html`<${Card} title="Coming to GMS" meta="announced by Nexon" bodyClass="card-b tight">
           ${coming.map((c) => html`<div class="goal"><div><b>${c.title}</b><div class="small muted">${c.note}</div></div>
-            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.days <= 1 ? 'within a day' : `in ${c.days} days`}</span></div>`)}
+            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.days < 1 ? 'today' : c.days <= 1 ? 'within a day' : `in ${c.days} days`}</span></div>`)}
           <p class="note" style=${{ padding: '6px 8px' }}>${data.upcoming.source}</p>
         <//>` : null}
         ${char ? html`<${Card} title="Next up">

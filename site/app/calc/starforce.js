@@ -65,6 +65,9 @@ function table(sf, itemLevel, from, to, opts) {
 // Expected mesos, booms and attempts from `from` to `to` stars. A boom restores the trace (see restore table)
 // and adds `replaceCost` (the spare item, if you have to buy one).
 export function starPlan(sf, itemLevel, from, to, opts = {}, replaceCost = 0) {
+  // Stars are whole numbers; anything else (a typed 2.5, an empty box) is rounded down.
+  from = Math.max(0, Math.floor(Number(from) || 0));
+  to = Math.max(0, Math.floor(Number(to) || 0));
   const max = maxStarsFor(sf, itemLevel);
   const target = Math.min(to, max);
   if (from >= target) return { from, to: target, max, cost: 0, booms: 0, attempts: 0, noBoom: 1, steps: [] };
@@ -106,6 +109,8 @@ function rng(seed) {
 
 // Spread of outcomes from simulated runs: median, 75th, 90th and 95th percentile cost.
 export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, runs = 3000, seed = 7) {
+  from = Math.max(0, Math.floor(Number(from) || 0));
+  to = Math.max(0, Math.floor(Number(to) || 0));
   const target = Math.min(to, maxStarsFor(sf, itemLevel));
   if (from >= target) return { p50: 0, p75: 0, p90: 0, p95: 0 };
   const { at } = table(sf, itemLevel, from, target, opts);
@@ -114,7 +119,7 @@ export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, 
   for (let i = 0; i < runs; i++) {
     let star = from;
     let cost = 0;
-    for (let n = 0; star < target && n < 200000; n++) {
+    for (let n = 0; star < target && n < 60000; n++) {
       const a = at[star];
       cost += a.cost;
       const x = rand();
@@ -124,6 +129,8 @@ export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, 
         star = restoreStar(sf, star);
       }
     }
+    // A run that never got there has no cost to report: the whole spread is unknown.
+    if (star < target) return null;
     costs.push(cost);
   }
   costs.sort((a, b) => a - b);

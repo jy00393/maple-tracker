@@ -117,7 +117,7 @@ function ItemPicker({ slot, entry, tiers, hints, set, pot, mainStat }) {
     setOpen(false);
   };
   return html`<div class="field picker"><span>Item name${doc && doc.items.length ? ' · type to search' : ''}</span>
-    <input class="input" role="combobox" aria-expanded=${String(hits.length > 0)} aria-controls="item-suggest" aria-autocomplete="list" autocomplete="off"
+    <input class="input" role="combobox" aria-label="Item name" aria-expanded=${String(hits.length > 0)} aria-controls="item-suggest" aria-autocomplete="list" autocomplete="off"
       value=${text} placeholder=${`e.g. ${slot.type === 'ring' ? 'Superior Gollux Ring' : 'Arcane Umbra'}`}
       onInput=${(e) => { set({ note: e.currentTarget.value, itemId: null, iconVer: null }); setOpen(true); setActive(0); }}
       onFocus=${() => setOpen(true)} onBlur=${() => setTimeout(() => setOpen(false), 150)}

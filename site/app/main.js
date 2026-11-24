@@ -94,16 +94,25 @@ function NavIcon({ name }) {
 function BottomNav({ route, newNews }) {
   const [more, setMore] = useState(false);
   useEffect(() => { setMore(false); }, [route]);
+  // The sheet also closes on Escape and on a tap anywhere outside the bar.
+  useEffect(() => {
+    if (!more || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setMore(false); };
+    const onDown = (e) => { if (!(e.target && e.target.closest && e.target.closest('.bottomnav'))) setMore(false); };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown);
+    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onDown); };
+  }, [more]);
   const rest = ROUTES.filter(([key]) => !PRIMARY.includes(key));
   return html`<nav class="bottomnav" aria-label="Sections, bottom bar">
+    ${PRIMARY.map((key) => html`<a class="bn" href=${'#' + key} aria-current=${key === route ? 'page' : undefined} onClick=${() => setMore(false)}><${NavIcon} name=${key} /><span>${ROUTES.find((r) => r[0] === key)[1]}</span></a>`)}
+    <button type="button" class="bn" aria-expanded=${String(more)} aria-current=${!PRIMARY.includes(route) ? 'page' : undefined} onClick=${() => setMore(!more)}>
+      <${NavIcon} name="more" /><span>More</span>${newNews > 0 ? html`<i class="bn-dot" aria-label=${newNews + ' new posts'}></i>` : null}
+    </button>
     ${more ? html`<div class="more-sheet">
       ${rest.map(([key, label]) => html`<a class="more-item" href=${'#' + key} aria-current=${key === route ? 'page' : undefined} onClick=${() => setMore(false)}>
         ${label}${key === 'events' && newNews > 0 ? html`<span class="dot" aria-label=${newNews + ' new posts'}>${newNews}</span>` : null}</a>`)}
     </div>` : null}
-    ${PRIMARY.map((key) => html`<a class="bn" href=${'#' + key} aria-current=${key === route ? 'page' : undefined}><${NavIcon} name=${key} /><span>${ROUTES.find((r) => r[0] === key)[1]}</span></a>`)}
-    <button type="button" class="bn" aria-expanded=${String(more)} aria-current=${!PRIMARY.includes(route) ? 'page' : undefined} onClick=${() => setMore(!more)}>
-      <${NavIcon} name="more" /><span>More</span>${newNews > 0 ? html`<i class="bn-dot" aria-label=${newNews + ' new posts'}></i>` : null}
-    </button>
   </nav>`;
 }
 

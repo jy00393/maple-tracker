@@ -11,7 +11,7 @@ export function cleanChampions(raw, maxSlots = 6) {
   });
   const raid = {};
   for (const [k, v] of Object.entries(isObj(src.raid) ? src.raid : {})) {
-    if (/^\d{4}-\d{2}$/.test(k) && typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1e18) raid[k] = v;
+    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(k) && typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 1e18) raid[k] = v;
   }
   return { ...src, slots, raid };
 }

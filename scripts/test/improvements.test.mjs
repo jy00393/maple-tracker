@@ -614,7 +614,8 @@ test('flames: typed-in bonus stats are cleaned, labelled and totalled over equip
   assert.deepEqual(cleanFlame({ main: 80, att: '6', allstat: 5, junk: 9 }), { main: 80, att: 6, allstat: 5 });
   assert.equal(flameLabel({ main: 80, att: 6, allstat: 5, boss: 12 }, 'STR'), 'STR +80 · ATT +6 · All Stats +5% · Boss +12%');
   const state = { slots: { hat: { tier: 2, flame: { main: 80, allstat: 5 } }, weapon: { tier: 2, flame: { att: 120, boss: 12, dmg: 6 } }, cape: { flame: { main: 999 } } } };
-  assert.deepEqual(flameTotals(gear.slots, state), { main: 80, att: 120, allstat: 5, boss: 12, dmg: 6, items: 2 });
+  assert.deepEqual(flameTotals(gear.slots, state), { main: 80, sub: 0, att: 120, allstat: 5, boss: 12, dmg: 6, items: 2 });
+  assert.equal(flameLabel({ main: 80, sub: 20 }, 'STR'), 'STR +80 · Secondary +20');
 });
 
 test('gear stats: Star Force stat gains match the wiki table', async () => {

@@ -10,7 +10,7 @@
   { "id": "gpp-adversary", "at": "2026-12-31T00:00:00Z", "title": "Genesis Pass Plus mission: First Adversary (Easy or higher)", "note": "Only with a Genesis Pass Plus, after Genesis liberation.", "group": "gpp" },
   { "id": "gpp-kaling", "at": "2027-01-07T00:00:00Z", "title": "Genesis Pass Plus mission: Kaling (Easy or higher)", "note": "Only with a Genesis Pass Plus, after Genesis liberation.", "group": "gpp" },
   { "id": "gpp-bellona", "at": "2027-01-14T00:00:00Z", "title": "Genesis Pass Plus mission: Bellona (Easy or higher)", "note": "The first dated mention of the new boss Bellona in Nexon's notes.", "group": "gpp" },
-  { "id": "season-end", "at": "2027-02-09T23:59:00Z", "title": "Challenger World Season 4 and the event shops end", "note": "Challenger gear expires and unspent event coins are lost.", "only": "challenger" },
+  { "id": "season-end", "at": "2027-02-09T23:59:00Z", "title": "Event shops close", "note": "Unspent event coins are lost. The Challenger World season finishes at the same time." },
   { "id": "world-leap-final", "at": "2027-02-10T00:00:00Z", "day": true, "title": "Final World Leap window opens", "note": "After maintenance, until 23 Feb 2027.", "only": "challenger" }
  ]
 }
