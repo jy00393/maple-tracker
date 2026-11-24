@@ -32,6 +32,7 @@ function loadData(overrides = {}) {
     bosses: load('bosses'), symbols: load('symbols'), liberation: load('liberation'), ibp: load('ibp'), checklist: load('checklist'),
     gear: load('gear'), erda: load('erda'), upgrades: load('upgrades'), potential: load('potential'), gearStats: load('gearstats'),
     events: load('events'), news: load('news'), nexonCharacters: load('characters'), meta: load('meta'), tables: load('tables'), season: load('season'),
+    pitched: load('pitched'), shops: load('shops'), flames: load('flames'),
     ...overrides
   };
   data.events = data.events || { events: [] };
@@ -111,6 +112,8 @@ function richState() {
     symbols: { main: { cernium: { level: 7, have: 30 }, arcus: { level: 1, have: 0 } }, mule: {} },
     liberation: { main: { genesis: { stage: 2, traces: 300, picks: { 'lotus-hard': true, 'damien-hard': true }, pass: true } } },
     ibp: { main: { stage: 3 } },
+    pitch: { main: { drops: [{ id: 'p1', item: 'berserked', d: '2026-10-03' }, { id: 'p2', item: 'dreamy-belt', d: '2026-11-01' }] } },
+    shops: { 'alliance-credit': { have: 5000, claims: 10, want: { 'sol-erda': 2, 'black-rebirth-flame': 200 } } },
     erda: { main: { template: 'erel', levels: { lugh: 3, origin: 1 }, steps: {} }, mule: { template: 'erel', levels: {}, steps: {} } },
     gear: {
       main: {
@@ -301,6 +304,100 @@ test('Gear: the equipment window and the list show the same slots, and the star 
   close(el);
 });
 
+test('Bosses logs pitched drops for the active character, and removes them', async () => {
+  store.replaceState(richState(), true);
+  const el = await show('bosses');
+  assert.match(el.text.replace(/\s+/g, ' '), /2 of 11 Pitched · 0 of 6 Brilliant/);
+  el.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'Got one: Oath of Death').fire('click');
+  await tick(5);
+  const drops = store.getState().pitch.main.drops;
+  assert.equal(drops.length, 3);
+  assert.equal(drops[2].item, 'oath-of-death');
+  assert.match(drops[2].d, /^\d{4}-\d{2}-\d{2}$/);
+  close(el);
+  const again = await show('bosses');
+  assert.match(again.text.replace(/\s+/g, ' '), /2 of 11 Pitched · 1 of 6 Brilliant/);
+  again.find((n) => n.localName === 'button' && /^Remove the Berserked drop/.test(n.attrs['aria-label'] || '')).fire('click');
+  await tick(5);
+  assert.deepEqual(store.getState().pitch.main.drops.map((d) => d.item), ['dreamy-belt', 'oath-of-death']);
+  close(again);
+  // Another character starts with an empty log of its own.
+  store.update((s) => { s.activeId = 'mule'; });
+  const mule = await show('bosses');
+  assert.match(mule.text.replace(/\s+/g, ' '), /0 of 11 Pitched · 0 of 6 Brilliant/);
+  mule.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'Got one: Berserked').fire('click');
+  await tick(5);
+  assert.equal(store.getState().pitch.mule.drops.length, 1);
+  assert.equal(store.getState().pitch.main.drops.length, 2);
+  close(mule);
+});
+
+test('Events > Coin shop plans picks against coins, and hides items for the other world type', async () => {
+  const s = richState();
+  s.ui = { ...(s.ui || {}), eventsView: 'shops' };
+  store.replaceState(s, true);
+  const data = loadData();
+  data.shops.shops[0].end = new Date(Date.now() + 30 * 86400000).toISOString(); // keep the shop open whenever the test runs
+  const el = await show('events', data);
+  const text = el.text.replace(/\s+/g, ' ');
+  assert.match(text, /Alliance Credit Shop/);
+  assert.match(text, /your picks cost 18,000 Alliance Credit/); // 2 Sol Erda + 200 Black Rebirth Flames
+  assert.match(text, /Black Rebirth Flame/);
+  assert.doesNotMatch(text, /Innocence Scroll/); // Interactive only; the active character is Heroic
+  assert.equal(text.match(BAD), null);
+  el.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'One more: Still to buy: Sol Erda').fire('click');
+  await tick(5);
+  assert.equal(store.getState().shops['alliance-credit'].want['sol-erda'], 3);
+  close(el);
+  const again = await show('events', data);
+  assert.ok(flag(again.find((n) => n.attrs['aria-label'] === 'One more: Still to buy: Sol Erda'), 'disabled'), 'the shop limit of 3 is the most you can pick');
+  close(again);
+  // A closed shop says so instead of planning.
+  data.shops.shops[0].end = '2020-01-01T00:00:00Z';
+  const closed = await show('events', data);
+  assert.match(closed.text.replace(/\s+/g, ' '), /This shop closed on/);
+  close(closed);
+  // An Interactive character sees the Interactive-only items.
+  store.update((x) => { x.activeId = 'da'; });
+  data.shops.shops[0].end = new Date(Date.now() + 30 * 86400000).toISOString();
+  const inter = await show('events', data);
+  assert.match(inter.text.replace(/\s+/g, ' '), /Innocence Scroll/);
+  assert.doesNotMatch(inter.text.replace(/\s+/g, ' '), /Black Rebirth Flame/);
+  close(inter);
+});
+
+test('Mesos > Flames gives an answer for every character and every setting, and never prints junk', async () => {
+  for (const id of ['main', 'mule', 'da', 'xen']) {
+    for (const calc of [undefined, { slot: 'hat', level: 150, adv: true, type: 'reset', target: 100, have: 200 }, { type: 'burning', adv: false, level: 30, target: 5 },
+      { type: 'abyssal', level: 250, target: 9999 }, { type: 'nope', level: null, target: null, weights: { att: 'x', allstat: -3 }, secondary: 7 }, { level: 0, target: 0, have: 0, weights: null }]) {
+      const s = richState();
+      s.activeId = id;
+      s.ui = { ...(s.ui || {}), mesosView: 'flames', flameCalc: calc };
+      store.replaceState(s, true);
+      const el = await show('mesos');
+      const text = el.text.replace(/\s+/g, ' ');
+      const bad = text.match(new RegExp(`.{0,70}(${BAD.source}).{0,70}`));
+      assert.equal(bad, null, `${id} ${JSON.stringify(calc)} shows "${bad && bad[0]}"`);
+      assert.match(text, /Flame calculator/);
+      if (id === 'da') assert.match(text, /not worked out for Max HP/);
+      else if (calc && calc.target === 9999) assert.match(text, /No flame can reach 9999/);
+      else assert.match(text, /Chance per flame/);
+      close(el);
+    }
+  }
+  // Picking your own item fills in its level and aims one point above its flame (hat: 80 STR + 5% All Stats = 130).
+  const s = richState();
+  s.ui = { ...(s.ui || {}), mesosView: 'flames' };
+  store.replaceState(s, true);
+  const el = await show('mesos');
+  const pick = el.find((n) => n.attrs.id === 'flame-slot');
+  pick.value = 'hat';
+  pick.fire('change', { currentTarget: pick });
+  await tick(5);
+  assert.deepEqual([store.getState().ui.flameCalc.slot, store.getState().ui.flameCalc.level, store.getState().ui.flameCalc.target], ['hat', 150, 131]);
+  close(el);
+});
+
 // A seeded generator so a failure can be reproduced.
 function rng(seed) { let x = seed >>> 0; return () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; }; }
 const JUNK = [null, undefined, -1, 0, 1e15, NaN, 'abc', '', [], {}, true];
@@ -326,6 +423,8 @@ test('damaged saved data never crashes a page (120 random cases)', async () => {
     const raw = seed % 2 ? richState() : firstVersionState();
     damage(raw, rand);
     raw.v = 1;
+    // Every third case opens the flame calculator and the coin shop instead of the default views.
+    if (seed % 3 === 0 && raw.ui && typeof raw.ui === 'object' && !Array.isArray(raw.ui)) { raw.ui.mesosView = 'flames'; raw.ui.eventsView = 'shops'; }
     try {
       store.replaceState(structuredClone(raw), true);
     } catch (err) {

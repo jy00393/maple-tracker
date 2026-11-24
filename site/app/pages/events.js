@@ -3,6 +3,7 @@ import { update } from '../store.js';
 import { Card, PageHead, Seg, useNow, Empty } from '../ui.js';
 import { DAY, fmtKst, fmtLeft } from '../time.js';
 import { Timeline, CalendarCard } from './timeline.js';
+import { ShopsView } from './shops.js';
 
 export function visibleNews(data, state) {
   return (data.news.items || []).filter((n) => !(state.ui.hideClassic && n.isClassic));
@@ -91,6 +92,8 @@ export function EventsPage({ data, state }) {
   let body;
   if (view === 'timeline') {
     body = html`<${Timeline} data=${data} state=${state} now=${now} />`;
+  } else if (view === 'shops') {
+    body = html`<${ShopsView} data=${data} state=${state} now=${now} />`;
   } else if (view === 'news') {
     const items = visibleNews(data, state).slice(0, 60);
     const seen = state.ui.lastSeenNews || 0;
@@ -121,7 +124,7 @@ export function EventsPage({ data, state }) {
     <${DataStatus} meta=${data.meta} now=${now} />
     <div class="toolbar">
       <${Seg} label="Event view" value=${view} onChange=${(v) => update((s) => { s.ui.eventsView = v; })}
-        options=${[['timeline', 'Timeline'], ['live', 'Live now'], ['soon', 'Starting soon'], ['ended', 'Recently ended'], ['maint', 'Maintenance'], ['news', 'All posts']]} />
+        options=${[['timeline', 'Timeline'], ['shops', 'Coin shop'], ['live', 'Live now'], ['soon', 'Starting soon'], ['ended', 'Recently ended'], ['maint', 'Maintenance'], ['news', 'All posts']]} />
       <label class="small"><input type="checkbox" checked=${state.ui.hideClassic} onChange=${(e) => update((s) => { s.ui.hideClassic = e.currentTarget.checked; })} /> Hide Classic World</label>
     </div>
     ${body}

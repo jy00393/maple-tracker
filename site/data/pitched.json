@@ -1,0 +1,36 @@
+{
+ "source": "MapleStory Wiki (maplestorywiki.net), read 24 Nov 2026: Pitched Boss Set (edited 4 Jun 2026), Brilliant Boss Set (edited 5 Nov 2026) and each item's own page (edited Apr to Nov 2026) for where it comes from.",
+ "sourceUrl": "https://maplestorywiki.net/w/Pitched_Boss_Set",
+ "note": "Drop rates are not published by Nexon, so none are shown.",
+ "sets": [
+  {
+   "id": "pitched",
+   "name": "Pitched Boss set",
+   "items": [
+    { "id": "black-heart", "name": "Black Heart", "slot": "Heart", "from": "Lotus: trade in a Damaged Black Heart" },
+    { "id": "total-control", "name": "Total Control", "slot": "Heart", "from": "Extreme Lotus" },
+    { "id": "berserked", "name": "Berserked", "slot": "Face", "from": "Hard or Extreme Lotus" },
+    { "id": "magic-eyepatch", "name": "Magic Eyepatch", "slot": "Eye", "from": "Hard Damien" },
+    { "id": "source-of-suffering", "name": "Source of Suffering", "slot": "Pendant", "from": "Hard Verus Hilla" },
+    { "id": "cursed-spellbook", "name": "Cursed Spellbook", "slot": "Pocket", "from": "Will: Cursed Spellbook Selection Box" },
+    { "id": "commanding-force-earring", "name": "Commanding Force Earring", "slot": "Earrings", "from": "Hard Darknell" },
+    { "id": "endless-terror", "name": "Endless Terror", "slot": "Ring", "from": "Chaos Gloom" },
+    { "id": "dreamy-belt", "name": "Dreamy Belt", "slot": "Belt", "from": "Hard Lucid" },
+    { "id": "genesis-badge", "name": "Genesis Badge", "slot": "Badge", "from": "Hard or Extreme Black Mage" },
+    { "id": "mitras-rage", "name": "Mitra's Rage", "slot": "Emblem", "from": "Chosen Seren: Mitra's Rage Selection Box" }
+   ]
+  },
+  {
+   "id": "brilliant",
+   "name": "Brilliant Boss set",
+   "items": [
+    { "id": "whisper-of-the-source", "name": "Whisper of the Source", "slot": "Ring", "from": "Hard Limbo" },
+    { "id": "oath-of-death", "name": "Oath of Death", "slot": "Pendant", "from": "Hard Baldrix" },
+    { "id": "immortal-legacy", "name": "Immortal Legacy", "slot": "Medal", "from": "Hard or Extreme First Adversary" },
+    { "id": "blissful-nightmare", "name": "Blissful Nightmare", "slot": "Ring", "from": "Hard Malefic Star" },
+    { "id": "original-sin-of-pride", "name": "Original Sin of Pride", "slot": "Face", "from": "Hard Jupiter" },
+    { "id": "sanguinary-spirit", "name": "Sanguinary Spirit", "slot": "Eye", "from": "Hard Bellona (not in GMS on 24 Nov 2026)" }
+   ]
+  }
+ ]
+}

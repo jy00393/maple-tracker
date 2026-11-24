@@ -1,6 +1,8 @@
 // Makes any saved state safe to use: every part has the shape the pages expect, whatever was in storage, in an
 // imported backup file or in a synced copy. Valid data passes through unchanged; only values of the wrong kind
 // are dropped or reset. Unknown extra fields are kept, so a newer version's data survives an older one.
+import { cleanDrops } from './pitched.js';
+
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const obj = (v) => (isObj(v) ? v : {});
 const str = (v, fallback = '') => (typeof v === 'string' ? v : fallback);
@@ -115,6 +117,17 @@ function levelOf(l) {
   return { ...l, log };
 }
 
+// Whole numbers of items or coins, keyed by item id.
+function counts(v, max) {
+  const out = {};
+  for (const [k, x] of Object.entries(obj(v))) if (num(x, null, 1, max) !== null) out[k] = Math.floor(x);
+  return out;
+}
+
+function shopOf(s) {
+  return { ...s, have: num(s.have, 0, 0, 1e9), claims: num(s.claims, 0, 0, 1e4), want: counts(s.want, 1e5) };
+}
+
 export function sanitiseState(raw, base) {
   if (!isObj(raw)) return base;
   const out = { ...base, ...raw, v: 1 };
@@ -154,6 +167,8 @@ export function sanitiseState(raw, base) {
   out.erda = mapOf(raw.erda, erdaOf);
   out.gear = mapOf(raw.gear, gearOf);
   out.level = mapOf(raw.level, levelOf);
+  out.pitch = mapOf(raw.pitch, (p) => ({ ...p, drops: cleanDrops(p.drops) }));
+  out.shops = mapOf(raw.shops, shopOf);
   out.incomeHistory = mapOf(raw.incomeHistory, (h) => ({ ...h, earned: num(h.earned, 0, 0), planned: num(h.planned, 0, 0) }));
 
   out.updatedAt = num(raw.updatedAt, 0, 0);

@@ -7,6 +7,7 @@ import { cubePlan } from '../calc/upgrades.js';
 import { gearSummary, symbolPlan } from '../calc/progress.js';
 import { slotOutlook } from './gear.js';
 import { DAY, dayKey, fmtDate } from '../time.js';
+import { Flames } from './flames.js';
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
 const setM = (fn) => update((s) => fn(s.mesos));
@@ -237,11 +238,12 @@ export function MesosPage({ data, state }) {
   const now = useNow(60000);
   const view = state.ui.mesosView || 'planner';
   return html`
-    <${PageHead} title="Mesos">Plan what to save for, and check what Star Force and cubes will really cost before you spend.<//>
+    <${PageHead} title="Mesos">Plan what to save for, and check what Star Force, cubes and flames will really cost before you spend.<//>
     <div class="toolbar"><${Seg} label="Mesos section" value=${view} onChange=${(v) => update((s) => { s.ui.mesosView = v; })}
-      options=${[['planner', 'Planner'], ['starforce', 'Star Force'], ['cubes', 'Cubes'], ['history', 'Income history']]} /></div>
+      options=${[['planner', 'Planner'], ['starforce', 'Star Force'], ['cubes', 'Cubes'], ['flames', 'Flames'], ['history', 'Income history']]} /></div>
     ${view === 'planner' ? html`<${Planner} data=${data} state=${state} now=${now} />`
       : view === 'starforce' ? html`<${StarForce} data=${data} state=${state} />`
       : view === 'cubes' ? html`<${Cubes} data=${data} state=${state} />`
+      : view === 'flames' ? html`<${Flames} data=${data} state=${state} />`
       : html`<${History} data=${data} state=${state} now=${now} />`}`;
 }
