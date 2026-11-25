@@ -1,44 +1,6 @@
 {
  "events": [
   {
-   "id": "44597-go-go-sidekick",
-   "title": "Go Go Sidekick!",
-   "start": "2026-09-30T00:00:00.000Z",
-   "end": "2026-11-03T23:59:00.000Z",
-   "startApprox": false,
-   "endApprox": false,
-   "afterMaintenance": false,
-   "raw": "September 30, 2026 12:00 AM UTC - November 3, 2026 11:59 PM UTC",
-   "resets": [
-    "event records reset every Wednesday at 12:00 AM UTC."
-   ],
-   "postId": 44597,
-   "postName": "[Updated 9/29] v.271 - MapleStory x Frieren: Beyond Journey's End Patch Notes",
-   "liveDate": "2026-09-08T18:00:00Z",
-   "category": "update",
-   "isClassic": false,
-   "url": "https://www.nexon.com/maplestory/news/update/44597"
-  },
-  {
-   "id": "45330-go-go-sidekick",
-   "title": "Go Go Sidekick!",
-   "start": "2026-09-30T00:00:00.000Z",
-   "end": "2026-11-03T23:59:00.000Z",
-   "startApprox": false,
-   "endApprox": false,
-   "afterMaintenance": false,
-   "raw": "September 30, 2026 12:00 AM UTC - November 3, 2026 11:59 PM UTC",
-   "resets": [
-    "event records reset every Wednesday at 12:00 AM UTC."
-   ],
-   "postId": 45330,
-   "postName": "Defend the Omega Sector!",
-   "liveDate": "2026-09-29T17:00:00Z",
-   "category": "events",
-   "isClassic": false,
-   "url": "https://www.nexon.com/maplestory/news/events/45330"
-  },
-  {
    "id": "46661-premium-coloring-prism-and-prism-color-restore",
    "title": "Premium Coloring Prism and Prism Color Restore",
    "start": "2026-11-07T08:00:00.000Z",
