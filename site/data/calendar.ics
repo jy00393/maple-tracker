@@ -9,51 +9,6 @@ X-WR-CALDESC:Event ends\, maintenance and weekly resets from Nexon's news (
 REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-monday-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261124T065900Z
-DTEND:20261124T075900Z
-SUMMARY:Ends: Doorbuster: Black Friday Lucky Box (Monday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Doorbuster: Black Friday Lucky Box (Monday) ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-child-of-the-goddess-permanent-outfit-packages-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261124T065900Z
-DTEND:20261124T075900Z
-SUMMARY:Ends: Child of the Goddess Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Child of the Goddess Permanent Outfit Packages ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-character-name-change-coupon-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261124T065900Z
-DTEND:20261124T075900Z
-SUMMARY:Ends: Character Name Change Coupon
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Character Name Change Coupon ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:45393-winter-countdown-event-end@maple-tracker
 DTSTAMP:20261006T170030Z
 DTSTART:20261124T225900Z
@@ -130,16 +85,6 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-wednesday-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261125T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Doorbuster: Black Friday Lucky Box (Wednesday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
 UID:47555-dark-musician-permanent-outfit-package-end@maple-tracker
 DTSTAMP:20261122T160000Z
 DTSTART:20261126T065900Z
@@ -155,16 +100,6 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47555-dark-musician-permanent-outfit-package-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261125T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Dark Musician Permanent Outfit Package
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
 UID:47555-commander-with-cattertons-face-box-end@maple-tracker
 DTSTAMP:20261122T160000Z
 DTSTART:20261126T065900Z
@@ -178,16 +113,6 @@ ACTION:DISPLAY
 DESCRIPTION:Commander With Cattertons Face Box ends tomorrow
 TRIGGER:-P1D
 END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-commander-with-cattertons-face-box-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261125T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Commander With Cattertons Face Box
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
 END:VEVENT
 BEGIN:VEVENT
 UID:47555-doorbuster-black-friday-lucky-box-thursday-end@maple-tracker
