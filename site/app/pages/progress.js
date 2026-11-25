@@ -3,7 +3,7 @@ import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty } from '../ui.js';
 import { symbolPlan, liberationPlan, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos } from '../calc/income.js';
-import { fmtDate } from '../time.js';
+import { fmtDate, nextReset, DAY } from '../time.js';
 import { LevelView, ErdaCosts } from './level.js';
 import { ChampionsView } from './champions.js';
 
@@ -26,6 +26,7 @@ function SymbolTable({ kind, kindData, char, entries }) {
       <td><${Stepper} label=${area.name + ' level'} value=${entry.level ?? 0} min=${0} max=${kindData.maxLevel} onChange=${(v) => set(area.id, { level: v ?? 0 })} /></td>
       <td><${NumberInput} label=${area.name + ' symbols held'} value=${entry.have ?? 0} min=${0} max=${9999} onChange=${(v) => set(area.id, { have: v ?? 0 })} /></td>
       <td><${NumberInput} label=${area.name + ' symbols per day'} value=${entry.daily ?? area.daily} min=${0} max=${999} onChange=${(v) => set(area.id, { daily: v })} /></td>
+      <td><${NumberInput} label=${area.name + ' symbols per week'} value=${entry.weekly ?? area.weekly} min=${0} max=${9999} onChange=${(v) => set(area.id, { weekly: v })} /></td>
       <td class="num">${plan.locked ? 'not unlocked' : plan.maxed ? 'max' : html`${days(plan.daysToNext)}${plan.affordable ? html`<div class="small" style=${{ color: 'var(--ok)' }}>${plan.affordable} level${plan.affordable === 1 ? '' : 's'} ready now</div>` : null}`}</td>
       <td class="num">${plan.locked || plan.maxed ? '—' : fmtMesos(plan.nextMesos)}</td>
       <td class="num">${plan.locked ? '—' : plan.maxed ? 'done' : html`${days(plan.daysToMax)}<div class="small muted">${fmtMesos(plan.remainingMesos)}</div>`}</td>
@@ -34,10 +35,10 @@ function SymbolTable({ kind, kindData, char, entries }) {
   const powerName = kind === 'arcane' ? 'Arcane Power' : 'Sacred Power';
   return html`<${Card} title=${kind === 'arcane' ? 'Arcane symbols' : 'Sacred symbols'} meta=${`${powerName} ${totalPower} · ${fmtMesos(totalMesos)} mesos to max`}>
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Area</th><th>Level</th><th>Held</th><th>Per day</th><th class="num">Next level</th><th class="num">Next cost</th><th class="num">To max</th></tr></thead>
+      <thead><tr><th>Area</th><th>Level</th><th>Held</th><th>Per day</th><th>Per week</th><th class="num">Next level</th><th class="num">Next cost</th><th class="num">To max</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
-    <p class="note">Level 0 means not unlocked yet. "Held" is symbols you have but haven't fused. Per-day defaults are the Heroic daily quest amounts; add weekly extras by raising it.</p>
+    <p class="note">Level 0 means not unlocked yet. "Held" is symbols you have but haven't fused. "Per day" starts at the Heroic daily quest amount and "Per week" at the weekly quest amount; both count toward the day estimates. Change either to match what you really do.</p>
   <//>`;
 }
 
@@ -131,10 +132,20 @@ function ItemBurning({ data, char, entry }) {
   const finished = data.ibp.stages.filter((st) => done[st.id]).length;
   const nextNeed = data.ibp.stages.find((st) => !done[st.id] && st.crests > crests);
   const weeks = nextNeed ? Math.ceil((nextNeed.crests - crests) / data.ibp.weeklyCrests) : 0;
+  // Crests come in with the Thursday reset; only the resets before the event ends can still pay out.
+  const end = Date.parse(data.ibp.endsAt);
+  const now = Date.now();
+  const over = now > end;
+  // This week's hunts plus one more week for every Thursday reset still before the end.
+  const nextThu = nextReset('thu', now);
+  const thursdaysLeft = over ? 0 : 1 + (nextThu > end ? 0 : Math.floor((end - nextThu) / (7 * DAY)) + 1);
+  const gate = !nextNeed ? 'covered' : over ? 'the event has ended' : weeks > thursdaysLeft
+    ? `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · needs ~${weeks} weeks of hunts, ${thursdaysLeft} left before it ends: out of reach`
+    : `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · ~${weeks} week${weeks === 1 ? '' : 's'} of hunts`;
   return html`<${Card} title="Item Burning Plus stages" meta=${`${finished} / ${data.ibp.stages.length} done`}>
     <div class="form-grid">
       <label class="field"><span>Challenge Crests held</span><${NumberInput} className="input" label="Challenge Crests" value=${crests} max=${99999} onChange=${(v) => set((e) => { e.crests = v || 0; })} /></label>
-      <div class="field"><span>Next crest gate</span><b>${nextNeed ? `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · ~${weeks} week${weeks === 1 ? '' : 's'} of hunts` : 'covered'}</b></div>
+      <div class="field"><span>Next crest gate</span><b>${gate}</b></div>
     </div>
     <div>
       ${data.ibp.stages.map((st) => html`<div class=${'row' + (done[st.id] ? ' done' : '')}>
@@ -144,7 +155,7 @@ function ItemBurning({ data, char, entry }) {
         ${st.reward ? html`<p class="note">${st.reward}</p>` : null}
       </div>`)}
     </div>
-    <p class="note">Stages can be cleared in any order and cash in once Stage 1 is done. The Challenger gear expires ${fmtDate(Date.parse(data.ibp.endsAt))}, so don't spend mesos or cubes on it.</p>
+    <p class="note">${over ? `Item Burning Plus ended on ${fmtDate(end)}; its gear has expired.` : `Stages can be cleared in any order and cash in once Stage 1 is done. The Challenger gear expires ${fmtDate(end)}, so don't spend mesos or cubes on it.`}</p>
   <//>`;
 }
 

@@ -55,7 +55,7 @@ test('merge: the newer edit of the same part wins, whichever side it is on', () 
 });
 
 test('merge: a removal travels, and is not undone by the other device', () => {
-  const base = edit(blank(), 100, (s) => { s.gear.c1 = { slots: {} }; s.gear.c2 = { slots: {} }; });
+  const base = edit(blank(), 100, (s) => { s.characters.push({ id: 'c1', name: 'A' }, { id: 'c2', name: 'B' }); s.gear.c1 = { slots: {} }; s.gear.c2 = { slots: {} }; });
   const removed = edit(base, 200, (s) => { delete s.gear.c2; });
   const other = edit(base, 150, (s) => { s.mesos.held = 5; });
   const merged = mergeStates(other, removed);
@@ -76,7 +76,7 @@ test('merge: a fresh phone never wipes the copy in the gist', () => {
 });
 
 test('merge: a copy saved before stamps existed is dated by its updatedAt', () => {
-  const old = { ...blank(), updatedAt: 500, mesos: { held: 42, goals: [] }, gear: { c1: { slots: {} } } };
+  const old = { ...blank(), updatedAt: 500, characters: [{ id: 'c1', name: 'A' }], mesos: { held: 42, goals: [] }, gear: { c1: { slots: {} } } };
   delete old.stamps;
   assert.equal(seedStamps(old)['gear/c1'], 500);
   const phone = edit(blank(), 900, (s) => { s.checklist.history['2026-11-23'] = { done: 1, total: 9 }; });
@@ -92,7 +92,7 @@ test('units split the checklist per item and per-character data per character', 
   const paths = [...units(s).keys()];
   assert.ok(paths.includes('checklist/items/a'));
   assert.ok(paths.includes('bosses/c1'));
-  assert.ok(paths.includes('mesos'));
+  assert.ok(paths.includes('mesos/held') && paths.includes('mesos/goalOrder'));
   assert.ok(!paths.includes('stamps') && !paths.includes('updatedAt') && !paths.includes('activeId'));
 });
 
@@ -871,9 +871,15 @@ test('main stat: class changes and main-stat changes keep saved lines consistent
   assert.deepEqual(g.slots.hat.potLines.map((l) => l.type), ['main', 'offstat', 'offstat']);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: g.slots.hat } }, 'HP').main, 12);
   assert.equal(U.usefulLines(gear.slots.find((s) => s.id === 'hat'), g.slots.hat), 1);
-  assert.deepEqual(g.slots.top.potLines, [{ type: 'main', stat: 'STR', value: 13 }], 'lines entered before the real tables are left alone');
-  P.reclassifyLines(data, g, 'STR');
+  // A line entered by hand before the tables follows its stat too: STR is not the main stat of an HP character.
+  assert.deepEqual(g.slots.top.potLines, [{ type: 'offstat', stat: 'STR', value: 13 }]);
+  P.reclassifyLines(data, g, 'STR', 'HP');
   assert.deepEqual(g.slots.hat.potLines.map((l) => l.type), ['hp', 'main', 'allstat']);
+  assert.deepEqual(g.slots.top.potLines, [{ type: 'main', stat: 'STR', value: 13 }], 'and counts again after switching back');
+  // A stat-less hand line was entered for the old main stat, so it keeps that stat.
+  const bare = { slots: { top: { tier: 2, pot: 4, potLines: [{ type: 'main', value: 9 }] } } };
+  P.reclassifyLines(data, bare, 'INT', 'LUK');
+  assert.deepEqual(bare.slots.top.potLines, [{ type: 'offstat', stat: 'LUK', value: 9 }]);
   P.reclassifyLines(data, undefined, 'STR');
 });
 

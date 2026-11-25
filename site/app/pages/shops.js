@@ -5,19 +5,22 @@ import { shopPlan, itemCap, limitText } from '../calc/shops.js';
 import { fmtKst } from '../time.js';
 
 const num = (v) => Math.round(v).toLocaleString('en-US');
+// The closing day in Korea compared with today in Korea: 0 = today, 1 = tomorrow.
+const kstDays = (a, b) => Math.round((Date.parse(new Date(b + 9 * 3600000).toISOString().slice(0, 10)) - Date.parse(new Date(a + 9 * 3600000).toISOString().slice(0, 10))) / 86400000);
 const blankShop = () => ({ have: 0, claims: 0, want: {} });
 
 function Shop({ shop, state, char, now }) {
   const [onlyPicked, setOnlyPicked] = useState(false);
   const saved = state.shops[shop.id] || blankShop();
   const plan = shopPlan(shop, saved, char, now);
+  const closesIn = kstDays(now, Date.parse(shop.end));
   const set = (fn) => update((s) => { fn(charSlice(s, 'shops', shop.id, blankShop)); });
   const earn = shop.earn;
   const rows = plan.rows.filter((r) => !onlyPicked || r.want > 0);
   const coin = shop.currency;
   if (!plan.open) return html`<${Card} title=${shop.name} meta="closed"><${Empty}>This shop closed on ${fmtKst(Date.parse(shop.end))}.<//><//>`;
   return html`<div class="grid wide-left">
-    <${Card} title=${shop.name} meta=${`${shop.event ? shop.event + ' · ' : ''}${plan.daysLeft} days left`}>
+    <${Card} title=${shop.name} meta=${`${shop.event ? shop.event + ' · ' : ''}${closesIn === 0 ? 'closes today' : closesIn === 1 ? 'closes tomorrow' : `${plan.daysLeft} days left`}`}>
       <div class="tiles">
         <div class=${'tile ' + (plan.short ? 'accent' : 'ok')}>
           <span class="k">${plan.short ? 'Short by' : 'Left over'}</span>
@@ -25,7 +28,7 @@ function Shop({ shop, state, char, now }) {
           <span class="s">${plan.picked ? `your picks cost ${num(plan.need)} ${coin}` : 'pick what you want below'}</span>
         </div>
         <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${earn ? `${num(plan.have)} held + up to ${num(plan.toCome)} still to earn` : 'the amount you hold now'}</span></div>
-        <div class="tile"><span class="k">Closes</span><span class="v">${plan.daysLeft} days</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
+        <div class="tile"><span class="k">Closes</span><span class="v">${closesIn === 0 ? 'Today' : closesIn === 1 ? 'Tomorrow' : `${plan.daysLeft} days`}</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
       </div>
       <div class="form-grid">
         <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = Math.floor(v || 0); })} /></label>

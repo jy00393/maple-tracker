@@ -5,7 +5,8 @@ import { scoreDist, chanceAtLeast, flamesNeeded, chanceWithin, flameScore, flame
 import { itemLevel } from '../calc/advice.js';
 import { mainStatLabel } from '../calc/upgrades.js';
 
-const pct = (p) => (p >= 0.1 ? (p * 100).toFixed(1) : p >= 0.001 ? (p * 100).toFixed(2) : (p * 100).toPrecision(2)) + '%';
+// Very small chances read as "1 in N" rather than in exponent form (2.1e-11%).
+const pct = (p) => (p >= 0.1 ? (p * 100).toFixed(1) + '%' : p >= 0.001 ? (p * 100).toFixed(2) + '%' : p >= 1e-6 ? (p * 100).toPrecision(2) + '%' : p > 0 ? `1 in ${count(1 / p)}` : '0%');
 const count = (n) => Math.round(n).toLocaleString('en-US');
 
 // Mesos > Flames: flames and mesos to reach a flame score on one armour or accessory item.

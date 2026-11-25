@@ -21,23 +21,35 @@ export function reach(cpData, boss, cp, margin = 1) {
 }
 
 // The weekly crystal bosses worth running at this Combat Power: for each boss, the best-paying difficulty within
-// reach, then the best `cap` of those by crystal value. Bosses with no figure are never suggested.
-export function suggestBosses(bossesData, cpData, cp, margin, char) {
+// reach, then the best of those by crystal value, up to the crystals that sell. Bosses with no figure are never
+// suggested. `keep` lists picks that stay as they are (party runs, bosses with no figure; a `party` field gives
+// the party size): their bosses are not suggested again, and each one takes a place in the cap only when its
+// crystal is among the best that sell, the way the week's income counts them.
+export function suggestBosses(bossesData, cpData, cp, margin, char, keep = []) {
   if (!(cp > 0)) return { ids: [], total: 0, list: [], beyond: 0 };
+  const taken = new Set(keep.map((b) => b.boss));
+  // Ranked by what the crystal is worth even for a character who can't sell it (Quanah), so the list still
+  // picks the hardest difficulty within reach; the total then shows what is really earned.
+  const rankAs = { ...(char || {}), quanah: false };
+  const keptRanks = keep.filter((b) => b.reset === 'weekly' && !b.noCrystal).map((b) => crystalValue(b, rankAs, bossesData, b.party || 1)).filter((v) => v > 0);
   const cap = bossesData.limits.weeklyPerCharacter;
   const best = new Map();
   let beyond = 0;
   for (const b of bossesData.bosses) {
-    if (b.reset !== 'weekly' || b.noCrystal) continue;
+    if (b.reset !== 'weekly' || b.noCrystal || taken.has(b.boss)) continue;
     const r = reach(cpData, b, cp, margin);
     if (r === 'no') beyond++;
     if (r !== 'yes') continue;
-    const value = crystalValue(b, char, bossesData, 1);
+    const rank = crystalValue(b, rankAs, bossesData, 1);
     const cur = best.get(b.boss);
-    if (!cur || value > cur.value) best.set(b.boss, { boss: b, value });
+    if (!cur || rank > cur.rank) best.set(b.boss, { boss: b, rank, value: crystalValue(b, char || {}, bossesData, 1) });
   }
-  const list = [...best.values()].sort((a, b) => b.value - a.value).slice(0, cap);
-  return { ids: list.map((x) => x.boss.id), total: list.reduce((a, x) => a + x.value, 0), list, beyond };
+  // The best crystals that sell, kept picks and suggestions together; the suggestions among them are the list.
+  const pool = [...[...best.values()].map((x) => ({ x, rank: x.rank })), ...keptRanks.map((rank) => ({ x: null, rank }))]
+    .sort((a, b) => b.rank - a.rank).slice(0, cap);
+  const list = pool.filter((p) => p.x).map((p) => p.x);
+  // reachable: bosses within reach at all, so the page can tell "none within reach" from "kept picks fill it".
+  return { ids: list.map((x) => x.boss.id), total: list.reduce((a, x) => a + x.value, 0), list, beyond, reachable: best.size };
 }
 
 // Picked bosses that ask for more Combat Power than the character has (solo picks only: party minimums are not listed).
@@ -49,8 +61,9 @@ export function picksOutOfReach(bossesData, cpData, picks, cp, margin = 1) {
 // "45M" style, for a need or a Combat Power.
 export function fmtCp(n) {
   if (!(n > 0)) return '—';
-  if (n >= 1e9) return (n / 1e9).toFixed(n >= 1e10 ? 0 : 1).replace(/\.0$/, '') + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e8 ? 0 : 1).replace(/\.0$/, '') + 'M';
-  if (n >= 1e3) return Math.round(n / 1e3) + 'K';
+  // The unit is picked after rounding, so 999,999 reads 1M, not 1000K.
+  if (n >= 999.5e6) return (n / 1e9).toFixed(n >= 1e10 ? 0 : 1).replace(/\.0$/, '') + 'B';
+  if (n >= 999.5e3) return (n / 1e6).toFixed(n >= 1e8 ? 0 : 1).replace(/\.0$/, '') + 'M';
+  if (n >= 999.5) return Math.round(n / 1e3) + 'K';
   return String(Math.round(n));
 }

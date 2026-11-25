@@ -61,8 +61,10 @@ export function lineChoices(pot, slotId, tier, itemLevel, mainStat) {
       const c = classify(pot.lines[pid], itemLevel);
       // With the character's main stat known, the other three stat lines are not useful ones.
       const useful = mainStat === 'HP'
-        ? c.type === 'hp' || (USEFUL.has(c.type) && c.type !== 'main' && c.type !== 'allstat')
-        : USEFUL.has(c.type) && (c.type !== 'main' || !mainStat || isMainStat(c.stat, mainStat));
+        ? c.type === 'hp' || (USEFUL.has(c.type) && c.type !== 'main' && c.type !== 'allstat' && c.type !== 'matt')
+        : USEFUL.has(c.type) && (c.type !== 'main' || !mainStat || isMainStat(c.stat, mainStat))
+          // ATT % is no use to a magician, and Magic ATT % only to one.
+          && (c.type !== 'att' || mainStat !== 'INT') && (c.type !== 'matt' || !mainStat || mainStat === 'INT');
       return { pid, prime, text: lineText(pot.lines[pid], itemLevel), useful };
     })
     .sort((a, b) => Number(b.useful) - Number(a.useful));
@@ -100,12 +102,22 @@ export function refreshLines(pot, slotId, tier, itemLevel, potLines, opts = {}) 
 
 // After a character's main stat changes: every table-backed line on its gear is classified again under the new
 // rule (a STR line stops being a main-stat line for a Demon Avenger, and so on). Changes gearState in place.
-export function reclassifyLines(data, gearState, mainStat) {
+// Lines entered by hand before the tables (no pid) are moved between 'main' and 'offstat' by their stat; a
+// stat-less main line is first stamped with the old main stat (oldMainStat), which it was entered for.
+export function reclassifyLines(data, gearState, mainStat, oldMainStat) {
   if (!gearState || !gearState.slots) return;
+  const single = (ms) => ['STR', 'DEX', 'INT', 'LUK'].includes(ms);
   for (const slot of data.gear.slots) {
     const e = gearState.slots[slot.id];
     if (!e || !Array.isArray(e.potLines) || !e.pot) continue;
     const level = e.ilvl || (slot.type === 'ring' && (e.tier || 0) <= 1 ? 120 : 160);
-    e.potLines = refreshLines(data.potential, slot.id, e.pot, level, e.potLines, { mainStat, keepMissing: true });
+    e.potLines = refreshLines(data.potential, slot.id, e.pot, level, e.potLines, { mainStat, keepMissing: true }).map((l) => {
+      if (!l || !l.type || (l.pid !== undefined && l.pid !== null) || (l.type !== 'main' && l.type !== 'offstat')) return l;
+      const out = { ...l };
+      if (!out.stat && out.type === 'main' && single(oldMainStat)) out.stat = oldMainStat;
+      if (!out.stat) return out;
+      out.type = isMainStat(out.stat, mainStat) ? 'main' : 'offstat';
+      return out;
+    });
   }
 }

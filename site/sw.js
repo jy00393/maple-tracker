@@ -1,5 +1,5 @@
 // Offline support: network first (so updates show straight away), cached copy when there's no connection.
-const CACHE = 'maple-tracker-v3';
+const CACHE = 'maple-tracker-v4';
 const SHELL = ['./', './index.html', './styles.css', './manifest.webmanifest', './icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -29,7 +29,12 @@ self.addEventListener('fetch', (event) => {
       if (res && (res.ok || res.type === 'opaque')) {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        return res;
       }
+      // A server error (GitHub Pages mid-deploy, a 503) is worse than the last good copy, when there is one.
+      const hit = await caches.match(req, { ignoreSearch: url.origin === self.location.origin });
+      if (hit) return hit;
+      if (req.mode === 'navigate') { const shell = await caches.match('./index.html'); if (shell) return shell; }
       return res;
     } catch (err) {
       const hit = await caches.match(req, { ignoreSearch: url.origin === self.location.origin });

@@ -6,7 +6,7 @@ import { fmtLeft, fmtUtcTime, kstParts, nextReset } from './time.js';
 import { TodayPage } from './pages/today.js';
 import { EventsPage, countNewNews } from './pages/events.js';
 import { ChecklistPage } from './pages/checklist.js';
-import { BossesPage } from './pages/bosses.js';
+import { BossesPage, IncomeKeeper } from './pages/bosses.js';
 import { MesosPage } from './pages/mesos.js';
 import { ProgressPage } from './pages/progress.js';
 import { GearPage } from './pages/gear.js';
@@ -33,10 +33,22 @@ function currentRoute() {
   return ROUTES.some(([key]) => key === h) ? h : 'today';
 }
 
+// A pairing link from another device (Settings → Sync → Show QR). The token is taken out of the address bar and
+// history at once and handed to Settings, which asks before connecting. Runs on load and on every hash change, so
+// pasting the link into a tab that already has the tracker open works the same way.
+function takePairLink() {
+  const token = tokenFromHash(location.hash);
+  if (!token) return false;
+  history.replaceState(null, '', location.pathname + location.search + '#settings');
+  setPendingPair(token);
+  return true;
+}
+
 function useRoute() {
   const [route, setRoute] = useState(currentRoute());
   useEffect(() => {
     const onChange = () => {
+      takePairLink();
       setRoute(currentRoute());
       window.scrollTo(0, 0);
     };
@@ -136,18 +148,14 @@ function App({ data }) {
         </nav>
       </div>
     </header>
+    <${IncomeKeeper} data=${data} state=${state} />
     <main id="main"><${Page} data=${data} state=${state} /></main>
     <${BottomNav} route=${route} newNews=${newNews} />`;
 }
 
 async function boot() {
   const root = document.getElementById('app');
-  // A pairing link from another device (Settings → Sync → Show QR). Take the token out of the address bar at once.
-  const pairToken = tokenFromHash(location.hash);
-  if (pairToken) {
-    history.replaceState(null, '', location.pathname + location.search + '#settings');
-    setPendingPair(pairToken); // Settings asks before connecting
-  }
+  takePairLink();
   try {
     const data = await loadData();
     root.textContent = '';

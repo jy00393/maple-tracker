@@ -1,0 +1,20 @@
+{
+ "source": "MapleStory Wiki, each class's page (\"Main Stat\" in the class box), read 25 Nov 2026. Demon Avenger's main stat is Max HP; Xenon's is STR, DEX and LUK together.",
+ "sourceUrl": "https://maplestorywiki.net/w/Class",
+ "mainStat": {
+  "Hero": "STR", "Paladin": "STR", "Dark Knight": "STR",
+  "Bowmaster": "DEX", "Marksman": "DEX", "Pathfinder": "DEX",
+  "Fire/Poison Mage": "INT", "Ice/Lightning Mage": "INT", "Bishop": "INT",
+  "Night Lord": "LUK", "Shadower": "LUK", "Dual Blade": "LUK",
+  "Buccaneer": "STR", "Corsair": "DEX", "Cannoneer": "STR",
+  "Dawn Warrior": "STR", "Blaze Wizard": "INT", "Wind Archer": "DEX", "Night Walker": "LUK", "Thunder Breaker": "STR", "Mihile": "STR",
+  "Aran": "STR", "Evan": "INT", "Mercedes": "DEX", "Phantom": "LUK", "Luminous": "INT", "Shade": "STR",
+  "Battle Mage": "INT", "Wild Hunter": "DEX", "Mechanic": "DEX", "Blaster": "STR",
+  "Demon Slayer": "STR", "Demon Avenger": "HP", "Xenon": "XENON",
+  "Kaiser": "STR", "Angelic Buster": "DEX", "Cadena": "LUK", "Kain": "DEX",
+  "Hayato": "STR", "Kanna": "INT", "Beast Tamer": "INT",
+  "Adele": "STR", "Khali": "LUK", "Illium": "INT", "Ark": "STR",
+  "Lara": "INT", "Hoyoung": "LUK", "Ren": "STR", "Lynn": "INT", "Mo Xuan": "DEX", "Sia Astelle": "INT",
+  "Erel Light": "STR", "Zero": "STR", "Kinesis": "INT", "Lethe": "INT"
+ }
+}

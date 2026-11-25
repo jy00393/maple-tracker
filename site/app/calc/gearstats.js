@@ -67,11 +67,14 @@ export function starStats(sf, slot, itemLevel, stars, fromStar = 0) {
     const statRow = table.stat[s - 1];
     const attRow = table.att[s - 1];
     const stat = statRow ? statRow[Math.min(col, statRow.length - 1)] : null;
+    // A level with no column of its own (Lv. 250 weapons) borrows the highest one: a lower bound, so marked partial.
+    if (statRow && col > statRow.length - 1) out.partial = true;
     if (stat === null || stat === undefined) out.partial = true;
     else out.stat += stat;
     if (isWeapon && attRow === null) out.partial = true; // stars 1 to 15 on a weapon: needs base ATT
     else {
       const att = attRow ? attRow[Math.min(col, attRow.length - 1)] : null;
+      if (attRow && col > attRow.length - 1) out.partial = true;
       if (att === null || att === undefined) out.partial = true;
       else out.att += att;
     }
@@ -88,10 +91,13 @@ export function starDelta(sf, slot, itemLevel, from, to) {
 // ---------- set effects ----------
 // named: every item name that some set lists explicitly. Such an item belongs to that set only, so a loose
 // prefix ("Royal ", "Genesis ") never pulls "Royal Black Metal Shoulder" or "Genesis Badge" into another set.
-function inSet(set, name, named) {
+// level: the item's level when known (picked from the list); a set's minLevel keeps out lookalikes below it.
+function inSet(set, name, named, level) {
   const m = set.match || {};
   if (m.names) return m.names.includes(name);
   if (named.has(name)) return false;
+  if (m.exclude && m.exclude.some((p) => name.startsWith(p))) return false;
+  if (m.minLevel && level && level < m.minLevel) return false;
   if (m.prefixes && m.prefixes.some((p) => name.startsWith(p))) return true;
   if (m.all && m.all.every((w) => name.includes(w))) return true;
   return false;
@@ -106,7 +112,7 @@ export function detectSets(setsData, slots, gearState) {
     let count = 0;
     for (const slot of slots || []) {
       const e = ((gearState && gearState.slots) || {})[slot.id];
-      if (e && e.tier && e.note && inSet(set, String(e.note).trim(), named)) count++;
+      if (e && e.tier && e.note && inSet(set, String(e.note).trim(), named, Number(e.ilvl) || 0)) count++;
     }
     if (!count) continue;
     const bonus = { allStats: 0, att: 0, boss: 0, ied: 0, critDmg: 0 };

@@ -1,4 +1,4 @@
-import { html, useEffect, useState } from '../vendor/htm-preact.mjs';
+import { html, useEffect, useRef, useState } from '../vendor/htm-preact.mjs';
 
 export function useNow(intervalMs = 1000) {
   const [now, setNow] = useState(Date.now());
@@ -120,27 +120,54 @@ export function Modal({ title, onClose, children, footer, label }) {
 export function fmtBig(n) {
   if (!Number.isFinite(n)) return '—';
   const a = Math.abs(n);
-  if (a >= 1e12) return (n / 1e12).toFixed(a >= 1e13 ? 1 : 2).replace(/\.0+$/, '') + 'T';
-  if (a >= 1e9) return (n / 1e9).toFixed(a >= 1e10 ? 1 : 2).replace(/\.0+$/, '') + 'B';
-  if (a >= 1e6) return (n / 1e6).toFixed(a >= 1e8 ? 0 : 1).replace(/\.0$/, '') + 'M';
-  if (a >= 1e3) return Math.round(n / 1e3) + 'K';
+  // The unit is picked after rounding, so 999,999 reads 1M, not 1000K.
+  if (a >= 999.95e9) return (n / 1e12).toFixed(a >= 1e13 ? 1 : 2).replace(/\.0+$/, '') + 'T';
+  if (a >= 999.5e6) return (n / 1e9).toFixed(a >= 1e10 ? 1 : 2).replace(/\.0+$/, '') + 'B';
+  if (a >= 999.5e3) return (n / 1e6).toFixed(a >= 1e8 ? 0 : 1).replace(/\.0$/, '') + 'M';
+  if (a >= 999.5) return Math.round(n / 1e3) + 'K';
   return String(Math.round(n));
 }
 
+// The box shows the saved amount rounded ("45M"). Leaving it without typing changes nothing, so the exact number
+// is never replaced by the rounded one. Text it can't read puts the saved amount back; an empty box clears it.
 export function MesoInput({ value, onChange, label, placeholder = 'e.g. 1.5B' }) {
   const [text, setText] = useState(value ? fmtBig(value) : '');
-  useEffect(() => { setText(value ? fmtBig(value) : ''); }, [value]);
+  // Kept outside render state, so a blur right after typing (before a redraw) still sees the typing.
+  const edited = useRef(false);
+  useEffect(() => { setText(value ? fmtBig(value) : ''); edited.current = false; }, [value]);
   return html`<input class="input" inputmode="decimal" aria-label=${label} placeholder=${placeholder} value=${text}
-    onInput=${(e) => setText(e.currentTarget.value)}
-    onBlur=${() => { const v = parseMesos(text); onChange(v); setText(v ? fmtBig(v) : ''); }} />`;
+    onInput=${(e) => { setText(e.currentTarget.value); edited.current = true; }}
+    onBlur=${(e) => {
+      if (!edited.current) return;
+      edited.current = false;
+      const raw = e.currentTarget.value;
+      if (!String(raw).trim()) { onChange(null); setText(''); return; }
+      // Typed back to exactly what was shown (the rounded "45M"): the exact saved amount stays.
+      if (value && parseMesos(raw) === parseMesos(fmtBig(value))) { setText(fmtBig(value)); return; }
+      const v = parseMesos(raw);
+      if (v === null || v > MESO_MAX) { setText(value ? fmtBig(value) : ''); return; }
+      onChange(v);
+      setText(v ? fmtBig(v) : '');
+    }} />`;
 }
 
-// "1.5b", "450m", "2,000,000", "300k" -> mesos
+// The largest amount the tracker keeps (saved data is cleaned to this on load).
+export const MESO_MAX = 1e15;
+
+// "1.5b", "450m", "2,000,000", "300k", ".5b", "5.", "1.5 billion" -> mesos. null when it can't be read.
 export function parseMesos(text) {
-  const t = String(text || '').trim().toLowerCase().replace(/,/g, '').replace(/\s+/g, '');
+  let t = String(text || '').trim().toLowerCase().replace(/\s+/g, '');
   if (!t) return null;
-  const m = /^(\d+(?:\.\d+)?)([kmbt])?$/.exec(t);
+  // Commas: thousands separators ("2,000,000") are dropped; a single comma before one or two digits is a decimal
+  // comma ("3,2b" is 3.2B, not 32B); anything else is not read at all.
+  if (t.includes(',')) {
+    if (/^\d{1,3}(,\d{3})+(\.\d*)?[a-z]*$/.test(t)) t = t.replace(/,/g, '');
+    else if (/^\d+,\d{1,2}[a-z]*$/.test(t)) t = t.replace(',', '.');
+    else return null;
+  }
+  const m = /^(\d+(?:\.\d*)?|\.\d+)(k|m|b|t|thousand|million|billion|trillion)?$/.exec(t);
   if (!m) return null;
-  const mult = { k: 1e3, m: 1e6, b: 1e9, t: 1e12 }[m[2]] || 1;
-  return Math.round(parseFloat(m[1]) * mult);
+  const mult = { k: 1e3, m: 1e6, b: 1e9, t: 1e12, thousand: 1e3, million: 1e6, billion: 1e9, trillion: 1e12 }[m[2]] || 1;
+  const v = Math.round(parseFloat(m[1]) * mult);
+  return Number.isFinite(v) ? v : null;
 }

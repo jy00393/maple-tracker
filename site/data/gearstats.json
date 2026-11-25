@@ -160,13 +160,15 @@
   }
  },
  "sets": {
-  "note": "Each step is the bonus unlocked at that piece count; add up every step at or below the pieces you wear. IED steps multiply (10% and 10% make 19%). Only the stats the tracker uses are kept: All Stats, ATT, Boss Damage %, IED %, Critical Damage %. Lucky items are not counted. A set is recognised from the item name you picked.",
+  "note": "Each step is the bonus unlocked at that piece count; add up every step at or below the pieces you wear. IED steps multiply (10% and 10% make 19%). Only the stats the tracker uses are kept: All Stats, ATT, Boss Damage %, IED %, Critical Damage %. Lucky items are not counted. A set is recognised from the item name you picked. \"minLevel\" and \"exclude\" keep out items that share a name prefix but are not in the set (Royal Von Leon gear is Lv. 130, Eternal Flame Ring Lv. 120; set levels from the wiki set pages and items.json, checked 25 Nov 2026). \"Mitra's Rage\" and \"Cursed Spellbook\" are accepted without the class or colour, as pitched.json names them.",
   "list": [
    {
     "id": "cra",
     "name": "Root Abyss Set",
     "total": 4,
     "match": {
+     "minLevel": 150,
+     "exclude": ["Royal Von Leon ", "Royal All Stat Badge", "Royal Oaken Staff"],
      "prefixes": [
       "Royal ",
       "Eagle Eye ",
@@ -261,6 +263,8 @@
     "name": "Eternal Set",
     "total": 8,
     "match": {
+     "minLevel": 200,
+     "exclude": ["Eternal Flame Ring", "Eternal Magnum"],
      "prefixes": [
       "Eternal ",
       "Genesis ",
@@ -423,7 +427,9 @@
       "Mitra's Rage: Bowman",
       "Mitra's Rage: Pirate",
       "Mitra's Rage: Magician",
-      "Mitra's Rage: Thief"
+      "Mitra's Rage: Thief",
+      "Mitra's Rage",
+      "Cursed Spellbook"
      ]
     },
     "steps": {

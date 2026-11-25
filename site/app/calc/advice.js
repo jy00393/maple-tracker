@@ -13,6 +13,15 @@ export function itemLevel(slot, entry) {
   return slot.type === 'ring' && (entry.tier || 0) <= 1 ? 120 : 160;
 }
 
+// The Star Force and cube tables with the cube tier-up odds the player typed in on Mesos > Cubes (state.mesos.
+// cubeRates), so every page uses the same estimate.
+export function withCubeRates(up, rates) {
+  if (!rates || typeof rates !== 'object') return up;
+  const types = { ...up.cubes.types };
+  for (const [id, r] of Object.entries(rates)) if (types[id] && Array.isArray(r) && r.length === 3) types[id] = { ...types[id], tierUp: r };
+  return { ...up, cubes: { ...up.cubes, types } };
+}
+
 // Expected cost to bring a slot to its target: Star Force (normal day and Sunny Sunday) and Bright Cube tier-ups.
 export function slotOutlook(slot, entry, target, up) {
   const out = { temporary: Boolean(entry.temporary) };
@@ -41,7 +50,7 @@ export function slotOutlook(slot, entry, target, up) {
 // With gearStats (data/gearstats.json) and the character's own stats, Star Force options also get
 // dmg: the estimated damage gain as a fraction, and dmgPartial when part of the gain is unknown.
 export function upgradeOptions(gearData, gearState, up, gearStats, stats, flameCtx) {
-  const sum = gearSummary(gearData, gearState);
+  const sum = gearSummary(gearData, gearState, (flameCtx && flameCtx.mainStat) || 'STR');
   const totalWeight = sum.slots.reduce((a, s) => a + s.slot.weight, 0) || 1;
   const out = flameCtx && flameCtx.fl ? flameOptions(gearData, gearState, flameCtx.fl, flameCtx.mainStat, stats, flameCtx.weights) : [];
   for (const r of sum.gaps) {
@@ -87,7 +96,9 @@ export function flameOptions(gearData, gearState, fl, mainStat = 'STR', stats, c
     const dist = scoreDist(fl, { level: itemLevel(slot, entry), mainStat, type: reset.id, advantaged: entry.flameAdv !== false, weights });
     let chance = 0;
     let extra = 0;
-    for (const [score, p] of dist) if (score > now) { chance += p; extra += p * (score - now); }
+    // "Better" means at least one whole point higher, the same target the Flame calculator sets for this item.
+    const goal = Math.floor(now) + 1;
+    for (const [score, p] of dist) if (score >= goal) { chance += p; extra += p * (score - now); }
     if (!(chance > 0)) continue;
     const gainScore = extra / chance;
     const dmg = damageGain(stats, { main: gainScore });
@@ -112,5 +123,7 @@ export function affordableAt(cost, held, weekly, now) {
   const short = cost - (held || 0);
   if (short <= 0) return now;
   if (!(weekly > 0)) return null;
-  return now + (short / weekly) * 7 * DAY;
+  const at = now + (short / weekly) * 7 * DAY;
+  // More than a hundred years away: Infinity, so the page can say "not in reach" rather than "add your income".
+  return at - now <= 100 * 365.25 * DAY ? at : Infinity;
 }

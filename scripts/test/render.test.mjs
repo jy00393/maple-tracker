@@ -27,12 +27,19 @@ const PAGES = {
 };
 
 const load = (name, fallback = null) => { try { return JSON.parse(readFileSync(dataFile(`${name}.json`), 'utf8')); } catch { return fallback; } };
+// Nexon's own post titles can contain words the page checks look for (an event called "Infinity Festival"). The
+// feed files are refreshed every 6 hours, so those words are blanked out here: the checks are about our code.
+const feed = (name) => { const raw = load(name); return raw && JSON.parse(JSON.stringify(raw).replace(/undefined|NaN|Infinity|\[object/g, 'X')); };
+// A copy of a data file with every ISO date moved by `ms`.
+function shiftDates(obj, ms) {
+  return JSON.parse(JSON.stringify(obj), (k, v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v) ? new Date(Date.parse(v) + ms).toISOString() : v));
+}
 function loadData(overrides = {}) {
   const data = {
     bosses: load('bosses'), symbols: load('symbols'), liberation: load('liberation'), ibp: load('ibp'), checklist: load('checklist'),
     gear: load('gear'), erda: load('erda'), upgrades: load('upgrades'), potential: load('potential'), gearStats: load('gearstats'),
-    events: load('events'), news: load('news'), nexonCharacters: load('characters'), meta: load('meta'), tables: load('tables'), season: load('season'),
-    pitched: load('pitched'), shops: load('shops'), flames: load('flames'), champions: load('champions'), expSources: load('expsources'), upcoming: load('upcoming'), bossCp: load('bosscp'),
+    events: feed('events'), news: feed('news'), nexonCharacters: load('characters'), meta: load('meta'), tables: load('tables'), season: load('season'),
+    pitched: load('pitched'), shops: load('shops'), flames: load('flames'), champions: load('champions'), expSources: load('expsources'), upcoming: load('upcoming'), bossCp: load('bosscp'), classes: load('classes'),
     ...overrides
   };
   data.events = data.events || { events: [] };
@@ -85,10 +92,17 @@ async function renderAll(label, data = DATA) {
 }
 
 const now = Date.now();
-const today = periodKey('daily', now);
-const week = periodKey('thu', now);
+// The reset keys are recomputed whenever a test state is built, so a run that crosses a reset (00:00 UTC) stays
+// consistent. `now` stays fixed so two calls build identical states.
+let today = periodKey('daily', now);
+let week = periodKey('thu', now);
+function freshKeys() {
+  today = periodKey('daily', Date.now());
+  week = periodKey('thu', Date.now());
+}
 
 function richState() {
+  freshKeys();
   const pot = DATA.potential;
   const find = (text) => pot.lines.findIndex((l) => l[0] === text);
   return {
@@ -146,6 +160,7 @@ function richState() {
 
 // The state as the very first version saved it: no stamps, no per-character ticks, lines without pid.
 function firstVersionState() {
+  freshKeys();
   return {
     v: 1,
     characters: [{ id: 'old1', name: 'Oldie', cls: 'Erel Light', level: 264, world: 'heroic', challenger: true }],
@@ -199,7 +214,10 @@ test('every page renders when optional data files are missing', async () => {
 
 test('Today shows the right things for the right character', async () => {
   store.replaceState(richState(), true);
-  let el = await show('today');
+  // The season card only shows before the season's last deadline, so this uses a season that is still running.
+  const season = load('season');
+  const running = loadData({ season: shiftDates(season, Date.now() + 30 * 86400000 - Date.parse(season.ends)) });
+  let el = await show('today', running);
   let text = el.text.replace(/\s+/g, ' ');
   assert.match(text, /Today · Main/);
   assert.match(text, /Challenger World Season 4 ends/);
@@ -207,7 +225,7 @@ test('Today shows the right things for the right character', async () => {
   assert.match(text, /Core dailies/i);
   close(el);
   store.update((s) => { s.activeId = 'mule'; });
-  el = await show('today');
+  el = await show('today', running);
   text = el.text.replace(/\s+/g, ' ');
   assert.match(text, /Today · Mule/);
   assert.doesNotMatch(text, /Season 4 ends/, 'the season card is only for Challenger characters');
@@ -620,6 +638,204 @@ test('Mesos calculators show the 50 to 95% spread, and Gear ranks a flame reroll
   close(gear);
 });
 
+test('a setting edit stamps only that setting, so entries added on another device are kept', async () => {
+  const { mergeStates } = await import('../../site/app/calc/merge.js');
+  store.replaceState(richState(), true);
+  const start = structuredClone(store.getState());
+  store.update((s) => { s.ui.bossMargin = 2; s.mesos.held = 7; });
+  const st = store.getState().stamps;
+  assert.ok(st['ui/bossMargin'] > 0 && st['mesos/held'] > 0);
+  assert.notEqual(st.ui, st['ui/bossMargin'], 'the old whole-part stamp is not moved');
+  // The other device added a goal and hid an event before this device's edit: both survive the merge.
+  const other = structuredClone(start);
+  other.mesos.goals.push({ id: 'gx', name: 'Other', cost: 5 });
+  other.ui.hiddenEvents = { ...(other.ui.hiddenEvents || {}), ex: true };
+  other.stamps = { ...other.stamps, 'mesos/goals/gx': st['mesos/held'] - 1000, 'mesos/goalOrder': st['mesos/held'] - 1000, 'ui/hiddenEvents/ex': st['mesos/held'] - 1000 };
+  other.updatedAt = st['mesos/held'] - 1000;
+  for (const m of [mergeStates(store.getState(), other), mergeStates(other, store.getState())]) {
+    assert.ok(m.mesos.goals.some((g) => g.id === 'gx'));
+    assert.equal(m.ui.hiddenEvents.ex, true);
+    assert.equal(m.mesos.held, 7);
+    assert.equal(m.ui.bossMargin, 2);
+  }
+  // Clear all data leaves no change times at all, so a reconnect downloads the synced copy.
+  store.resetState();
+  assert.deepEqual(store.getState().stamps, {});
+  assert.equal(store.getState().updatedAt, 0);
+  assert.equal(store.getState().characters.length, 0);
+});
+
+test('meso boxes keep the exact amount unless you type, and put it back when the text makes no sense', async () => {
+  const { MesoInput, parseMesos } = await import('../../site/app/ui.js');
+  const got = [];
+  const el = new FakeNode('div');
+  mounted.push(el);
+  render(html`<${MesoInput} label="Amount" value=${44960000} onChange=${(v) => got.push(v)} />`, el);
+  await tick(5);
+  const box = el.find((n) => n.localName === 'input');
+  assert.equal(box.attrs.value ?? box.value, '45M');
+  box.fire('blur', { currentTarget: box });
+  await tick(5);
+  assert.deepEqual(got, [], 'leaving without typing saves nothing');
+  for (const same of ['45m', '45 M', '45M']) {
+    box.value = same;
+    box.fire('input', { currentTarget: box });
+    box.fire('blur', { currentTarget: box });
+    await tick(5);
+  }
+  assert.deepEqual(got, [], 'retyping the shown amount in any form keeps the exact one');
+  box.value = 'abc';
+  box.fire('input', { currentTarget: box });
+  box.fire('blur', { currentTarget: box });
+  await tick(5);
+  assert.deepEqual(got, [], 'unreadable text is not saved');
+  box.value = '1.5 billion';
+  box.fire('input', { currentTarget: box });
+  box.fire('blur', { currentTarget: box });
+  await tick(5);
+  assert.deepEqual(got, [1.5e9]);
+  box.value = '';
+  box.fire('input', { currentTarget: box });
+  box.fire('blur', { currentTarget: box });
+  await tick(5);
+  assert.deepEqual(got, [1.5e9, null], 'an emptied box clears the amount');
+  close(el);
+  assert.equal(parseMesos('.5b'), 5e8);
+  assert.equal(parseMesos('5.'), 5);
+  assert.equal(parseMesos('1e9'), null);
+});
+
+test('Use this list respects party picks and no-crystal bosses, and matches once pressed', async () => {
+  const s = richState();
+  s.characters.find((c) => c.id === 'main').cp = 45e6;
+  s.bosses.main.picks = { 'lotus-normal': { party: 3 }, 'kai-normal': { party: 1 }, 'lucid-hard': { party: 1 } };
+  store.replaceState(s, true);
+  let el = await show('bosses');
+  el.find((n) => n.localName === 'button' && n.text.trim() === 'Use this list').fire('click');
+  await tick(5);
+  const picks = store.getState().bosses.main.picks;
+  assert.deepEqual(picks['lotus-normal'], { party: 3 }, 'the party Lotus stays');
+  assert.equal(picks['lotus-hard'], undefined, 'and no second Lotus is added');
+  assert.ok(picks['kai-normal'], 'Kai (no crystal) is left alone');
+  close(el);
+  el = await show('bosses');
+  assert.match(el.text.replace(/\s+/g, ' '), /Your list matches this/);
+  close(el);
+});
+
+test('Progress pages: weekly symbols shown, level from Characters, gates from today, and below Lv. 260', async () => {
+  const s = richState();
+  s.ui = { ...(s.ui || {}), progressView: 'symbols' };
+  store.replaceState(s, true);
+  let el = await show('progress');
+  assert.match(el.text.replace(/\s+/g, ' '), /Per week/);
+  assert.ok(el.find((n) => n.attrs['aria-label'] === 'Chu Chu Island symbols per week'));
+  close(el);
+  // The main character is Lv. 264 with no log; a level typed later is used for the gates.
+  store.update((x) => { x.ui.progressView = 'level'; x.characters.find((c) => c.id === 'main').level = 268; });
+  el = await show('progress');
+  let t = el.text.replace(/\s+/g, ' ');
+  assert.match(t, /Lv\. 268 · 0\.00%/);
+  assert.match(t, /from Characters/);
+  close(el);
+  // A Lv. 210 character is told where the EXP figures start, not that it is past them.
+  store.update((x) => { x.activeId = 'mule'; });
+  el = await show('progress');
+  t = el.text.replace(/\s+/g, ' ');
+  assert.match(t, /EXP figures start at Lv\. 260/);
+  assert.doesNotMatch(t, /past the EXP table/);
+  close(el);
+});
+
+test('level gates: days count from today, a passed date says "due", and Beyond Burning stops at its end', async () => {
+  const { levelOutlook } = await import('../../site/app/pages/level.js');
+  const nowT = Date.parse('2026-11-25T00:00:00Z');
+  const char = { id: 'c', level: 264, beyondBurning: true };
+  const reading = (daysAgo, level, pct) => ({ t: nowT - daysAgo * 86400000, level, pct });
+  const st = { level: { c: { log: [reading(10, 264, 10), reading(8, 264, 70)] } } };
+  const data = { ...DATA, events: { events: [{ title: 'Beyond Burning', end: '2027-02-09T23:59:00Z' }] } };
+  const o = levelOutlook(data, st, char, nowT);
+  const g265 = o.gates.find((g) => g.level === 265);
+  assert.ok(g265.due, 'the reading eight days ago says Lv. 265 should already be reached');
+  assert.equal(g265.days, 0);
+  assert.equal(o.burnUntil, Date.parse('2027-02-09T23:59:00Z'));
+  // After the event ends, gates are worked out without the free levels.
+  const later = levelOutlook(data, { level: { c: { log: [reading(-80, 266, 0), reading(-81, 266, 50)] } } }, char, Date.parse('2027-02-20T00:00:00Z'));
+  assert.equal(later.beyond, false);
+});
+
+test('deleting a mistyped reading puts the level back to the latest real one, Nexon readings included', async () => {
+  const s = richState();
+  const main = s.characters.find((c) => c.id === 'main');
+  main.level = 284; // the typo, set by "Log it"
+  s.level = { main: { log: [{ t: Date.now() - 1000, level: 284, pct: 10 }] } };
+  s.ui = { ...(s.ui || {}), progressView: 'level' };
+  store.replaceState(s, true);
+  const data = loadData({ nexonCharacters: { characters: [{ name: 'Main', level: 264, history: [{ t: Date.now() - 86400000, level: 263, exp: 0 }, { t: Date.now() - 3600000, level: 264, exp: 0 }] }] } });
+  const el = await show('progress', data);
+  el.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'Delete this reading').fire('click');
+  await tick(5);
+  assert.equal(store.getState().characters.find((c) => c.id === 'main').level, 264);
+  close(el);
+});
+
+test('Today saves the week to income history through the app-wide keeper', async () => {
+  const { IncomeKeeper } = await import('../../site/app/pages/bosses.js');
+  const s = richState();
+  s.incomeHistory = {};
+  store.replaceState(s, true);
+  const el = new FakeNode('div');
+  mounted.push(el);
+  render(html`<${IncomeKeeper} data=${DATA} state=${store.getState()} />`, el);
+  assert.ok(await until(() => Object.keys(store.getState().incomeHistory).length === 1), 'a week is saved without opening Bosses');
+  close(el);
+});
+
+test('deleting the only character removes its old-format ticks but keeps account-wide ones', async () => {
+  const s = firstVersionState();
+  s.checklist.items['w-mayrin'] = { p: week, d: 1 }; // account-wide
+  store.replaceState(s, true);
+  assert.equal(store.getState().checklist.owner, 'old1');
+  const el = await show('characters');
+  el.find((n) => n.localName === 'button' && n.text.trim() === 'Delete').fire('click');
+  await tick(5);
+  el.find((n) => n.localName === 'button' && n.text.trim() === 'Delete for good').fire('click');
+  await tick(5);
+  const after = store.getState().checklist;
+  assert.deepEqual(Object.keys(after.items), ['w-mayrin']);
+  assert.deepEqual(after.flags, {});
+  assert.equal(after.owner, null);
+  close(el);
+});
+
+test('small wording fixes: Item Burning out of reach, last shop day, tiny flame chances, Demon Avenger stars', async () => {
+  const s = richState();
+  s.ui = { ...(s.ui || {}), progressView: 'ibp', eventsView: 'shops', mesosView: 'flames', flameCalc: { level: 200, target: 400, type: 'black', adv: true } };
+  s.ibp = { main: { done: {}, crests: 0 } };
+  store.replaceState(s, true);
+  const soon = new Date(Date.now() + 10 * 86400000).toISOString();
+  let el = await show('progress', loadData({ ibp: { ...load('ibp'), endsAt: soon, weeklyCrests: 10 } }));
+  assert.match(el.text.replace(/\s+/g, ' '), /left before it ends: out of reach/);
+  close(el);
+  const shops = JSON.parse(readFileSync(fileURLToPath(new URL('./fixtures/shops.json', import.meta.url)), 'utf8'));
+  shops.shops[0].end = new Date(Date.now() + 5 * 3600000).toISOString();
+  el = await show('events', loadData({ shops }));
+  const t = el.text.replace(/\s+/g, ' ');
+  assert.match(t, /closes (today|tomorrow)/);
+  assert.doesNotMatch(t, /1 days/);
+  close(el);
+  el = await show('mesos');
+  const f = el.text.replace(/\s+/g, ' ');
+  assert.doesNotMatch(f, /\de-\d/, 'no exponent form');
+  close(el);
+  store.update((x) => { x.activeId = 'da'; x.ui.mesosView = 'planner'; });
+  el = await show('gear');
+  el.find((n) => n.localName === 'button' && n.attrs['aria-label'] === 'Hat: edit').fire('click');
+  await tick(5);
+  assert.match(el.text.replace(/\s+/g, ' '), /Stars give each stat \(not Max HP\)/);
+  close(el);
+});
+
 // A seeded generator so a failure can be reproduced.
 function rng(seed) { let x = seed >>> 0; return () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; }; }
 const JUNK = [null, undefined, -1, 0, 1e15, NaN, 'abc', '', [], {}, true];
@@ -751,6 +967,7 @@ test('the old shared checklist gets one owner, once', async () => {
   // A brand-new tracker: ticks made before the first character belong to that character.
   const { applySetup } = await import('../../site/app/calc/setup.js');
   store.replaceState(store.blankState(), true);
+  freshKeys();
   store.update((x) => { x.checklist.items['d-coupon'] = { p: today, d: 1 }; });
   store.update((x) => { applySetup(x, { name: 'First', level: 264 }, [], 'first'); });
   assert.equal(store.getState().checklist.owner, 'first');

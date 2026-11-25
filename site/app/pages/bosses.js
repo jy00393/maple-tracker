@@ -7,7 +7,14 @@ import { PitchedCard } from './pitched.js';
 import { CombatPowerCard } from './bosscp.js';
 import { reach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
 
-// Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart.
+// Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart. Mounted
+// once for the whole app (main.js), so a clear ticked on any page is saved.
+export function IncomeKeeper({ data, state }) {
+  const now = useNow(60000);
+  const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
+  return html`<${IncomeRecorder} income=${income} state=${state} now=${now} />`;
+}
+
 function IncomeRecorder({ income, state, now }) {
   const key = dayKey(crystalWeekStart(now));
   const earned = income.worlds.reduce((a, w) => a + (w.earnedTotal || 0), 0);
@@ -35,13 +42,17 @@ function blankBosses() {
   return { picks: {}, clears: {} };
 }
 
-export function toggleClear(charId, boss, now) {
+// The period comes from the moment of the click, not from when the page last redrew (up to 30 s earlier), so a
+// tick just after a reset lands in the new period. A monthly mark keeps the time, so its crystal counts in the
+// week it was cleared.
+export function toggleClear(charId, boss) {
   update((s) => {
+    const t = Date.now();
     const b = charSlice(s, 'bosses', charId, blankBosses);
-    const key = clearKey(boss, now);
+    const key = clearKey(boss, t);
     const marks = (b.clears[boss.id] = b.clears[boss.id] || {});
     if (marks[key]) delete marks[key];
-    else marks[key] = true;
+    else marks[key] = boss.reset === 'monthly' ? t : true;
     // keep only recent marks
     const keys = Object.keys(marks).sort();
     while (keys.length > 12) delete marks[keys.shift()];
@@ -76,7 +87,7 @@ function ThisWeek({ char, income, data, now }) {
             ${l.boss.noCrystal ? html` <span class="small muted">no crystal</span>` : null}
             ${over ? html` <span class="small muted">over the ${cap}-crystal cap</span>` : null}</td>
           <td class="num">${l.value ? fmtMesos(l.value) : '—'}</td>
-          <td class="num">${l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared ? 'Cleared' : '—'}</td>
+          <td class="num">${l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared ? 'Cleared' : l.clearedNow ? 'Earlier this month' : '—'}</td>
         </tr>`;
       })}
     </tbody>
@@ -119,7 +130,9 @@ function Picker({ char, data, picks, margin }) {
 }
 
 export function BossesPage({ data, state }) {
-  const now = useNow(30000);
+  // Redrawn every 30 s, but each draw uses the current time, the same clock a tick uses.
+  useNow(30000);
+  const now = Date.now();
   const char = activeCharacter(state);
   if (!char) return html`<${PageHead} title="Bosses" /><${Card} title="Add a character first"><p class="note">Bosses, income and progress are tracked per character. <a href="#characters">Add your character</a> to start.</p><//>`;
   const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
@@ -129,7 +142,6 @@ export function BossesPage({ data, state }) {
   const cap = data.bosses.limits.weeklyPerCharacter;
   return html`
     <${PageHead} title="Bosses">${char.name}: tick clears as you go. The crystal week resets Thursday 09:00 KST; only your ${cap} best weekly crystals sell.<//>
-    <${IncomeRecorder} income=${income} state=${state} now=${now} />
     ${char.quanah ? html`<p class="warnbox">Quanah World Leap characters can't sell boss crystals, so income shows zero.</p>` : null}
     <div class="tiles">
       <${Tile} k="Earned this week" v=${fmtMesos(mine.earned)} s=${`of ${fmtMesos(mine.planned)} planned`} accent />

@@ -33,10 +33,12 @@ function fold(line) {
   return parts.join('\r\n ');
 }
 
+// Each part of a reset's summary lasts until its event ends (dates from site/data/checklist.json "until"), so the
+// feed stops naming Specter Blast or the Challenger World items once they are over.
 const RESETS = [
-  ['weekly-thu', '2026-11-19T00:00:00Z', 'Weekly reset: bosses, crystals, Challenger Pass, Item Burning crests'],
-  ['weekly-wed', '2026-11-18T00:00:00Z', 'Weekly reset: Challenger World missions, Specter Blast, Shadow Bounties records'],
-  ['weekly-mon', '2026-11-16T00:00:00Z', 'Weekly reset: weekly quests']
+  ['weekly-thu', '2026-11-19T00:00:00Z', [['bosses', null], ['crystals', null], ['Challenger Pass', '2027-02-09T23:59:00Z'], ['Item Burning crests', '2027-02-09T23:59:00Z']]],
+  ['weekly-wed', '2026-11-18T00:00:00Z', [['Challenger World missions', '2027-02-09T23:59:00Z'], ['Specter Blast', '2026-12-15T23:59:00Z'], ['Shadow Bounties records', '2027-02-09T23:59:00Z']]],
+  ['weekly-mon', '2026-11-16T00:00:00Z', [['weekly quests', null]]]
 ];
 
 export function buildCalendar(rawEvents, now = Date.now()) {
@@ -64,7 +66,10 @@ export function buildCalendar(rawEvents, now = Date.now()) {
         `SUMMARY:${esc('Starts: ' + e.title)}`, `DESCRIPTION:${esc(desc)}`, `URL:${e.url}`, 'END:VEVENT');
     }
   }
-  for (const [id, first, summary] of RESETS) {
+  for (const [id, first, parts] of RESETS) {
+    const live = parts.filter(([, until]) => !until || Date.parse(until) > now).map(([text]) => text);
+    if (!live.length) continue;
+    const summary = `Weekly reset: ${live.join(', ')}`;
     L.push('BEGIN:VEVENT', `UID:${id}@maple-tracker`, `DTSTAMP:${stamp(Date.parse(first))}`, `DTSTART:${stamp(Date.parse(first))}`, 'DURATION:PT15M',
       'RRULE:FREQ=WEEKLY', `SUMMARY:${esc(summary)}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
   }

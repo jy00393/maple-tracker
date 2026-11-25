@@ -5,7 +5,7 @@
 // On any network error it keeps the previous files and records the error in meta.json.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { parsePost, postUrl, findRanked, findSunnySchedule } from './lib/nexon-parse.mjs';
+import { parsePost, postUrl, findRanked, findSunnySchedule, wantsDetail } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
 import { findShops, mergeShops } from './lib/shops.mjs';
 import { WZ_URL, ITEMS_URL, MIN_LEVEL, ITEMS_SCHEMA, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
@@ -23,11 +23,10 @@ const HEADERS = {
 };
 
 const DAY = 86400000;
-const DETAIL_CATEGORIES = new Set(['events', 'update', 'sale', 'general', 'maintenance']);
 const MAX_DETAIL_FETCHES = 30;
 const NEWS_KEEP = 150;
 // Raise this when the parser learns something new, so cached posts are read again (a few per run).
-const PARSER_VERSION = 3;
+const PARSER_VERSION = 4;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -72,14 +71,6 @@ async function writeJsonIfChanged(name, value) {
   return true;
 }
 
-function wantsDetail(post, now) {
-  if (!DETAIL_CATEGORIES.has(post.category)) return false;
-  if (post.isMSCW) return false; // Classic World posts are listed but not parsed
-  const age = now - Date.parse(post.liveDate);
-  if (post.category === 'maintenance') return age < 21 * DAY && /^\[(scheduled|completed|updated|unscheduled)/i.test(post.name);
-  return age < 150 * DAY;
-}
-
 async function updateNewsAndEvents(errors) {
   const now = Date.now();
   const list = await getJson(LIST_URL);
@@ -103,17 +94,23 @@ async function updateNewsAndEvents(errors) {
   const cache = await readJson('posts.json', { posts: {} });
   const posts = cache.posts || {};
   const candidates = list.filter((p) => wantsDetail(p, now));
+  // Every request counts toward the cap and is spaced out, failed ones included, so a blocked run backs off
+  // instead of firing one request per post; three failures in a row stop the loop.
   let fetched = 0;
+  let attempts = 0;
+  let failedInRow = 0;
   for (const post of candidates) {
     const cached = posts[post.id];
     const recent = now - Date.parse(post.liveDate) < 10 * DAY;
     const stale = !cached || cached.pv !== PARSER_VERSION || cached.name !== post.name || (recent && now - Date.parse(cached.fetchedAt || 0) > 5 * 3600000);
     if (!stale) continue;
-    if (fetched >= MAX_DETAIL_FETCHES) break;
+    if (attempts >= MAX_DETAIL_FETCHES || failedInRow >= 3) break;
     try {
-      if (fetched > 0) await sleep(500);
+      if (attempts > 0) await sleep(500);
+      attempts++;
       const detail = await getJson(POST_URL(post.id));
       fetched++;
+      failedInRow = 0;
       posts[post.id] = {
         name: post.name,
         category: post.category,
@@ -126,6 +123,7 @@ async function updateNewsAndEvents(errors) {
         shops: post.category === 'update' || post.category === 'events' ? findShops(detail.body || '', post) : []
       };
     } catch (err) {
+      failedInRow++;
       errors.push(`post ${post.id}: ${err.message}`);
     }
   }

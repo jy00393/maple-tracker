@@ -32,7 +32,47 @@ export function dedupeEvents(events) {
     keep.resets = [...new Set([...(keep.resets || []), ...(drop.resets || [])])];
     byKey.set(key, keep);
   }
-  return [...byKey.values()];
+  const fold = (keep, drop) => {
+    const ids = new Set([String(keep.postId)]);
+    keep.alsoIn = [...(keep.alsoIn || []), { postId: drop.postId, postName: drop.postName, url: drop.url }, ...(drop.alsoIn || [])].filter((p) => !ids.has(String(p.postId)) && ids.add(String(p.postId)));
+    keep.resets = [...new Set([...(keep.resets || []), ...(drop.resets || [])])];
+    return keep;
+  };
+  const titleOf = (e) => eventKey({ ...e, start: '', end: '' });
+  let list = [...byKey.values()];
+  // One post can give a start ("(End of Maintenance)") where another gives none: same title and end, so the same
+  // event; the copy with the start is kept.
+  const withStart = new Map(list.filter((e) => e.start).map((e) => [`${titleOf(e)}|${e.end}`, e]));
+  list = list.filter((e) => {
+    if (e.start) return true;
+    const twin = withStart.get(`${titleOf(e)}|${e.end}`);
+    if (!twin) return true;
+    fold(twin, e);
+    return false;
+  });
+  // A later post that corrects an end date gives the same event (title and start) a second window: only the
+  // newest post's window is kept. That is only done when every post in the group has one window for it; a post
+  // with two windows for one title and start (a 2-week and a season-long pass) lists different offers, so the
+  // group is left alone. Recurring events have different starts and never meet here.
+  const groups = new Map();
+  for (const e of list) {
+    const key = e.start ? `${titleOf(e)}|${e.start}` : Symbol('no start');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(e);
+  }
+  const out = [];
+  for (const g of groups.values()) {
+    // Posts behind each window, including copies already folded into it above.
+    const seen = new Set();
+    let repeated = false;
+    for (const e of g) for (const id of new Set([String(e.postId), ...(e.alsoIn || []).map((p) => String(p.postId))])) { if (seen.has(id)) repeated = true; seen.add(id); }
+    if (g.length === 1 || repeated) { out.push(...g); continue; }
+    // Across kinds the dedicated post wins (as above); within a kind the newer post, which carries the correction.
+    const winner = g.reduce((w, e) => (rank(e) !== rank(w) ? (better(e, w) ? e : w) : Date.parse(e.liveDate || 0) > Date.parse(w.liveDate || 0) ? e : w));
+    for (const e of g) if (e !== winner) fold(winner, e);
+    out.push(winner);
+  }
+  return out;
 }
 
 // Today's "Ending soon" list: live events ending within the horizon, soonest first. Cash Shop sales and events

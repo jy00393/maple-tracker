@@ -63,6 +63,9 @@ export function erdaNextSteps(template, entry = {}, count = 3) {
   const levels = entry.levels || {};
   const steps = entry.steps || {};
   const out = [];
+  // A later step for the same node starts where the earlier one ends (Lv. 10 → 20, not 0 → 20), so costs added
+  // up over the steps never count the same levels twice.
+  const planned = {};
   for (const [id, target] of template.order) {
     if (id === 'step') {
       if (!steps[target]) {
@@ -70,11 +73,12 @@ export function erdaNextSteps(template, entry = {}, count = 3) {
         out.push({ id: `step-${target}`, label: step ? step.label : target });
       }
     } else {
-      const have = levels[id] || 0;
+      const have = Math.max(levels[id] || 0, planned[id] || 0);
       if (have < target) {
         const node = template.nodes.find((n) => n.id === id);
         out.push({ id: `${id}-${target}`, node: id, from: have, to: target, label: `${node ? node.name : id}: Lv. ${have} → ${target}` });
       }
+      planned[id] = Math.max(have, target);
     }
     if (out.length >= count) break;
   }
@@ -123,11 +127,11 @@ export function slotProgress(entry = {}, target, tierNames = []) {
   return { pct, parts, gaps };
 }
 
-export function gearSummary(gearData, gearState = {}) {
+export function gearSummary(gearData, gearState = {}, mainStat = 'STR') {
   const preset = gearData.presets[gearState.preset || 'mid'] || gearData.presets.mid;
   const slots = gearData.slots.map((slot) => {
     const stored = (gearState.slots || {})[slot.id] || {};
-    const entry = Array.isArray(stored.potLines) ? { ...stored, lines: usefulLines(slot, stored) } : stored;
+    const entry = Array.isArray(stored.potLines) ? { ...stored, lines: usefulLines(slot, stored, mainStat) } : stored;
     const tierNames = gearData.slotTypes[slot.type].filter(Boolean);
     const target = slotTargets(slot, preset, entry.target || {});
     target.tier = Math.min(target.tier, tierNames.length);
