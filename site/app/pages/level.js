@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, charSlice } from '../store.js';
-import { Card, NumberInput, Empty, fmtBig } from '../ui.js';
+import { Card, NumberInput, Empty, fmtBig, plural } from '../ui.js';
 import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtKst } from '../time.js';
@@ -195,18 +195,18 @@ export function ErdaCosts({ data, char, entry, template }) {
     const weeks = Math.max(weekly.sol > 0 ? shortSol / weekly.sol : shortSol ? Infinity : 0, weekly.frag > 0 ? shortFrag / weekly.frag : shortFrag ? Infinity : 0);
     return { st, known, origin: st.node === 'origin', weeks, ready: known && shortSol === 0 && shortFrag === 0 };
   });
-  return html`<${Card} title="Sol Erda planner" meta=${`${entry.solErda || 0} Sol Erda · ${entry.fragments || 0} Fragments held`}>
+  return html`<${Card} title="Sol Erda planner" meta=${`${entry.solErda || 0} Sol Erda · ${entry.fragments || 0} ${plural(entry.fragments || 0, 'Fragment')} held`}>
     <div class="form-grid">
       <label class="field"><span>Sol Erda a week</span><${NumberInput} className="input" label="Sol Erda per week" value=${weekly.sol} max=${999} onChange=${(v) => set((e) => { e.weekly = { ...weekly, sol: v || 0 }; })} /></label>
       <label class="field"><span>Fragments a week</span><${NumberInput} className="input" label="Fragments per week" value=${weekly.frag} max=${99999} onChange=${(v) => set((e) => { e.weekly = { ...weekly, frag: v || 0 }; })} /></label>
     </div>
     ${rows.length ? rows.map((r) => html`<div class="goal">
-      <div><b>${r.st.label}</b><div class="small muted">${r.origin ? `${r.known.sol} Sol Erda + ${r.known.frag} Fragments (HEXA Origin table)` : r.known ? `${r.known.sol || 0} Sol Erda + ${r.known.frag || 0} Fragments (your entry)` : 'Enter the cost shown in game:'}</div>
+      <div><b>${r.st.label}</b><div class="small muted">${r.origin ? `${r.known.sol} Sol Erda + ${r.known.frag} ${plural(r.known.frag, 'Fragment')} (HEXA Origin table)` : r.known ? `${r.known.sol || 0} Sol Erda + ${r.known.frag || 0} ${plural(r.known.frag || 0, 'Fragment')} (your entry)` : 'Enter the cost shown in game:'}</div>
         ${!r.origin ? html`<div class="toolbar" style=${{ marginTop: '4px' }}>
           <${NumberInput} label=${r.st.label + ' Sol Erda cost'} value=${r.known?.sol ?? ''} max=${999} onChange=${(v) => set((e) => { e.costs = { ...(e.costs || {}), [r.st.id]: { ...(e.costs || {})[r.st.id], sol: v || 0 } }; })} /><span class="small muted">Sol Erda</span>
           <${NumberInput} label=${r.st.label + ' Fragment cost'} value=${r.known?.frag ?? ''} max=${99999} onChange=${(v) => set((e) => { e.costs = { ...(e.costs || {}), [r.st.id]: { ...(e.costs || {})[r.st.id], frag: v || 0 } }; })} /><span class="small muted">Fragments</span>
         </div>` : null}</div>
-      <span class=${'date' + (r.ready ? ' now' : '')}>${!r.known ? '—' : r.ready ? 'Ready now' : Number.isFinite(r.weeks) ? `${Math.ceil(r.weeks * 7)} days` : 'add income'}</span>
+      <span class=${'date' + (r.ready ? ' now' : '')}>${!r.known ? '—' : r.ready ? 'Ready now' : Number.isFinite(r.weeks) ? `${Math.ceil(r.weeks * 7)} ${plural(Math.ceil(r.weeks * 7), 'day')}` : 'add income'}</span>
     </div>`) : html`<${Empty}>Every step in the order is done.<//>`}
     <p class="note">${up.source} Dates count every step above in order.</p>
   <//>`;

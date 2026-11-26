@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, newId } from '../store.js';
-import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow, parseMesos, MESO_MAX } from '../ui.js';
+import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow, parseMesos, MESO_MAX, plural } from '../ui.js';
 import { computeIncome, crystalWeekStart } from '../calc/income.js';
 import { starPlan, starSpread, maxStarsFor } from '../calc/starforce.js';
 import { cubePlan } from '../calc/upgrades.js';
@@ -156,7 +156,7 @@ function StarForce({ data, state }) {
         <label class="toggle"><input type="checkbox" checked=${o.safeguard} onChange=${(e) => set({ safeguard: e.currentTarget.checked })} /> Safeguard 15–17★</label>
       </div>
       ${!todo ? html`<p class="note">${max === 0 ? 'An item of this level cannot take stars.' : 'Pick a target above the current stars.'}</p>` : html`<div class="tiles">
-        <div class="tile accent"><span class="k">Expected cost</span><span class="v">${fmtBig(plan.cost)}</span><span class="s">${plan.attempts.toFixed(0)} attempts on average</span></div>
+        <div class="tile accent"><span class="k">Expected cost</span><span class="v">${fmtBig(plan.cost)}</span><span class="s">${Math.round(plan.attempts)} ${plural(Math.round(plan.attempts), 'attempt')} on average</span></div>
         <div class="tile"><span class="k">Typical · bad luck</span><span class="v">${spread ? fmtBig(spread.p50) : '—'}</span><span class="s">${spread ? `1 in 10 runs costs over ${fmtBig(spread.p90)}` : 'not shown when the upgrade takes thousands of attempts'}</span></div>
         <div class=${'tile' + (plan.noBoom > 0.8 ? ' ok' : '')}><span class="k">No boom</span><span class="v">${Math.round(plan.noBoom * 100)}%</span><span class="s">${plan.booms.toFixed(2)} booms expected</span></div>
       </div>
@@ -182,6 +182,8 @@ function Cubes({ data, state }) {
   const c = data.upgrades.cubes;
   const o = { from: 3, to: 4, ...(state.ui.cubeCalc || {}) };
   const rates = state.mesos.cubeRates || {};
+  // Counts presses of "Reset to the estimates", so the odds boxes drop a number that was typed but not saved.
+  const [resets, setResets] = useState(0);
   const set = (patch) => update((s) => { s.ui.cubeCalc = { ...o, ...patch }; });
   const typeFor = (id) => ({ ...c.types[id], tierUp: rates[id] || c.types[id].tierUp });
   const plans = ['bright', 'glowing'].map((id) => ({ id, cube: typeFor(id), plan: cubePlan(typeFor(id), o.from, o.to) }));
@@ -196,7 +198,7 @@ function Cubes({ data, state }) {
         ${plans.map(({ id, cube, plan }) => html`<div class=${'tile' + (cheaper.id === id ? ' accent' : '')}>
           <span class="k">${cube.name} · ${fmtBig(cube.price)} each</span>
           <span class="v">${fmtBig(plan.cost)}</span>
-          <span class="s">${Math.round(plan.expected)} cubes on average · ${plan.n90} (${fmtBig(plan.cost90)}) to be 90% sure</span>
+          <span class="s">${Math.round(plan.expected)} ${plural(Math.round(plan.expected), 'cube')} on average · ${plan.n90} (${fmtBig(plan.cost90)}) to be 90% sure</span>
         </div>`)}
       </div>
       <div class="tbl-wrap"><table class="tbl">
@@ -205,12 +207,12 @@ function Cubes({ data, state }) {
       </table></div>
       <p class="note">${cheaper.cube.name}s are the cheaper way to tier up here. ${c.heroicNoBonus}</p>`}
       <details>
-        <summary class="small muted">Tier-up odds used (community estimates, editable)</summary>
+        <summary class="small muted">Tier-up odds used (community estimates, editable from 0.1% to 100%)</summary>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Cube</th><th class="num">Rare → Epic</th><th class="num">Epic → Unique</th><th class="num">Unique → Legendary</th></tr></thead>
           <tbody>${['bright', 'glowing'].map((id) => html`<tr><td>${c.types[id].name}</td>${[0, 1, 2].map((i) => html`<td class="num">
-            <${NumberInput} step=${0.1} min=${0.1} max=${100} label=${`${c.types[id].name} tier-up ${i + 1} percent`} value=${Number((typeFor(id).tierUp[i] * 100).toFixed(3))}
+            <${NumberInput} step=${0.1} min=${0.1} max=${100} clamp=${false} rev=${resets} label=${`${c.types[id].name} tier-up ${i + 1} percent`} value=${Number((typeFor(id).tierUp[i] * 100).toFixed(3))}
               onChange=${(v) => { if (!(v >= 0.1 && v <= 100)) return; update((s) => { const r = { ...(s.mesos.cubeRates || {}) }; const arr = [...(r[id] || c.types[id].tierUp)]; arr[i] = v / 100; r[id] = arr; s.mesos.cubeRates = r; }); }} />%</td>`)}</tr>`)}</tbody></table></div>
-        <button type="button" class="btn ghost" onClick=${() => update((s) => { delete s.mesos.cubeRates; })}>Reset to the estimates</button>
+        <button type="button" class="btn ghost" onClick=${() => { setResets((n) => n + 1); update((s) => { delete s.mesos.cubeRates; }); }}>Reset to the estimates</button>
       </details>
     <//>
     <${Fold} title="About the odds" meta="tap to open">

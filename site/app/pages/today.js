@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
-import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left } from '../ui.js';
+import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left, plural } from '../ui.js';
 import { DAY, fmtDate, fmtKst, fmtLeft, kstDays, dayWord } from '../time.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
@@ -72,7 +72,7 @@ function TodoCard({ data, state, now, who, char, lines, prog }) {
   });
   // A boss cleared on another difficulty is done too: the difficulties share one clear.
   const cleared = lines.filter((l) => l.clearedNow || l.doneAs).length;
-  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} bosses` : ''}`} bodyClass="card-b tight todo">
+  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} ${plural(lines.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
     <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
     ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
     ${char ? html`<div class="group-h"><h4>Bosses <span class="hint">weekly reset Thu 09:00 KST</span></h4><a class="small" href="#bosses">Pick bosses</a></div>
@@ -182,7 +182,7 @@ export function TodayPage({ data, state }) {
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}
           ${erdaNext.length ? html`<div><b>6th job</b>${erdaNext.map((s) => html`<div class="small">${s.label}</div>`)}</div>` : null}
           ${gearGap && !best ? html`<div><b>Gear</b><div class="small">${gearGap.slot.name}: ${gearGap.gaps.slice(0, 2).join(', ')}</div></div>` : null}
-          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} traces left · about ${genesis.weeks} weeks</div></div>` : null}
+          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} ${plural(genesis.remaining, 'trace')} left · about ${genesis.weeks} ${plural(genesis.weeks, 'week')}</div></div>` : null}
         <//>` : null}
       </div>
     </div>

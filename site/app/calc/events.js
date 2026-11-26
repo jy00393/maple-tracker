@@ -74,10 +74,12 @@ export function dedupeEvents(events) {
   }
   // A post can name the same offer in the plural ("Genesis Pass" in the patch notes, "Genesis Passes" in the
   // sale post). Same window and a title that differs only by a plural ending: one offer, from different posts.
+  // Every trailing e and s goes from both names, so "Hot Time" meets "Hot Times" (tim) as "Pass" meets "Passes" (pa);
+  // taking "es" off the plural alone left "tim" against "time".
   // eventKey itself stays as it is: hidden events are saved under it.
   const loose = (e) => {
     let t = titleOf(e).split('|')[0];
-    while (t.endsWith('s')) t = t.slice(0, t.endsWith('es') ? -2 : -1);
+    t = t.replace(/[es]+$/, '') || t;
     return `${t}|${e.start || ''}|${e.end}`;
   };
   const byLoose = new Map();
