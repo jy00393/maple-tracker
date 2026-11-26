@@ -1,4 +1,4 @@
-import { html } from '../../vendor/htm-preact.mjs';
+import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, charSlice } from '../store.js';
 import { Card, NumberInput, Empty, fmtBig } from '../ui.js';
 import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
@@ -6,10 +6,24 @@ import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtKst } from '../time.js';
 import { ExpSourcesCard } from './expsources.js';
 
+// Your own readings that still stand, oldest first. Levels never go down, so a reading with a higher level than
+// one logged after it was a slip of the keyboard: the later reading wins and the earlier one is ignored.
+export function standingLog(log) {
+  const rows = (Array.isArray(log) ? log : []).filter((r) => r && Number.isFinite(r.t) && Number.isFinite(r.level)).slice().sort((a, b) => a.t - b.t);
+  const out = [];
+  let lowest = Infinity;
+  for (let i = rows.length - 1; i >= 0; i--) {
+    if (rows[i].level > lowest) continue;
+    lowest = rows[i].level;
+    out.unshift(rows[i]);
+  }
+  return out;
+}
+
 // Readings: your own log, plus the Nexon rankings history if this character is listed in config/characters.json.
 export function levelReadings(data, state, char) {
   const exp = data.upgrades.exp;
-  const manual = ((state.level[char.id] || {}).log || []).map((r) => ({ t: r.t, level: r.level, frac: (r.pct || 0) / 100, source: 'you' }));
+  const manual = standingLog((state.level[char.id] || {}).log).map((r) => ({ t: r.t, level: r.level, frac: (r.pct || 0) / 100, source: 'you' }));
   const nx = (data.nexonCharacters.characters || []).find((c) => String(c.name).toLowerCase() === String(char.name || '').toLowerCase());
   const auto = ((nx && nx.history) || []).map((h) => {
     const need = expToNext(exp, h.level);
@@ -26,19 +40,21 @@ export function knownLevel(data, state, char) {
   return levels.length ? Math.max(...levels) : undefined;
 }
 
-// When Beyond Burning ends: the event's own end from Nexon's posts (the run that is on now, else the latest one),
-// else the end of the season.
+// When Beyond Burning ends: the event's own end from Nexon's posts (the run that is on now, else the latest one
+// that has started), else the end of the season. A run that is only announced gives nothing free yet: -Infinity.
 export function beyondBurningEnd(data, now = Date.now()) {
   const runs = ((data.events && data.events.events) || []).filter((e) => /beyond burning/i.test(e.title || '') && Number.isFinite(Date.parse(e.end)));
   const on = runs.find((e) => (!e.start || Date.parse(e.start) <= now) && Date.parse(e.end) > now);
-  const ev = on || runs.sort((a, b) => Date.parse(b.end) - Date.parse(a.end))[0];
+  const ev = on || runs.filter((e) => !e.start || Date.parse(e.start) <= now).sort((a, b) => Date.parse(b.end) - Date.parse(a.end))[0];
+  if (!ev && runs.length) return -Infinity;
   const t = ev ? Date.parse(ev.end) : data.season ? Date.parse(data.season.ends) : NaN;
   return Number.isFinite(t) ? t : Infinity;
 }
 
 // Walks level by level from a reading to `target` at `perDay` EXP a day. Beyond Burning skips every other level
-// below 280, but only while the walk is still before `burnUntil`.
-function project(exp, from, target, perDay, burnUntil) {
+// below 280, but only while the walk is still before `burnUntil`. The walk starts at the reading's time, and a
+// level not yet gained cannot be gained before `now`, so a reading from before the end gets nothing free after it.
+function project(exp, from, target, perDay, burnUntil, now = -Infinity) {
   let t = from.t;
   let l = from.level;
   let f = Math.max(0, Math.min(1, from.frac || 0));
@@ -51,7 +67,7 @@ function project(exp, from, target, perDay, burnUntil) {
     if (perDay > 0) t += (e / perDay) * DAY;
     f = 0;
     l += 1;
-    if (t < burnUntil && l < 280) l += 1;
+    if (Math.max(t, now) < burnUntil && l < 280) l += 1;
   }
   return { need, at: perDay > 0 ? t : null };
 }
@@ -70,7 +86,7 @@ export function levelOutlook(data, state, char, now) {
   const rate = expRate(exp, sameSide, beyond, 14, now);
   const eventEnd = Date.parse((data.ibp && data.ibp.endsAt) || 0);
   const gates = last ? exp.gates.filter(([lvl]) => lvl > last.level).map(([lvl, what, eventNote]) => {
-    const p = project(exp, last, lvl, rate ? rate.perDay : 0, burnUntil);
+    const p = project(exp, last, lvl, rate ? rate.perDay : 0, burnUntil, now);
     // Days count from now, not from the reading; a date already passed means the reading is out of date.
     const days = p.at != null ? Math.max(0, (p.at - now) / DAY) : null;
     // The event part ("Item Burning stages 5-6") only for a gate reached while the event still runs.
@@ -91,6 +107,10 @@ export function LevelView({ data, state, char, now }) {
   const o = levelOutlook(data, state, char, now);
   const exp = data.upgrades.exp;
   const log = (state.level[char.id] || {}).log || [];
+  const [showAll, setShowAll] = useState(false);
+  const standing = new Set(standingLog(log));
+  // The last six, plus every ignored reading wherever it is, so a slip can always be deleted.
+  const shown = log.filter((r, i) => showAll || i >= log.length - 6 || !standing.has(r));
   const last = o.last;
   const toNext = last ? expToNext(exp, last.level) : null;
   return html`<div class="grid two">
@@ -109,8 +129,9 @@ export function LevelView({ data, state, char, now }) {
         if (!(level >= 200 && level <= 300) || !(pct >= 0 && pct < 100)) return;
         update((s) => {
           const l = charSlice(s, 'level', char.id, () => ({ log: [] }));
-          l.log = [...(l.log || []), { t: Date.now(), level, pct }].slice(-200);
           const c = s.characters.find((x) => x.id === char.id);
+          // was: the level this reading replaces, so deleting the reading can put it back.
+          l.log = [...(l.log || []), { t: Date.now(), level, pct, ...(c ? { was: Number.isFinite(c.level) ? c.level : null } : {}) }].slice(-200);
           if (c) c.level = level;
         });
         e.currentTarget.reset();
@@ -121,17 +142,20 @@ export function LevelView({ data, state, char, now }) {
       </form>
       <label class="toggle"><input type="checkbox" checked=${Boolean(char.beyondBurning)} onChange=${(e) => setChar(char, { beyondBurning: e.currentTarget.checked })} /> Beyond Burning (an extra level each level-up until 280)</label>
       ${log.length ? html`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Logged</th><th class="num">Level</th><th class="num">EXP %</th><th></th></tr></thead>
-        <tbody>${log.slice(-6).reverse().map((r) => html`<tr><td>${fmtKst(r.t)}</td><td class="num">${r.level}</td><td class="num">${Number(r.pct).toFixed(3)}%</td>
+        <tbody>${shown.slice().reverse().map((r) => html`<tr><td>${fmtKst(r.t)}${standing.has(r) ? '' : html`<div class="small muted">Ignored: a later reading has a lower level.</div>`}</td><td class="num">${r.level}</td><td class="num">${Number(r.pct).toFixed(3)}%</td>
           <td class="num"><button type="button" class="iconbtn" aria-label="Delete this reading" onClick=${() => update((s) => {
             const l = s.level[char.id];
             l.log = l.log.filter((x) => x.t !== r.t);
-            // "Log it" also set the character's level; deleting a mistyped reading takes that back to the latest one left.
+            // "Log it" also set the character's level; deleting a mistyped reading takes that back to the latest
+            // reading left (your own or from Nexon's rankings) or to the level the reading replaced, whichever is higher.
             const c = s.characters.find((x) => x.id === char.id);
-            // The latest reading left, your own or from Nexon's rankings.
-            const left = c ? levelReadings(data, s, c) : [];
-            const latest = left.length ? left[left.length - 1] : null;
-            if (c && latest && c.level === r.level && r.level !== latest.level) c.level = latest.level;
-          })}>×</button></td></tr>`)}</tbody></table></div>` : null}
+            if (!c || c.level !== r.level) return;
+            const left = levelReadings(data, s, c);
+            const prior = [left.length ? left[left.length - 1].level : null, r.was].filter((n) => Number.isFinite(n) && n > 0);
+            if (prior.length) c.level = Math.max(...prior);
+            else if (r.was === null) c.level = null;
+          })}>×</button></td></tr>`)}</tbody></table></div>
+        ${log.length > shown.length || showAll ? html`<button type="button" class="btn ghost" onClick=${() => setShowAll(!showAll)}>${showAll ? 'Show the last 6 only' : `Show all ${log.length} readings`}</button>` : null}` : null}
       <p class="note">Log your level and EXP % (shown under the EXP bar) once a day or so. If the character is listed in config/characters.json, the GitHub job also records it from Nexon's rankings every 6 hours. ${exp.beyondBurningNote}</p>
     <//>
     <${Card} title="Level gates" meta=${o.beyond ? `with Beyond Burning until ${fmtDate(o.burnUntil)}` : 'without Beyond Burning'}>

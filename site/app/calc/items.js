@@ -26,11 +26,28 @@ export function iconUrl(version, itemId) {
   return `https://maplestory.io/api/GMS/${encodeURIComponent(version)}/item/${encodeURIComponent(itemId)}/icon`;
 }
 
+// The list item whose name is exactly the typed text (case and outer spaces ignored), or null. When two items
+// share a name, the higher-level one, as the suggestions list them.
+export function exactItem(items, slotKey, name) {
+  const text = String(name || '').trim().toLowerCase();
+  if (!text) return null;
+  const hit = searchItems(items, slotKey, text, 1)[0];
+  return hit && hit.name.toLowerCase() === text ? hit : null;
+}
+
+// Is this list item an overall (worn on Top, fills Bottom too)? rule = gear.json "overall": an item id range.
+export function isOverall(rule, itemId) {
+  const id = Number(itemId);
+  return Boolean(rule && Number.isFinite(id) && id >= rule.idFrom && id <= rule.idTo);
+}
+
 // Which rung of the slot's tier ladder an item name belongs to, from keyword hints in gear.json. 0 = no hint.
+// A keyword is one piece of text, or a list of pieces that must all be in the name ("Superior Engraved Gollux Belt").
 export function tierFromName(name, tierNames, hints) {
   const n = String(name || '').toLowerCase();
   for (const [keyword, rung] of hints || []) {
-    if (!n.includes(String(keyword).toLowerCase())) continue;
+    const words = Array.isArray(keyword) ? keyword : [keyword];
+    if (!words.length || !words.every((w) => n.includes(String(w).toLowerCase()))) continue;
     if (!rung) return 0; // a lookalike name: no guess
     const i = (tierNames || []).findIndex((t) => t && t.toLowerCase().includes(String(rung).toLowerCase()));
     if (i >= 0) return i + 1;
