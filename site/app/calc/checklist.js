@@ -5,7 +5,7 @@
 // - An item with "scope": "account" is ticked once for the whole account.
 // - An item with "only": "challenger" is hidden for characters that are not in Challenger World.
 // - An item with "minLevel" stays locked until the character reaches it.
-import { periodKey, weekStart } from '../time.js';
+import { periodKey } from '../time.js';
 
 export const RESET_CYCLE = ['mon', 'wed', 'thu'];
 
@@ -115,21 +115,23 @@ export function streakToday(existing, list, activeId) {
   return { done: best.done, total: best.total, ...(best.by ? { by: best.by } : {}) };
 }
 
-const WEEKDAY = { mon: 1, wed: 3, thu: 4 };
-
-// Moves an item's ticks of the current week from reset day `from` to reset day `to` (the reset day is one setting
-// for everyone, so every character's tick moves). A tick made before the new day's latest reset is cleared: with
-// the new day, that reset has wiped it. Ticks saved before they carried a time (`t`) are kept, since nothing
-// says when they were made. Changes `items` in place.
+// Files an item's ticks under reset day `to` instead of `from` (the reset day is one setting for everyone, so
+// every character's tick moves). Nothing is ever deleted here: the pill steps through the days one tap at a time,
+// so a day passed on the way must not cost a tick that the day finally chosen still counts.
+// - A tick that carries its time (`t`) is filed under the week that time falls in with the new day. If the new
+//   day has reset since, that is a past week and the item shows as not done; if a later tap lands on a day that
+//   has not reset it, it shows again. A tick from the old day's last week that the new day has not reset yet
+//   comes back the same way.
+// - A tick saved before ticks carried a time stays in the running week, since nothing says when it was made.
+// A counter's time is its last change. Changes `items` in place.
 export function moveResetDay(items, item, from, to, now) {
   const oldP = periodKey(from, now);
   const newP = periodKey(to, now);
-  const oldStart = weekStart(now, WEEKDAY[from]);
-  const newStart = weekStart(now, WEEKDAY[to]);
   const tails = ['', ...(item.chips || []).map(([cid]) => `_${cid}`)].map((s) => item.id + s);
   for (const [k, r] of Object.entries(items)) {
-    if (!r || r.p !== oldP || !tails.some((tail) => k === tail || k.endsWith(`|${tail}`))) continue;
-    if (newStart > oldStart && Number.isFinite(r.t) && r.t < newStart) delete items[k];
-    else r.p = newP;
+    if (!r || typeof r !== 'object' || !tails.some((tail) => k === tail || k.endsWith(`|${tail}`))) continue;
+    // The time is only trusted when it agrees with the week the tick is filed under.
+    if (Number.isFinite(r.t) && r.p === periodKey(from, r.t)) r.p = periodKey(to, Math.min(r.t, now));
+    else if (r.p === oldP) r.p = newP;
   }
 }
