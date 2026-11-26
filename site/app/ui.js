@@ -91,11 +91,14 @@ export function Fold({ title, meta, children, className = '', bodyClass = 'card-
   </details>`;
 }
 
-export function Counter({ value, target, onChange, label }) {
+// With `onStep` the buttons report -1 or +1 and the owner applies it to the value that is current at the
+// click (the drawn value can be a few seconds old). Without it they report the new value through `onChange`.
+export function Counter({ value, target, onChange, onStep, label }) {
+  const step = (d) => (onStep ? onStep(d) : onChange(Math.max(0, Math.min(target, value + d))));
   return html`<div class="counter">
-    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} onClick=${() => onChange(Math.max(0, value - 1))}>−</button>
+    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} onClick=${() => step(-1)}>−</button>
     <span class=${'val' + (value >= target ? ' full' : '')} aria-live="polite">${value} / ${target}</span>
-    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} onClick=${() => onChange(Math.min(target, value + 1))}>+</button>
+    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} onClick=${() => step(1)}>+</button>
   </div>`;
 }
 

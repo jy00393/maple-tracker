@@ -261,7 +261,8 @@ export function expRate(exp, readings, beyond, days = 14, now = Date.now()) {
 export function erdaCost(perLevel, from, to) {
   let sol = 0;
   let frag = 0;
-  for (let l = Math.max(1, from); l < to && l - 1 < perLevel.length; l++) {
+  // Levels are whole numbers; a decimal is rounded down so it can never point between two rows of the table.
+  for (let l = Math.max(1, Math.floor(Number(from) || 0)); l < to && l - 1 < perLevel.length; l++) {
     sol += perLevel[l - 1][0];
     frag += perLevel[l - 1][1];
   }

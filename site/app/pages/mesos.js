@@ -56,7 +56,8 @@ function Planner({ data, state, now }) {
   const char = activeCharacter(state);
   const inc = weeklyIncome(data, state, now);
   const dated = goalDates(m.goals, m.held, inc.total, now);
-  const addGoal = (name, cost) => setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); });
+  // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
+  const addGoal = (name, cost) => { if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
   const move = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
   const quick = [];
   quick.push(['200 Bright Cubes', 200 * data.upgrades.cubes.types.bright.price]);
@@ -86,7 +87,7 @@ function Planner({ data, state, now }) {
           <button type="button" class="iconbtn" aria-label=${'Remove: ' + g.name} onClick=${() => setM((x) => { x.goals.splice(i, 1); })}>×</button>
         </span>
       </div>`) : html`<${Empty}>No goals yet. Add one below, or tap a suggestion.<//>`}
-      <div class="toolbar">${quick.map(([name, cost]) => html`<button type="button" class="chip" onClick=${() => addGoal(name, cost)}>+ ${name} · ${fmtBig(cost)}</button>`)}</div>
+      <div class="toolbar">${quick.filter(([, cost]) => cost > 0 && cost <= MESO_MAX).map(([name, cost]) => html`<button type="button" class="chip" onClick=${() => addGoal(name, cost)}>+ ${name} · ${fmtBig(cost)}</button>`)}</div>
       <form class="form-grid" onSubmit=${(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);
