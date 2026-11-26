@@ -1,7 +1,7 @@
 // Optional sync between devices through a secret GitHub Gist. The token and gist id stay in this browser only
 // (never in exported backups). The two copies are merged part by part; for each part the newer edit wins.
 import { getState, replaceState, subscribe } from './store.js';
-import { mergeStates, sameEntries, sameStamps } from './calc/merge.js';
+import { futureStamps, mergeStates, sameEntries, sameStamps } from './calc/merge.js';
 
 const KEY = 'maple-tracker:sync';
 const FILE = 'maple-tracker.json';
@@ -39,32 +39,62 @@ export function onSyncStatus(fn) {
   return () => listeners.delete(fn);
 }
 
-async function gh(path, token, opts = {}) {
-  const res = await fetch(API + path, {
-    ...opts,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(opts.body ? { 'Content-Type': 'application/json' } : {})
-    }
-  });
+const OFFLINE = 'Could not reach GitHub. Check your connection.';
+const GIST_GONE = 'The sync gist was not found on GitHub. Disconnect and connect again.';
+
+// `missing`: what to say when GitHub answers 404 for this request.
+async function gh(path, token, opts = {}, missing = null) {
+  let res;
+  try {
+    res = await fetch(API + path, {
+      ...opts,
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(opts.body ? { 'Content-Type': 'application/json' } : {})
+      }
+    });
+  } catch {
+    throw new Error(OFFLINE);
+  }
   if (res.status === 401) throw new Error('GitHub rejected the token (401). Check it has the gist scope and hasn’t expired.');
-  if (!res.ok) throw new Error(`GitHub answered ${res.status}`);
-  return res.status === 204 ? null : res.json();
+  if (res.status === 404 && missing) throw new Error(missing);
+  if (!res.ok) throw new Error(`GitHub answered ${res.status}. Try again later.`);
+  if (res.status === 204) return null;
+  // A sign-in page from a hotel or café network answers 200 with something that is not GitHub's reply.
+  try { return await res.json(); } catch { throw new Error('GitHub sent an answer that could not be read. Check your connection.'); }
 }
 
+// The synced copy, or null when the gist holds no copy yet (a bare {}). A copy that is there but cannot be used
+// (empty, cut off, damaged, or saved by a newer version) is an error: it must never be overwritten by this device.
 async function readRemote(c) {
-  const gist = await gh(`/gists/${c.gistId}`, c.token);
-  const f = gist.files && gist.files[FILE];
+  const gist = await gh(`/gists/${c.gistId}`, c.token, {}, GIST_GONE);
+  const f = gist && gist.files && gist.files[FILE];
   if (!f) throw new Error('The sync gist no longer has its data file.');
-  const text = f.truncated && f.raw_url ? await (await fetch(f.raw_url)).text() : f.content;
-  const remote = JSON.parse(text || '{}');
-  return remote && typeof remote === 'object' && remote.v === 1 ? remote : null;
+  let text = f.content;
+  if (f.truncated) {
+    // GitHub cuts long files short and gives a link to the whole file.
+    const failed = 'The synced copy could not be downloaded. Try again.';
+    if (!f.raw_url) throw new Error(failed);
+    let res;
+    try { res = await fetch(f.raw_url); } catch { throw new Error(failed); }
+    if (!res.ok) throw new Error(failed);
+    try { text = await res.text(); } catch { throw new Error(failed); }
+  }
+  const unreadable = 'The synced copy could not be read. Nothing was changed.';
+  if (typeof text !== 'string' || !text.trim()) throw new Error('The synced copy is empty. Nothing was changed.');
+  let remote;
+  try { remote = JSON.parse(text); } catch { throw new Error(unreadable); }
+  if (!remote || typeof remote !== 'object' || Array.isArray(remote)) throw new Error(unreadable);
+  if (remote.v === 1) return remote;
+  if (Object.keys(remote).length === 0) return null;
+  if (typeof remote.v === 'number' && remote.v > 1) throw new Error('The synced copy was saved by a newer version of Maple Tracker. Reload this page, then sync again.');
+  throw new Error(unreadable);
 }
 
 async function writeRemote(c) {
-  await gh(`/gists/${c.gistId}`, c.token, { method: 'PATCH', body: JSON.stringify({ files: { [FILE]: { content: JSON.stringify(getState()) } } }) });
+  await gh(`/gists/${c.gistId}`, c.token, { method: 'PATCH', body: JSON.stringify({ files: { [FILE]: { content: JSON.stringify(getState()) } } }) }, GIST_GONE);
 }
 
 // One round trip: read the gist, merge it with this device part by part (calc/merge.js), then save whichever
@@ -83,6 +113,9 @@ async function syncOnce() {
     setStatus('ok', 'Saved to your gist');
     return;
   }
+  // Change times more than a day ahead mean a device's clock is wrong. The merge ignores them (see calc/merge.js),
+  // so the devices cannot agree until the clock is fixed: say so instead of reporting success.
+  const skewed = futureStamps(remote) || futureStamps(local);
   const merged = mergeStates(local, remote);
   const gotNew = !sameEntries(merged, local);
   // Also adopt the merged change times when only those differ, so removal markers are never lost on the way through.
@@ -93,6 +126,10 @@ async function syncOnce() {
   const sentNew = !sameEntries(merged, remote);
   if (!still()) return;
   if (sentNew || !sameStamps(merged, remote)) await writeRemote(c);
+  if (skewed) {
+    setStatus('warn', 'The clock on one of your devices is more than a day off, so its newest changes are ignored. Check the date and time on each device.');
+    return;
+  }
   setStatus('ok', gotNew && sentNew ? 'Merged entries from both devices' : gotNew ? 'Loaded newer entries from your other device' : sentNew ? 'Saved to your gist' : 'Up to date');
 }
 
@@ -182,5 +219,16 @@ export function disconnect() {
 export function startSync() {
   if (!syncConfig()) return;
   listen();
+  // Shown at once, so the status is never "not connected" while a token is saved.
+  setStatus('busy', 'Syncing…');
   pull().catch((e) => setStatus('error', e.message));
+}
+
+// Sync was connected or disconnected in another tab: this tab follows.
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('storage', (e) => {
+    if (!e || e.key !== KEY) return;
+    if (syncConfig()) startSync();
+    else { clearTimeout(timer); setStatus('off', 'Not connected'); }
+  });
 }

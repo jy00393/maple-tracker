@@ -1,7 +1,29 @@
 // Sync merge. Saved state is split into small units (one checklist tick, one character, one character's gear,
 // the meso planner…). Every unit carries the time it last changed (state.stamps), and merging two copies keeps
 // the newer side of each unit, so a tick on the phone no longer wipes a gear edit made on the PC.
-const PER_CHILD = new Set(['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'incomeHistory']);
+const PER_CHILD = new Set(['incomeHistory']);
+// Per-character parts are split by entry, so a boss ticked on the phone and another ticked on the PC are both
+// kept (each was one whole unit per character before):
+//   bosses/<charId>/picks/<bossId>      one boss on the weekly list
+//   bosses/<charId>/clears/<bossId>     one boss's ticks
+//   gear/<charId>/slots/<slot>          one equipment slot (also stats/<key> and history/<day>)
+//   level/<charId>/log/<time>           one level reading
+//   erda/<charId>/levels|steps|costs/<id>, ibp/<charId>/done/<stage>
+//   symbols/<charId>/<area>, liberation/<charId>/<weapon>
+//   <part>/<charId>/@                   whatever else that character's part holds (gear target, template...)
+// The older whole-character stamp (<part>/<charId>) stands in for an entry that has no stamp of its own yet.
+// It is never moved again: doing so would make entries added on another device look older than they are.
+const SPLIT = {
+  bosses: { maps: ['picks', 'clears'] },
+  gear: { maps: ['slots', 'stats'], lists: { history: 'd' } },
+  level: { lists: { log: 't' } },
+  erda: { maps: ['levels', 'steps', 'costs'] },
+  ibp: { maps: ['done'] },
+  symbols: { entries: true },
+  liberation: { entries: true }
+};
+// "@" never comes out of encodeURIComponent, so it cannot collide with an id.
+const REST = '@';
 // Finer parts, so two devices never overwrite each other's entries:
 //   pitch/<charId>/<dropId>             one logged drop
 //   shops/<shopId>/have | claims        one number
@@ -24,6 +46,20 @@ const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const DAY = 86400000;
 const enc = (s) => encodeURIComponent(String(s));
 const dec = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
+// Keys such as "__proto__" or "constructor" would read or write the shared Object prototype: never used as ids.
+const safe = (k) => !(k in Object.prototype);
+const keysOf = (o) => Object.keys(o).filter(safe);
+const own = (o, k) => (Object.hasOwn(o, k) ? o[k] : undefined);
+const listId = (v) => (typeof v === 'string' && v !== '') || (typeof v === 'number' && Number.isFinite(v));
+// How one field of a character's part is split: 'entry' and 'map'/'list' entries are units of their own,
+// everything else travels together as the rest ("@").
+function fieldKind(part, k, v) {
+  const spec = SPLIT[part];
+  if (spec.entries) return isObj(v) ? 'entry' : 'rest';
+  if (spec.maps && spec.maps.includes(k) && isObj(v)) return 'map';
+  if (spec.lists && own(spec.lists, k) && Array.isArray(v)) return 'list';
+  return 'rest';
+}
 
 // path -> value for every unit in a state.
 export function units(state) {
@@ -35,6 +71,24 @@ export function units(state) {
     if (key === 'characters') {
       // One unit per character, so a character added on one device never replaces the other device's list.
       if (Array.isArray(val)) for (const c of val) if (c && c.id) out.set(`characters/${c.id}`, c);
+    } else if (own(SPLIT, key)) {
+      if (!isObj(val)) continue;
+      for (const c of keysOf(val)) {
+        const h = val[c];
+        if (!isObj(h)) continue;
+        const base = `${key}/${enc(c)}`;
+        const rest = {};
+        for (const k of keysOf(h)) {
+          const kind = fieldKind(key, k, h[k]);
+          if (kind === 'entry') out.set(`${base}/${enc(k)}`, h[k]);
+          else if (kind === 'map') for (const id of keysOf(h[k])) out.set(`${base}/${enc(k)}/${enc(id)}`, h[k][id]);
+          else if (kind === 'list') {
+            const f = SPLIT[key].lists[k];
+            for (const e of h[k]) if (isObj(e) && listId(e[f])) out.set(`${base}/${enc(k)}/${enc(e[f])}`, e);
+          } else rest[k] = h[k];
+        }
+        out.set(`${base}/${REST}`, rest);
+      }
     } else if (PER_CHILD.has(key)) {
       if (isObj(val)) for (const child of Object.keys(val)) out.set(`${key}/${child}`, val[child]);
     } else if (key === 'ui' || key === 'mesos') {
@@ -159,6 +213,59 @@ function setUnit(state, path, value) {
     } else if (segs[2] === 'have' || segs[2] === 'claims') s[segs[2]] = value === undefined ? 0 : value;
     return;
   }
+  if (own(SPLIT, segs[0])) {
+    if (segs.length < 3) return; // an older whole-character stamp: nothing to place
+    const part = segs[0];
+    const spec = SPLIT[part];
+    const charId = dec(segs[1]);
+    if (!safe(charId)) return;
+    if (!isObj(state[part])) state[part] = {};
+    let h = own(state[part], charId);
+    if (!isObj(h)) {
+      if (value === undefined) return;
+      h = state[part][charId] = {};
+    }
+    if (segs.length === 3 && segs[2] === REST) {
+      for (const k of Object.keys(h)) if (fieldKind(part, k, h[k]) === 'rest') delete h[k];
+      // (A name still present here holds entries of its own: those are never replaced wholesale.)
+      if (isObj(value)) for (const k of keysOf(value)) if (!Object.hasOwn(h, k)) h[k] = structuredClone(value[k]);
+      return;
+    }
+    const k = dec(segs[2]);
+    if (!safe(k)) return;
+    if (segs.length === 3) {
+      if (!spec.entries) return;
+      if (value === undefined) delete h[k];
+      else h[k] = structuredClone(value);
+      return;
+    }
+    const id = dec(segs.slice(3).join('/'));
+    const f = spec.lists && own(spec.lists, k);
+    if (f) {
+      if (!Array.isArray(h[k])) {
+        if (value === undefined) return;
+        h[k] = [];
+      }
+      const i = h[k].findIndex((e) => isObj(e) && String(e[f]) === id);
+      if (value === undefined) { if (i >= 0) h[k].splice(i, 1); }
+      else if (i >= 0) h[k][i] = structuredClone(value);
+      else {
+        // Readings and daily points are kept oldest first, as the pages save them.
+        h[k].push(structuredClone(value));
+        const at = (e) => (isObj(e) ? e[f] : undefined);
+        h[k].sort((x, y) => (at(x) < at(y) ? -1 : at(x) > at(y) ? 1 : 0));
+      }
+      return;
+    }
+    if (!(spec.maps && spec.maps.includes(k)) || !safe(id)) return;
+    if (!isObj(h[k])) {
+      if (value === undefined) return;
+      h[k] = {};
+    }
+    if (value === undefined) delete h[k][id];
+    else h[k][id] = structuredClone(value);
+    return;
+  }
   if (segs[0] === 'champions') {
     if (segs.length < 3) return;
     if (!isObj(state.champions)) state.champions = { slots: [], raid: {} };
@@ -209,6 +316,27 @@ export function changedPaths(prev, next) {
   return out;
 }
 
+// The paths an edit stamps. The goal order is derived from the goal list, so adding or removing a goal changes
+// its value; it only counts as edited when goals that were there before and after swapped places. (Otherwise a
+// goal added on one device would undo a reorder made on another.)
+export function editedPaths(prev, next) {
+  const paths = changedPaths(prev, next);
+  if (!paths.includes('mesos/goalOrder')) return paths;
+  const a = units(prev).get('mesos/goalOrder') || [];
+  const b = units(next).get('mesos/goalOrder') || [];
+  const keptA = a.filter((id) => b.includes(id));
+  const keptB = b.filter((id) => a.includes(id));
+  return JSON.stringify(keptA) === JSON.stringify(keptB) ? paths.filter((p) => p !== 'mesos/goalOrder') : paths;
+}
+
+// True when a copy carries change times more than a day ahead of this device's clock: some device's clock is
+// wrong. The merge ignores such times, so that device's newest changes do not arrive until the clock is right.
+export function futureStamps(state, now = Date.now()) {
+  if (!isObj(state)) return false;
+  if (Number(state.updatedAt) > now + DAY) return true;
+  return isObj(state.stamps) && Object.values(state.stamps).some((t) => Number(t) > now + DAY);
+}
+
 // Copies saved before stamps existed get one stamp per unit, dated by the copy's own updatedAt.
 export function seedStamps(state) {
   if (isObj(state.stamps)) return state.stamps;
@@ -221,7 +349,7 @@ export function seedStamps(state) {
 // True when a path holds data of character `id` (its gear, bosses, drops, ticks...).
 function ownedBy(path, id) {
   const segs = path.split('/');
-  if (PER_CHAR.includes(segs[0]) && segs[0] !== 'pitch') return segs.slice(1).join('/') === id;
+  if (PER_CHAR.includes(segs[0]) && segs[0] !== 'pitch') return dec(segs[1] || '') === id || segs.slice(1).join('/') === id;
   if (segs[0] === 'pitch') return dec(segs[1] || '') === id;
   if (segs[0] === 'checklist' && (segs[1] === 'items' || segs[1] === 'flags')) return segs.slice(2).join('/').startsWith(`${id}|`);
   return false;
@@ -230,8 +358,13 @@ function ownedBy(path, id) {
 // A unit's stamp. Characters were first stamped as one list ("characters"), so that stamp stands in for a
 // character that has none of its own yet. A stamp more than a day in the future (a badly wrong clock, or a
 // doctored copy) is not trusted at all: it counts as never changed, so it cannot overwrite or remove anything.
-function stampOf(stamps, path, now) {
+export function stampOf(stamps, path, now) {
   let t = stamps[path];
+  // Per-character parts were one unit per character before.
+  if (t === undefined) {
+    const segs = path.split('/');
+    if (segs.length > 2 && own(SPLIT, segs[0])) t = stamps[`${segs[0]}/${dec(segs[1])}`] ?? stamps[`${segs[0]}/${segs[1]}`];
+  }
   if (t === undefined && path.startsWith('characters/')) t = stamps.characters;
   // Drops, shop picks and Champions were first stamped as larger parts; those stamps stand in the same way.
   if (t === undefined && (path.startsWith('pitch/') || path.startsWith('shops/'))) t = stamps[path.split('/').slice(0, 2).join('/')];
@@ -253,6 +386,7 @@ export function mergeStates(a, b, now = Date.now()) {
   const out = structuredClone(a);
   const stamps = {};
   let goalOrder = null;
+  const emptied = [];
   const paths = new Set([...ua.keys(), ...ub.keys(), ...Object.keys(sa), ...Object.keys(sb)]);
   paths.delete('characters');
   paths.delete('activeId'); // stamped by earlier versions; no longer merged
@@ -268,6 +402,7 @@ export function mergeStates(a, b, now = Date.now()) {
     else takeB = JSON.stringify(ub.get(path)) > JSON.stringify(ua.get(path));
     if (takeB) setUnit(out, path, ub.get(path));
     if (path === 'mesos/goalOrder') goalOrder = takeB ? ub.get(path) : ua.get(path);
+    if (path.endsWith(`/${REST}`) && !(takeB ? ub : ua).has(path)) emptied.push(path);
     const t = Math.max(ta, tb);
     if (t) stamps[path] = t;
   }
@@ -280,6 +415,14 @@ export function mergeStates(a, b, now = Date.now()) {
       const ry = rank.has(y.id) ? rank.get(y.id) : Infinity;
       return rx !== ry ? rx - ry : String(x.id) < String(y.id) ? -1 : String(x.id) > String(y.id) ? 1 : 0;
     });
+  }
+  // A character's part that was removed on the winning side goes, unless the other side added entries to it since.
+  for (const path of emptied) {
+    const [part, c] = path.split('/');
+    if (!own(SPLIT, part) || !isObj(out[part])) continue;
+    const charId = dec(c);
+    const h = own(out[part], charId);
+    if (isObj(h) && units({ [part]: { [charId]: h } }).size <= 1 && Object.keys(h).every((k) => fieldKind(part, k, h[k]) !== 'rest')) delete out[part][charId];
   }
   // A character owns its data.
   const ids = new Set((Array.isArray(out.characters) ? out.characters : []).filter((c) => c && c.id).map((c) => c.id));

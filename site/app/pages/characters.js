@@ -6,6 +6,7 @@ import { MAIN_STAT_CHOICES, mainStatForClass, mainStatLabel } from '../calc/upgr
 import { reclassifyLines } from '../calc/potential.js';
 import { mainStatOnClassChange } from '../calc/upgrades.js';
 import { fmtKst } from '../time.js';
+import { hasSharedTicks } from '../calc/checklist.js';
 
 export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
   'Night Lord', 'Shadower', 'Dual Blade', 'Buccaneer', 'Corsair', 'Cannoneer', 'Dawn Warrior', 'Blaze Wizard', 'Wind Archer', 'Night Walker',
@@ -97,7 +98,7 @@ export function CharactersPage({ data, state }) {
       <//>
       <${Card} title="Add a character" bodyClass="">
         <${CharacterForm} key=${state.characters.length} initial=${blankForm()} classStats=${classStats} saveLabel="Add character"
-          onSave=${(f) => update((s) => { const id = newId(); if (s.characters.length === 0) { s.checklist.owner = id; s.checklist.ownerSet = true; } s.characters.push({ id, ...f }); s.activeId = id; })} />
+          onSave=${(f) => update((s) => { const id = newId(); if (s.characters.length === 0) { if (hasSharedTicks(s.checklist)) s.checklist.owner = id; s.checklist.ownerSet = true; } s.characters.push({ id, ...f }); s.activeId = id; })} />
       <//>
       <${Fold} title="Automatic level updates" meta="optional · tap to open" className="span2">
         <p class="note">To have your level and class refreshed from Nexon's rankings every 6 hours, list the character in <code>config/characters.json</code> in your GitHub repo, like <code>[{"name": "YourName", "region": "na"}]</code>. The next run adds it here with a button to copy the level across. Names you list there are visible to anyone who can see the repo; Nexon's own rankings already show them publicly.</p>

@@ -78,7 +78,7 @@ test('merge: a fresh phone never wipes the copy in the gist', () => {
 test('merge: a copy saved before stamps existed is dated by its updatedAt', () => {
   const old = { ...blank(), updatedAt: 500, characters: [{ id: 'c1', name: 'A' }], mesos: { held: 42, goals: [] }, gear: { c1: { slots: {} } } };
   delete old.stamps;
-  assert.equal(seedStamps(old)['gear/c1'], 500);
+  assert.equal(seedStamps(old)['gear/c1/@'], 500);
   const phone = edit(blank(), 900, (s) => { s.checklist.history['2026-11-23'] = { done: 1, total: 9 }; });
   const merged = mergeStates(phone, old);
   assert.equal(merged.mesos.held, 42);
@@ -91,7 +91,7 @@ test('units split the checklist per item and per-character data per character', 
   const s = edit(blank(), 1, (x) => { x.checklist.items.a = { d: 1 }; x.bosses.c1 = { picks: {} }; });
   const paths = [...units(s).keys()];
   assert.ok(paths.includes('checklist/items/a'));
-  assert.ok(paths.includes('bosses/c1'));
+  assert.ok(paths.includes('bosses/c1/@'));
   assert.ok(paths.includes('mesos/held') && paths.includes('mesos/goalOrder'));
   assert.ok(!paths.includes('stamps') && !paths.includes('updatedAt') && !paths.includes('activeId'));
 });
@@ -472,7 +472,7 @@ test('merge: removal markers count as a difference, so they are passed on', asyn
   const merged = mergeStates(neverHad, removed, 1000);
   assert.ok(sameEntries(merged, neverHad), 'no entry changes for the device that never had it');
   assert.ok(!sameStamps(merged, neverHad), 'but the removal marker is new to it and must be saved');
-  assert.equal(merged.stamps['gear/c1'], 200);
+  assert.equal(merged.stamps['gear/c1/@'], 200);
   // With the marker carried along, the old copy cannot bring the part back.
   assert.ok(!('c1' in mergeStates(merged, base, 1000).gear));
   assert.ok(sameStamps(merged, structuredClone(merged)));

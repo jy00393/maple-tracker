@@ -27,7 +27,7 @@ function SyncCard() {
   const [showQr, setShowQr] = useState(false);
   const [pending, setPending] = useState(pendingPair());
   const dropPending = () => { setPendingPair(null); setPending(null); };
-  useEffect(() => onSyncStatus(setSt), []);
+  useEffect(() => { const off = onSyncStatus(setSt); setSt(syncStatus()); return off; }, []);
   useEffect(() => onPendingPair(setPending), []);
   const cfg = syncConfig();
   const run = async (fn) => {
@@ -46,7 +46,7 @@ function SyncCard() {
     <//>`;
   }
   return html`<${Card} title="Sync between PC and phone" meta=${cfg ? 'connected' : 'off'}>
-    ${cfg ? html`<p class=${st.state === 'error' ? 'warnbox' : 'okbox'} role="status">${st.message || 'Connected'}${st.at ? ` · ${fmtKst(st.at)}` : ''}</p>
+    ${cfg ? html`<p class=${st.state === 'error' || st.state === 'warn' ? 'warnbox' : 'okbox'} role="status">${st.message || 'Connected'}${st.at ? ` · ${fmtKst(st.at)}` : ''}</p>
       <div class="toolbar">
         <button type="button" class="btn primary" disabled=${busy} onClick=${() => run(pull)}>Sync now</button>
         <button type="button" class="btn" aria-expanded=${String(showQr)} onClick=${() => setShowQr(!showQr)}>${showQr ? 'Hide QR code' : 'Connect my phone (QR code)'}</button>
@@ -84,7 +84,7 @@ function PairQr() {
 // The same status the top-bar pill shows, spelled out.
 function StatusCard({ data }) {
   const [sync, setSync] = useState(syncStatus());
-  useEffect(() => onSyncStatus(setSync), []);
+  useEffect(() => { const off = onSyncStatus(setSync); setSync(syncStatus()); return off; }, []);
   const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now: Date.now(), tokenExpires: syncConfig()?.expires });
   const names = { sync: 'Your devices', token: 'Sync token', nexon: 'Nexon events and news', tables: 'Game tables' };
   return html`<${Card} title="Status" meta=${st.label} className="span2">
@@ -95,15 +95,16 @@ function StatusCard({ data }) {
 
 // Daily safety copies kept in this browser, with one-tap restore.
 function BackupsCard() {
-  const [list, setList] = useState(listBackups());
+  // Read on every draw, so a copy made by Clear all data or an import on this page shows at once.
+  const list = listBackups();
   const [confirm, setConfirm] = useState(null);
   const [msg, setMsg] = useState('');
   return html`<${Card} title="Daily safety copies" meta=${list.length ? `${list.length} kept` : 'none yet'}>
-    <p class="note">Once a day, when you open the tracker, it keeps a copy of your entries in this browser (the last 7 days). Restore one if an edit or a sync goes wrong. Restoring first saves what you have now, so it can be undone.</p>
-    ${list.length === 0 ? html`<p class="note">The first copy is made the next time you open the tracker with entries saved.</p>` : list.map((b) => html`<div class="row">
+    <p class="note">Once a day the tracker keeps a copy of your entries in this browser (the last 7 days). Restore one if an edit or a sync goes wrong. Restoring first saves what you have now, so it can be undone.</p>
+    ${list.length === 0 ? html`<p class="note">The first copy is made the next day you use the tracker with entries saved.</p>` : list.map((b) => html`<div class="row">
       <span class="lbl">${fmtKst(b.at)}${b.label ? html` <span class="pill">${b.label}</span>` : null}<span class="small muted"> · ${describeBackup(b)}</span></span>
       <div class="right">${confirm === b.at
-        ? html`<button type="button" class="btn danger" onClick=${() => { const ok = restoreBackup(b.at); setConfirm(null); setList(listBackups()); setMsg(ok ? `Restored the copy from ${fmtKst(b.at)}.` : 'That copy is no longer there.'); }}>Yes, restore</button>
+        ? html`<button type="button" class="btn danger" onClick=${() => { const done = restoreBackup(b.at); setConfirm(null); setMsg(!done ? 'That copy is no longer there.' : done.kept ? `Restored the copy from ${fmtKst(b.at)}.` : `Restored the copy from ${fmtKst(b.at)}. The browser is out of room, so what you had before could not be kept.`); }}>Yes, restore</button>
             <button type="button" class="btn" onClick=${() => setConfirm(null)}>Cancel</button>`
         : html`<button type="button" class="btn" onClick=${() => setConfirm(b.at)}>Restore</button>`}</div>
     </div>`)}
@@ -160,10 +161,11 @@ export function SettingsPage({ data }) {
                 const parsed = JSON.parse(await file.text());
                 if (!parsed || parsed.v !== 1) throw new Error('not a Maple Tracker backup');
                 // A safety copy first, so an import that turns out wrong can be undone from Restore.
-                snapshotNow('before import');
+                const had = getState().updatedAt > 0;
+                const kept = snapshotNow('before import');
                 replaceState(parsed);
                 const n = getState().characters.length;
-                setMessage(`Imported ${n} character${n === 1 ? '' : 's'} from ${file.name}. A copy of the previous data is saved under Restore (the last three such copies are kept).`);
+                setMessage(`Imported ${n} character${n === 1 ? '' : 's'} from ${file.name}.${!had ? '' : kept ? ' A copy of the previous data is saved under Daily safety copies (the last three such copies are kept).' : ' The browser is out of room, so no copy of the previous data was kept.'}`);
               } catch (err) {
                 setMessage(`Couldn't import that file: ${err.message}.`);
               }
@@ -176,7 +178,7 @@ export function SettingsPage({ data }) {
         <p class="note">Clears every character, tick and entry in this browser. Export a backup first if you might want them back.${syncConfig() ? ' This device is disconnected from Sync first, so your other devices and the synced copy keep their data.' : ''}</p>
         <div class="toolbar">
           ${confirmReset
-            ? html`<button type="button" class="btn danger" onClick=${() => { const wasSynced = Boolean(syncConfig()); if (wasSynced) disconnect(); snapshotNow('before clearing'); resetState(); setConfirmReset(false); setMessage(wasSynced ? 'Everything was cleared here, and this device was disconnected from Sync.' : 'Everything was cleared.'); }}>Yes, clear everything</button>
+            ? html`<button type="button" class="btn danger" onClick=${() => { const wasSynced = Boolean(syncConfig()); if (wasSynced) disconnect(); const had = getState().updatedAt > 0; const kept = snapshotNow('before clearing'); resetState(); setConfirmReset(false); setMessage((wasSynced ? 'Everything was cleared here, and this device was disconnected from Sync.' : 'Everything was cleared.') + (!had ? '' : kept ? ' A copy from just before is under Daily safety copies.' : ' The browser is out of room, so no safety copy was kept.')); }}>Yes, clear everything</button>
                 <button type="button" class="btn" onClick=${() => setConfirmReset(false)}>Keep my data</button>`
             : html`<button type="button" class="btn danger" onClick=${() => setConfirmReset(true)}>Clear all data</button>`}
         </div>
