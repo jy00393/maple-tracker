@@ -28,7 +28,8 @@ export function resetWarnings(checklistData, checklistState, bossLines, now, opt
     }
   }
   for (const line of bossLines || []) {
-    if (!(line.value > 0)) continue;
+    // Done on another difficulty, or a second pick for the same clear: nothing left to lose.
+    if (!(line.value > 0) || line.doneAs || line.spare) continue;
     if (line.kind === 'weekly' && !line.cleared && close('thu')) {
       const w = slot('thu');
       w.bosses.count++;
