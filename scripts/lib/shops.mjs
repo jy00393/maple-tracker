@@ -226,11 +226,17 @@ export function findShops(body, post) {
 }
 
 // Builds data/shops.json from what the job parsed, keeping what a person added to the existing file.
-// - A shop is matched to an existing one by name when their dates overlap, and keeps that one's id (saved picks are
-//   keyed by it) and any field the parser does not produce (earn, scope, useBy, event).
-// - A shop with the same name that opens after the existing one closed is a new shop (Challenger World Shop comes
-//   back every season) and takes nothing from the old one. Every new shop's id ends with its start date, so the
-//   coins and picks saved for last season's shop never show up in this season's.
+// - A parsed shop that is the same shop as one in the file keeps that one's id (saved picks are keyed by it) and
+//   any field the parser does not produce (earn, scope, useBy, event). "The same shop" is decided in this order,
+//   each shop being used once:
+//   1. same post, same coin, same dates and mostly the same items, under the same name;
+//   2. the same under another name: two shops with the same heading in one post are named by their order, so
+//      they trade names when Nexon reorders the sections;
+//   3. same post and same name: Nexon corrected the dates (or the coin) of a shop in the post it came from;
+//   4. same name and the dates touch: the same run of a shop described by another post.
+// - A shop with the same name from another post that opens after the existing one closed is a new shop
+//   (Challenger World Shop comes back every season) and takes nothing from the old one. Every new shop's id ends
+//   with its start date, so the coins and picks saved for last season's shop never show up in this season's.
 // - Items are matched by name (and world) the same way and keep a hand-written note when the post has none.
 // - When two posts describe the same shop, the newer post wins. Shops that closed more than 21 days ago go.
 // - An existing shop the job did not find (typed by hand, or its post left the window) stays until it closes.
@@ -243,23 +249,47 @@ export function mergeShops(existing, parsed, now) {
   // The same run of a shop: the two windows touch. A missing start counts as "open already".
   const from = (s) => (s.start ? Date.parse(s.start) : -Infinity);
   const sameRun = (a, b) => !(from(a) > Date.parse(b.end)) && !(from(b) > Date.parse(a.end));
-  const out = [];
+  const low = (x) => String(x || '').toLowerCase();
+  const samePost = (a, b) => a.postId != null && b.postId != null && String(a.postId) === String(b.postId);
+  const sameName = (a, b) => low(a.name) === low(b.name);
+  const sameCoin = (a, b) => Boolean(a.currency) && low(a.currency) === low(b.currency);
+  const sameDates = (a, b) => from(a) === from(b) && Date.parse(a.end) === Date.parse(b.end);
+  const itemNames = (s) => new Set((Array.isArray(s.items) ? s.items : []).filter((it) => it && it.name).map((it) => low(it.name)));
+  const sameItems = (a, b) => {
+    const x = itemNames(a);
+    const y = itemNames(b);
+    let shared = 0;
+    for (const n of x) if (y.has(n)) shared++;
+    return shared > 0 && shared * 2 >= Math.min(x.size, y.size);
+  };
+  const rules = [
+    (p, f) => samePost(p, f) && sameName(p, f) && sameCoin(p, f) && sameDates(p, f) && sameItems(p, f),
+    (p, f) => samePost(p, f) && sameCoin(p, f) && sameDates(p, f) && sameItems(p, f),
+    (p, f) => samePost(p, f) && sameName(p, f) && (sameRun(p, f) || sameCoin(p, f)),
+    (p, f) => sameName(p, f) && sameRun(p, f)
+  ];
+  const fresh = [...byName.values()];
   const used = new Set();
-  for (const prev of old) {
-    const key = prev.name.toLowerCase();
-    const fresh = byName.get(key);
-    if (!fresh || used.has(key) || !sameRun(prev, fresh)) { out.push(prev); continue; }
-    used.add(key);
-    out.push({ ...prev, ...fresh, id: prev.id, items: mergeItems(Array.isArray(prev.items) ? prev.items : [], fresh.items) });
+  const match = new Map();
+  for (const rule of rules) {
+    for (const prev of old) {
+      if (match.has(prev)) continue;
+      const hit = fresh.find((f) => !used.has(f) && rule(prev, f));
+      if (hit) { used.add(hit); match.set(prev, hit); }
+    }
   }
+  const out = old.map((prev) => {
+    const f = match.get(prev);
+    return f ? { ...prev, ...f, id: prev.id, items: mergeItems(Array.isArray(prev.items) ? prev.items : [], f.items) } : prev;
+  });
   const ids = new Set(out.map((s) => s.id));
-  for (const [key, fresh] of byName) {
-    if (used.has(key)) continue;
-    const base = `${fresh.id}-${fresh.start ? fresh.start.slice(0, 10) : `post-${fresh.postId}`}`;
+  for (const f of fresh) {
+    if (used.has(f)) continue;
+    const base = `${f.id}-${f.start ? f.start.slice(0, 10) : `post-${f.postId}`}`;
     let id = base;
     for (let k = 2; ids.has(id); k++) id = `${base}-${k}`;
     ids.add(id);
-    out.push({ ...fresh, id });
+    out.push({ ...f, id });
   }
   out.sort((a, b) => Date.parse(a.end) - Date.parse(b.end) || (a.name < b.name ? -1 : 1));
   const posts = [...new Set(out.map((s) => s.postId).filter(Boolean))];

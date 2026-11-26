@@ -1,6 +1,6 @@
 // The careful parts of the data job, kept apart from the network and the disk so tests can run them:
 // is the news list believable, is a post's answer usable, and which posts are read in which order.
-import { parsePost, findSunnySchedule } from './nexon-parse.mjs';
+import { parsePost, findSunnySchedule, wantsDetail } from './nexon-parse.mjs';
 import { findShops } from './shops.mjs';
 
 const HOUR = 3600000;
@@ -8,20 +8,48 @@ const DAY = 24 * HOUR;
 
 // The news list as Nexon sent it -> the posts that can be used. Throws when the answer cannot be trusted, so the
 // job keeps the files it has: the feed is undocumented, and an error page or a cut-off list can still be a
-// non-empty JSON array. `lastCount` is how many posts the last good run kept (news.json).
-export function checkNewsList(list, lastCount = 0) {
+// non-empty JSON array. `baseline` is the size of the last good feed (feedBaseline below), 0 on a first run.
+// - More than one entry in ten without an id, a name or a date: the list is broken, not just untidy.
+// - Fewer than half as many posts as the last good feed: the list is cut off.
+export function checkNewsList(list, baseline = 0) {
   if (!Array.isArray(list) || list.length === 0) throw new Error('News feed returned no posts');
   const good = list.filter((p) => p && typeof p === 'object'
     && ((typeof p.id === 'number' && Number.isFinite(p.id)) || (typeof p.id === 'string' && p.id !== ''))
     && typeof p.name === 'string' && p.name.trim() !== ''
     && Number.isFinite(Date.parse(p.liveDate)));
-  if (good.length === 0 || good.length < list.length / 2) {
-    throw new Error(`News feed returned ${list.length - good.length} of ${list.length} posts without an id, a name or a date`);
+  if (good.length === 0 || (list.length - good.length) * 10 > list.length) {
+    throw new Error(`News feed returned ${list.length - good.length} of ${list.length} posts without an id, a name or a date; kept the previous files`);
   }
-  if (lastCount >= 40 && good.length < lastCount / 4) {
-    throw new Error(`News feed returned only ${good.length} posts (the last good run kept ${lastCount}); kept the previous files`);
+  if (baseline > 0 && good.length * 2 < baseline) {
+    throw new Error(`News feed returned only ${good.length} posts (the last good feed had about ${baseline}); kept the previous files. If Nexon's feed really is this short now, lower "feedCount" in site/data/news.json by hand.`);
   }
   return good;
+}
+
+// The size the next list is compared with, from the saved news.json. `feedCount` is written by every good run;
+// a file from before that only has the (at most 150) items it kept.
+export function feedBaseline(lastNews) {
+  const n = lastNews && Number.isFinite(lastNews.feedCount) && lastNews.feedCount > 0 ? Math.floor(lastNews.feedCount) : 0;
+  const kept = lastNews && Array.isArray(lastNews.items) ? lastNews.items.length : 0;
+  return Math.max(n, kept);
+}
+
+// The `feedCount` a good run saves. It follows the feed up at once but down by at most a tenth per run, so one
+// accepted shorter list cannot open the door to a much shorter one on the next run.
+export function nextFeedCount(baseline, count) {
+  return Math.max(count, Math.floor(baseline * 0.9));
+}
+
+// A list that passed the size check can still be the wrong list (an old page, or one missing the posts that
+// matter). Saved posts only leave by growing too old to be read; when many that are still inside their window
+// are missing from the list, the list is refused and every file stays as it was.
+export function checkCacheLoss(posts, list, now) {
+  const listed = new Set(list.map((p) => String(p.id)));
+  const inWindow = Object.entries(posts || {}).filter(([id, p]) => p && wantsDetail({ id, name: p.name, category: p.category, liveDate: p.liveDate }, now));
+  const missing = inWindow.filter(([id]) => !listed.has(String(id)));
+  if (missing.length >= 5 && missing.length * 4 > inWindow.length) {
+    throw new Error(`News feed is missing ${missing.length} of the ${inWindow.length} saved posts that are still current; kept the previous files`);
+  }
 }
 
 // How many runs in a row a post must come back with nothing in it before that is believed.
