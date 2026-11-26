@@ -6,7 +6,7 @@ export const ITEMS_URL = (version, minLevel) =>
   `https://maplestory.io/api/GMS/${version}/item?overallCategoryFilter=Equip&minLevelFilter=${minLevel}&count=20000`;
 export const MIN_LEVEL = 100;
 // Raise this when the way rows are built changes, so the job rebuilds the list even if the game version is the same.
-export const ITEMS_SCHEMA = 2;
+export const ITEMS_SCHEMA = 3; // 3: every 119xxxx id is an emblem (Mitra's Rage and later emblems were dropped before)
 
 // Newest GMS data version the API says is ready, as a string ("270"), or null.
 export function latestGmsVersion(wzList) {
@@ -25,7 +25,7 @@ const BLOCKS = {
 export function slotOfItem(id) {
   const n = Number(id);
   if (!Number.isInteger(n)) return null;
-  if (n >= 1190000 && n < 1190500) return 'emblem';
+  if (n >= 1190000 && n < 1200000) return 'emblem';
   const block = Math.floor(n / 10000);
   if (BLOCKS[block]) return BLOCKS[block];
   if (block >= 121 && block <= 159) return 'weapon';

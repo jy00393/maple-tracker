@@ -107,6 +107,8 @@ export function ChecklistPage({ data, state }) {
     <div class="grid two">
       <${StreakCard} state=${state} now=${now} />
       ${data.checklist.groups.map((group) => {
+        // A group whose items have all ended (or are not for this character) is left out, heading included.
+        if (group.items.every((item) => itemStatus(item, group, cs, now, who).expired)) return null;
         const items = group.items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`);
         return html`<${Card} title=${group.title} meta=${group.hint} bodyClass="card-b tight">${items}<//>`;
       })}

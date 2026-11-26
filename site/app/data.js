@@ -23,7 +23,8 @@ const FILES = {
   champions: 'data/champions.json',
   expSources: 'data/expsources.json',
   upcoming: 'data/upcoming.json',
-  bossCp: 'data/bosscp.json'
+  bossCp: 'data/bosscp.json',
+  classes: 'data/classes.json'
 };
 const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season']);
 

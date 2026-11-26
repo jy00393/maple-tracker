@@ -63,8 +63,10 @@ const MONTHS = {
 const MONTH_PATTERN = '(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?';
 const WEEKDAY_PATTERN = '(?:(?:Mon|Tues|Tue|Wednes|Wed|Thurs|Thu|Fri|Satur|Sat|Sun)(?:day)?\\.?\\s*,?\\s+)?';
 const DATE_PATTERN = `${WEEKDAY_PATTERN}${MONTH_PATTERN}\\s+(\\d{1,2})(?:st|nd|rd|th)?\\s*,?\\s*(\\d{4})`;
-const TIME_PATTERN = '(?:\\s*,?\\s*(?:at\\s+)?)(\\d{1,2})(?::(\\d{2}))?\\s*([AaPp])\\.?\\s*[Mm]\\.?(?:\\s*(UTC|GMT|PST|PDT|PT))?';
-const SEPARATOR_RE = /^\s*(?:-|–|—|~|to|through|thru|until)\s*$/i;
+// The zone after a time must be on the same line and must not be the label of the next range ("UTC:", "PST (UTC -8):").
+const TIME_PATTERN = '(?:\\s*,?\\s*(?:at\\s+)?)(\\d{1,2})(?::(\\d{2}))?\\s*([AaPp])\\.?\\s*[Mm]\\.?(?:[ \\t]*(UTC|GMT|PST|PDT|PT)\\b(?![ \\t]*(?::|\\(UTC[^)]*\\)[ \\t]*:)))?';
+// Between two dates; a "(UTC -8)" note after the first time is allowed before the dash.
+const SEPARATOR_RE = /^\s*(?:\(UTC\s*[-+−]?\s*\d+\)\s*)?(?:-|–|—|~|to|through|thru|until)\s*$/i;
 
 // US Pacific daylight time: second Sunday of March 02:00 to first Sunday of November 02:00 (local).
 function isPacificDst(year, month, day) {
@@ -128,7 +130,8 @@ export function findDateTokens(text) {
     const time = readTime(text, end);
     if (time) end += time.length;
     let afterMaintenance = false;
-    const maint = /^\s*\(\s*after\s+(?:the\s+)?maintenance\s*\)/i.exec(text.slice(end));
+    // "(after maintenance)", "(End of Maintenance)", "(following maintenance)"
+    const maint = /^\s*\(\s*(?:after|end\s+of|following)\s+(?:the\s+)?maintenance\s*\)/i.exec(text.slice(end));
     if (maint) {
       afterMaintenance = true;
       end += maint[0].length;
@@ -152,6 +155,25 @@ export function findDateRanges(text) {
       used.add(i + 1);
       ranges.push(makeRange(text, a, b));
       continue;
+    }
+    // A second date written without its year: "October 7, 2026 12:00 AM UTC - November 10 11:59 PM UTC". It takes
+    // the first date's year, or the next one when its month comes earlier in the year.
+    // Case-sensitive: a capitalised month name only, so "may 3 times" or "to dec 5" in a sentence is not a date,
+    // and the day must end there (not "November 10th floor" or "December 12 characters").
+    const yearless = new RegExp(`^\\s*(?:-|–|—|~|[Tt]o|[Tt]hrough|[Tt]hru|[Uu]ntil)\\s*${WEEKDAY_PATTERN}${MONTH_PATTERN}\\s+(\\d{1,2})(?:st|nd|rd|th)?(?!\\s*,?\\s*\\d{4})(?=\\s*(?:$|[,.;)]|\\d{1,2}(?::\\d{2})?\\s*[AaPp]\\.?\\s*[Mm]|\\(|at\\s))`).exec(text.slice(a.end));
+    if (yearless) {
+      const month = MONTHS[yearless[1].toLowerCase().replace('.', '')];
+      const day = parseInt(yearless[2], 10);
+      const year = a.date.year + (month < a.date.month ? 1 : 0);
+      // A day the month doesn't have (November 31) is not a date.
+      if (month !== undefined && new Date(Date.UTC(year, month, day)).getUTCDate() === day) {
+        const bEnd = a.end + yearless[0].length;
+        const bTime = readTime(text, bEnd);
+        const date = { year: a.date.year + (month < a.date.month ? 1 : 0), month, day: parseInt(yearless[2], 10) };
+        used.add(i);
+        ranges.push({ ...makeRange(text, a, { start: a.end, end: bEnd + (bTime ? bTime.length : 0), date, time: bTime }), inferredYear: true });
+        continue;
+      }
     }
     // Same-day window: "November 25, 2026 4:00 AM - 9:00 AM PST"
     if (a.time) {
@@ -190,7 +212,10 @@ export function findDateRanges(text) {
 }
 
 function makeRange(text, a, b) {
-  const tz = (a.time && a.time.tz) || (b.time && b.time.tz) || 'UTC';
+  // A zone written as a label in front ("PST: Thursday, November 12, 2026 12:00 AM - ...") counts when neither
+  // time names one.
+  const label = /\b(UTC|PST|PDT|PT)(?:\s*\(UTC\s*[-+−]?\s*\d+\))?\s*:\s*$/i.exec(text.slice(Math.max(0, a.start - 30), a.start));
+  const tz = (a.time && a.time.tz) || (b.time && b.time.tz) || (label ? label[1].toUpperCase() : 'UTC');
   return {
     start: toUtcMs(a.date, a.time, (a.time && a.time.tz) || tz, false),
     end: toUtcMs(b.date, b.time, (b.time && b.time.tz) || tz, true),
@@ -239,6 +264,31 @@ export function findLabeledRanges(text, refIso) {
       startApprox: false,
       endApprox: false,
       afterMaintenance: false,
+      label,
+      raw: m[0].replace(/\s+/g, ' ').trim()
+    });
+  }
+  // The same layout with the start written as "(End of Maintenance)" instead of a time:
+  // "UTC: Wednesday, November 11 (End of Maintenance) - Wednesday, December 9 7:59 AM".
+  const maintRe = new RegExp(
+    `\\b(UTC|PST|PDT|PT)(?:\\s*\\(UTC\\s*[-+−]?\\s*\\d+\\))?\\s*:\\s*${WEEKDAY_PATTERN}${MONTH_PATTERN}\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s*\\(\\s*(?:after|end\\s+of|following)\\s+(?:the\\s+)?maintenance\\s*\\)\\s*(?:-|–|—|~|to)\\s*${WEEKDAY_PATTERN}${MONTH_PATTERN}\\s+(\\d{1,2})(?:st|nd|rd|th)?,?${TIME_PATTERN}`,
+    'gi'
+  );
+  while ((m = maintRe.exec(text))) {
+    const label = m[1].toUpperCase();
+    const month1 = MONTHS[m[2].toLowerCase().replace('.', '')];
+    const month2 = MONTHS[m[4].toLowerCase().replace('.', '')];
+    if (month1 === undefined || month2 === undefined) continue;
+    const date1 = { year: inferYear(month1, refIso), month: month1, day: parseInt(m[3], 10) };
+    const date2 = { year: date1.year + (month2 < month1 ? 1 : 0), month: month2, day: parseInt(m[5], 10) };
+    const time2 = { hour: parseInt(m[6], 10), minute: m[7] ? parseInt(m[7], 10) : 0, pm: m[8].toLowerCase() === 'p' };
+    ranges.push({
+      index: m.index,
+      start: toUtcMs(date1, null, label, false),
+      end: toUtcMs(date2, time2, (m[9] || label).toUpperCase(), true),
+      startApprox: true,
+      endApprox: false,
+      afterMaintenance: true,
       label,
       raw: m[0].replace(/\s+/g, ' ').trim()
     });
@@ -361,6 +411,18 @@ export function findSunnySchedule(body) {
   return out.filter((d) => d.perks.length > 0);
 }
 
+// Which posts from the news list the job reads in full.
+const DETAIL_CATEGORIES = new Set(['events', 'update', 'sale', 'general', 'maintenance']);
+export function wantsDetail(post, now) {
+  if (!DETAIL_CATEGORIES.has(post.category)) return false;
+  if (post.isMSCW) return false; // Classic World posts are listed but not parsed
+  const age = now - Date.parse(post.liveDate);
+  // Announced maintenance is titled without a bracket ("Scheduled Maintenance - November 24, 2026") and gets a
+  // "[Completed]" bracket afterwards; both are read. Other maintenance-category posts (notices) are skipped.
+  if (post.category === 'maintenance') return age < 21 * 86400000 && /^\s*(?:\[(?:scheduled|completed|updated|unscheduled)[^\]]*\]\s*)?(?:un)?scheduled\b|^\s*\[(?:scheduled|completed|updated|unscheduled)/i.test(post.name);
+  return age < 150 * 86400000;
+}
+
 export function slugify(text) {
   return String(text).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'item';
 }
@@ -372,7 +434,10 @@ export function postUrl(post) {
 
 // Parse one post into event windows. `post` is a list item from the CMS feed; `body` is its HTML.
 function firstWindow(text, post) {
-  const standard = findDateRanges(text).find((r) => r.end !== null);
+  // A range whose end date had no year of its own is only used when the section has no fully dated range, so it
+  // never displaces the window the section was read with before (Winter Countdown's own dates).
+  const ranges = findDateRanges(text).filter((r) => r.end !== null);
+  const standard = ranges.find((r) => !r.inferredYear) || ranges[0];
   if (standard) return standard;
   return findLabeledRanges(text, post.liveDate)[0] || null;
 }
@@ -385,15 +450,25 @@ export function parsePost(post, body) {
     return window ? [toEvent(post, post.name, window, [])] : [];
   }
   const events = [];
-  const seen = new Set();
+  const seen = new Map();
   for (const block of blocks) {
     if (!block.heading || SKIP_HEADINGS.test(block.heading)) continue;
+    // Sunny Sunday is a list of single Sundays (findSunnySchedule), not one event; a claim deadline inside it
+    // would otherwise become the window of the whole section.
+    if (/^sunny sundays?$/i.test(block.heading.trim())) continue;
     const range = firstWindow(block.text, post);
     if (!range) continue;
-    const id = `${post.id}-${slugify(block.heading)}`;
-    if (seen.has(id)) continue;
-    seen.add(id);
-    events.push(toEvent(post, block.heading, range, findResetNotes(block.text)));
+    let id = `${post.id}-${slugify(block.heading)}`;
+    // A repeated heading with the same window is the same event; long headings that only share their first 60
+    // characters (the slug length) but have their own windows are kept apart.
+    const window = `${range.start}|${range.end}`;
+    if (seen.has(id)) {
+      if (seen.get(id).includes(window)) continue;
+      const n = seen.get(id).length + 1;
+      seen.get(id).push(window);
+      id = `${id}-${n}`;
+    } else seen.set(id, [window]);
+    events.push({ ...toEvent(post, block.heading, range, findResetNotes(block.text)), id });
   }
   if (events.length === 0) {
     const text = allText();

@@ -31,6 +31,7 @@ export function tierFromName(name, tierNames, hints) {
   const n = String(name || '').toLowerCase();
   for (const [keyword, rung] of hints || []) {
     if (!n.includes(String(keyword).toLowerCase())) continue;
+    if (!rung) return 0; // a lookalike name: no guess
     const i = (tierNames || []).findIndex((t) => t && t.toLowerCase().includes(String(rung).toLowerCase()));
     if (i >= 0) return i + 1;
   }

@@ -1,11 +1,12 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, newId } from '../store.js';
-import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow } from '../ui.js';
+import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow, parseMesos, MESO_MAX } from '../ui.js';
 import { computeIncome, crystalWeekStart } from '../calc/income.js';
 import { starPlan, starSpread, maxStarsFor } from '../calc/starforce.js';
 import { cubePlan } from '../calc/upgrades.js';
 import { gearSummary, symbolPlan } from '../calc/progress.js';
 import { slotOutlook } from './gear.js';
+import { withCubeRates } from '../calc/advice.js';
 import { DAY, dayKey, fmtDate } from '../time.js';
 import { Flames } from './flames.js';
 
@@ -22,6 +23,8 @@ export function weeklyIncome(data, state, now) {
   return { bosses, ursus, farming, other, total: bosses + ursus + farming + other };
 }
 
+const FAR = 100 * 365.25 * DAY;
+
 // Date each goal becomes affordable, in list order, from mesos held plus weekly income.
 export function goalDates(goals, held, weekly, now) {
   let need = 0;
@@ -30,7 +33,10 @@ export function goalDates(goals, held, weekly, now) {
     const short = need - (held || 0);
     if (short <= 0) return { ...g, cumulative: need, at: now, now: true };
     if (weekly <= 0) return { ...g, cumulative: need, at: null };
-    return { ...g, cumulative: need, at: now + (short / weekly) * 7 * DAY };
+    const at = now + (short / weekly) * 7 * DAY;
+    // More than a hundred years away is shown as out of reach rather than as a date.
+    if (!(at - now <= FAR)) return { ...g, cumulative: need, at: null, tooFar: true };
+    return { ...g, cumulative: need, at };
   });
 }
 
@@ -61,10 +67,10 @@ function Planner({ data, state, now }) {
       const p = symbolPlan(data.symbols.sacred, area, entries[area.id]);
       if (!p.locked && !p.maxed && p.nextMesos) { quick.push([`${area.name} symbol Lv. ${p.level + 1}`, p.nextMesos]); break; }
     }
-    const gear = gearSummary(data.gear, state.gear[char.id]);
+    const gear = gearSummary(data.gear, state.gear[char.id], char.mainStat || 'STR');
     for (const r of gear.gaps) {
       if (r.entry.temporary) continue;
-      const o = slotOutlook(r.slot, r.entry, r.target, data.upgrades);
+      const o = slotOutlook(r.slot, r.entry, r.target, withCubeRates(data.upgrades, state.mesos.cubeRates));
       if (o.sf) { quick.push([`${r.slot.name} ${o.sf.from}→${o.sf.to}★ (expected)`, o.sf.plain.cost]); break; }
     }
   }
@@ -72,7 +78,7 @@ function Planner({ data, state, now }) {
     <${Card} title="Goals" meta=${inc.total ? `${fmtBig(inc.total)} a week` : 'no income entered'}>
       ${dated.length ? dated.map((g, i) => html`<div class="goal">
         <div><b>${g.name}</b><div class="small muted">${fmtBig(g.cost)} · ${fmtBig(g.cumulative)} with everything above</div></div>
-        <span class=${'date' + (g.now ? ' now' : '')}>${g.now ? 'Affordable now' : g.at ? fmtDate(g.at) : '—'}</span>
+        <span class=${'date' + (g.now ? ' now' : '')}>${g.now ? 'Affordable now' : g.at ? fmtDate(g.at) : g.tooFar ? 'not in reach' : '—'}</span>
         <span class="small muted">${g.at && !g.now ? `${Math.ceil((g.at - now) / DAY)} days` : ''}</span>
         <span style=${{ display: 'flex', gap: '4px' }}>
           <button type="button" class="iconbtn" aria-label=${'Move up: ' + g.name} onClick=${() => move(i, -1)}>↑</button>
@@ -109,11 +115,10 @@ function Planner({ data, state, now }) {
   </div>`;
 }
 
+// The same reading as the meso boxes, and nothing above what saved data can hold (it would be reset on load).
 function parseMesosLoose(v) {
-  const t = String(v || '').trim().toLowerCase().replace(/,/g, '');
-  const m = /^(\d+(?:\.\d+)?)\s*([kmbt])?$/.exec(t);
-  if (!m) return null;
-  return Math.round(parseFloat(m[1]) * ({ k: 1e3, m: 1e6, b: 1e9, t: 1e12 }[m[2]] || 1));
+  const n = parseMesos(v);
+  return n !== null && n <= MESO_MAX ? n : null;
 }
 
 function StarForce({ data, state }) {
@@ -239,7 +244,7 @@ function History({ data, state, now }) {
     <//>
     <${Card} title="Summary">
       <div class="insight"><span class="k">Average earned week</span><span class="big accent">${fmtBig(avg)}</span><span class="small muted">${recorded.length} week${recorded.length === 1 ? '' : 's'} recorded</span></div>
-      <p class="note">A week is saved whenever you open Bosses or tick a clear, so the chart fills in as you use it. Totals are all characters, after the 14-per-character and 180-per-world caps.</p>
+      <p class="note">A week is saved while the tracker is open, so the chart fills in as you use it. Totals are all characters, after the 14-per-character and 180-per-world caps.</p>
     <//>
   </div>`;
 }

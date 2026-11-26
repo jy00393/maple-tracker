@@ -40,8 +40,9 @@ test('flame rerolls are ranked: cost to beat the current flame and the damage it
   const now = flameScore(g.slots.hat.flame, fl.weights);
   assert.equal(now, 130);
   const dist = scoreDist(fl, { level: 150, mainStat: 'STR', type: 'reset', advantaged: true });
-  const chance = dist.filter(([s]) => s > now).reduce((a, [, p]) => a + p, 0);
-  const mean = dist.filter(([s]) => s > now).reduce((a, [s, p]) => a + p * s, 0) / chance;
+  // A better flame is one whole point higher (131 here), the same target the Flame calculator sets.
+  const chance = dist.filter(([s]) => s >= 131).reduce((a, [, p]) => a + p, 0);
+  const mean = dist.filter(([s]) => s >= 131).reduce((a, [s, p]) => a + p * s, 0) / chance;
   near(o.chance, chance);
   near(o.cost, 3000000 / chance);
   near(o.flameGain, mean - now);

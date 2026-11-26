@@ -65,6 +65,8 @@ export function fmtUtcTime(t) {
 }
 
 export function fmtDate(t) {
+  // Beyond what a date can hold (an absurd goal at a tiny income), there is nothing sensible to print.
+  if (!Number.isFinite(t) || Math.abs(t) > 8.64e15) return '—';
   const k = kstParts(t);
   return `${k.day} ${k.mo} ${k.year}`;
 }

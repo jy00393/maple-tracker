@@ -7,7 +7,7 @@ import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
 import { gearSummary, gearProjection } from '../calc/progress.js';
 import { maxStarsFor } from '../calc/starforce.js';
-import { itemLevel, slotOutlook } from '../calc/advice.js';
+import { itemLevel, slotOutlook, withCubeRates } from '../calc/advice.js';
 import { cubePlan, lineOptions, defaultValue, lineTotals, lineLabel, lineKind, hasPotential, MAIN_STATS, LINE_TYPES, mainStatLabel, damageEstimateSupported } from '../calc/upgrades.js';
 import { dayKey, fmtDate } from '../time.js';
 
@@ -35,8 +35,8 @@ function blankGear() {
   return { preset: 'mid', slots: {}, history: [] };
 }
 
-function snapshot(g, gearData) {
-  const sum = gearSummary(gearData, g);
+function snapshot(g, gearData, mainStat) {
+  const sum = gearSummary(gearData, g, mainStat);
   const today = dayKey(Date.now());
   g.history = (g.history || []).filter((h) => h.d !== today);
   g.history.push({ d: today, pct: Math.round(sum.overall * 1000) / 1000 });
@@ -44,11 +44,13 @@ function snapshot(g, gearData) {
   if (g.history.length > 120) g.history = g.history.slice(-120);
 }
 
+const mainStatOf = (s, charId) => (s.characters.find((c) => c.id === charId) || {}).mainStat || 'STR';
+
 function setSlot(charId, slotId, patch, gearData) {
   update((s) => {
     const g = charSlice(s, 'gear', charId, blankGear);
     g.slots[slotId] = { ...(g.slots[slotId] || {}), ...patch };
-    snapshot(g, gearData);
+    snapshot(g, gearData, mainStatOf(s, charId));
   });
 }
 
@@ -56,7 +58,7 @@ function clearSlot(charId, slotId, gearData) {
   update((s) => {
     const g = charSlice(s, 'gear', charId, blankGear);
     delete g.slots[slotId];
-    snapshot(g, gearData);
+    snapshot(g, gearData, mainStatOf(s, charId));
   });
 }
 
@@ -157,7 +159,7 @@ function LineEditor({ slot, entry, set, pot, mainStat }) {
       const current = fromTable ? choices.find((c) => c.pid === l.pid && c.prime === Boolean(l.prime)) : null;
       // Shown as-is when it isn't one of this tier's lines (entered before the tables, or left from another tier).
       const legacy = l.type && !current;
-      const kind = lineKind(slot, l);
+      const kind = lineKind(slot, l, mainStat);
       return html`<label class="field"><span>Potential line ${i + 1}${current ? (current.prime ? ' · prime' : ' · non-prime') : ''}${kind === 'farm' ? ' · farming' : kind === 'damage' ? ' · damage' : ''}</span>
         <select class="select pline-select" aria-label=${'Potential line ' + (i + 1)} value=${current ? keyOf(current) : legacy ? 'legacy' : ''} onChange=${(e) => {
           const v = e.currentTarget.value;
@@ -195,10 +197,10 @@ function Outlook({ outlook, entry, target }) {
   </div>`;
 }
 
-function SlotModal({ row, data, char, onClose }) {
+function SlotModal({ row, data, char, onClose, cubeRates }) {
   const { slot, entry, target } = row;
   const [flameOpen, setFlameOpen] = useState(Boolean(cleanFlame(entry.flame)));
-  const up = data.upgrades;
+  const up = withCubeRates(data.upgrades, cubeRates);
   const tiers = data.gear.slotTypes[slot.type].filter(Boolean);
   const set = (patch) => setSlot(char.id, slot.id, patch, data.gear);
   const setTarget = (patch) => set({ target: { ...(entry.target || {}), ...patch } });
@@ -219,10 +221,10 @@ function SlotModal({ row, data, char, onClose }) {
           <div class="title">${entry.note || tiers[(entry.tier || 0) - 1] || 'Empty slot'}</div>
           <div class="small muted" style=${{ textAlign: 'center' }}>${slot.name} · Lv. ${lvl}${entry.temporary ? html` · <span class="flag">expires</span>` : ''}</div>
           ${slot.sf ? html`<div style=${{ textAlign: 'center' }}><span class="stars">★ ${entry.stars || 0}</span><span class="muted small"> / ${max}</span></div>` : null}
-          ${slot.sf && entry.stars ? (() => { const ss = starStats(data.gearStats.starforce, slot, lvl, entry.stars); return ss.stat || ss.att ? html`<div class="small muted" style=${{ textAlign: 'center' }}>Stars give ${msLabel} +${ss.stat}${ss.att ? `, ATT +${ss.att}` : ''}${ss.partial ? ' and more (not all of it is in the table)' : ''}</div>` : null; })() : null}
+          ${slot.sf && entry.stars ? (() => { const ss = starStats(data.gearStats.starforce, slot, lvl, entry.stars); return ss.stat || ss.att ? html`<div class="small muted" style=${{ textAlign: 'center' }}>Stars give ${mainStat === 'HP' ? 'each stat (not Max HP)' : mainStat === 'XENON' ? 'STR, DEX and LUK' : msLabel} +${ss.stat}${ss.att ? `, ATT +${ss.att}` : ''}${ss.partial ? ' and more (not all of it is in the table)' : ''}</div>` : null; })() : null}
           <hr />
           ${entry.pot ? html`<div class=${'pot-' + entry.pot} style=${{ fontWeight: 700 }}><${PotBadge} tier=${entry.pot} /> Potential: ${POT[entry.pot]}</div>
-            ${lines.length ? lines.map((l) => html`<div class=${'pot-line' + (lineKind(slot, l) === 'farm' ? ' pot-4' : '')}>${lineLabel(l, mainStat)}</div>`) : html`<div class="small muted">No lines entered yet.</div>`}`
+            ${lines.length ? lines.map((l) => html`<div class=${'pot-line' + (lineKind(slot, l, mainStat) === 'farm' ? ' pot-4' : '')}>${lineLabel(l, mainStat)}</div>`) : html`<div class="small muted">No lines entered yet.</div>`}`
             : html`<div class="small muted">${hasPotential(slot) ? 'No potential' : 'No potential on this slot'}</div>`}
           ${cleanFlame(entry.flame) ? html`<div class="small" style=${{ color: 'var(--ok)' }}>Flame: ${flameLabel(entry.flame, msLabel)}</div>` : null}
         </div>
@@ -284,7 +286,7 @@ function EquipTile({ row, data, mainStat, onOpen }) {
     <span class="nm"><span>${slot.name}</span><${PotBadge} tier=${entry.pot} /></span>
     <span class="it">${empty ? null : html`<${ItemIcon} entry=${entry} size=${28} />`}${empty ? 'Empty' : entry.note || tiers[entry.tier - 1]}</span>
     ${empty ? html`<span class="ln">Tap to add</span>` : lines.length
-      ? html`<span class="ln">${lines.slice(0, 3).map((l, i) => html`${i ? html`<br />` : ''}<span class=${lineKind(slot, l) === 'farm' ? 'pot-4' : ''}>${lineLabel(l, mainStat)}</span>`)}</span>`
+      ? html`<span class="ln">${lines.slice(0, 3).map((l, i) => html`${i ? html`<br />` : ''}<span class=${lineKind(slot, l, mainStat) === 'farm' ? 'pot-4' : ''}>${lineLabel(l, mainStat)}</span>`)}</span>`
       : html`<span class="ln muted">${entry.pot ? `${POT[entry.pot]}, lines not entered` : hasPotential(slot) ? 'No potential' : ''}</span>`}
     <span class="foot">${slot.sf && !empty ? html`<span class="stars">★${entry.stars || 0}</span>` : html`<span></span>`}
       ${entry.temporary ? html`<span class="flag">expires</span>` : html`<span class="muted">${Math.round(row.pct * 100)}%</span>`}</span>
@@ -313,20 +315,21 @@ export function GearPage({ data, state }) {
   const [view, setView] = useState('window');
   if (!char) return html`<${PageHead} title="Gear" /><${Card} title="Add a character first"><p class="note"><a href="#characters">Add your character</a> to track gear.</p><//>`;
   const g = state.gear[char.id] || blankGear();
-  const sum = gearSummary(data.gear, g);
-  const proj = gearProjection(g.history, sum.overall);
   const mainStat = char.mainStat || 'STR';
+  const sum = gearSummary(data.gear, g, mainStat);
+  const proj = gearProjection(g.history, sum.overall);
+  const up = withCubeRates(data.upgrades, state.mesos.cubeRates);
   const msLabel = mainStatLabel(mainStat);
   const totals = lineTotals(data.gear.slots, g, mainStat);
   const flames = flameTotals(data.gear.slots, g);
   const sets = detectSets(data.gearStats.sets, data.gear.slots, g);
   const stats = g.stats || {};
   const dmgOk = damageEstimateSupported(mainStat);
-  const dmgOpts = upgradeOptions(data.gear, g, data.upgrades, data.gearStats, dmgOk ? stats : null, { fl: data.flames, mainStat, weights: (state.ui.flameCalc || {}).weights }).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 8);
+  const dmgOpts = upgradeOptions(data.gear, g, up, data.gearStats, dmgOk ? stats : null, { fl: data.flames, mainStat, weights: (state.ui.flameCalc || {}).weights }).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 8);
   const setStat = (key, v) => update((s) => { const x = charSlice(s, 'gear', char.id, blankGear); x.stats = { ...(x.stats || {}), [key]: v }; if (v === null) delete x.stats[key]; });
   const byId = Object.fromEntries(sum.slots.map((r) => [r.slot.id, r]));
   const openRow = open ? byId[open] : null;
-  const next = sum.gaps.filter((r) => !r.entry.temporary).slice(0, 6).map((r) => ({ row: r, outlook: slotOutlook(r.slot, r.entry, r.target, data.upgrades) }));
+  const next = sum.gaps.filter((r) => !r.entry.temporary).slice(0, 6).map((r) => ({ row: r, outlook: slotOutlook(r.slot, r.entry, r.target, up) }));
   return html`
     <${PageHead} title="Gear">${char.name}: tap a slot to edit it. Each slot is scored against the target, with the expected mesos to get there.<//>
     <div class="toolbar">
@@ -385,5 +388,5 @@ export function GearPage({ data, state }) {
         <p class="note">${data.gearStats.damage.note} Damage is taken as proportional to (4 × main stat + secondary stat) × Attack Power, per the wiki's Damage Formula page; skills, boss defense and buffs are left out, so treat it as a ranking aid, not a prediction. ${data.gearStats.source}</p>
       <//>
     </div>
-    ${openRow ? html`<${SlotModal} row=${openRow} data=${data} char=${char} onClose=${() => setOpen(null)} />` : null}`;
+    ${openRow ? html`<${SlotModal} row=${openRow} data=${data} char=${char} cubeRates=${state.mesos.cubeRates} onClose=${() => setOpen(null)} />` : null}`;
 }

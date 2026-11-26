@@ -31,7 +31,8 @@
   "source": "MapleStory Wiki, Experience/Leveling Tables (edited 11 Sep 2026); 260+ matches KMS per Maplerhouse. EXP needed to go from each level to the next.",
   "from": 260,
   "toNext": [1731919984062, 1749239183902, 1766731575741, 1784398891498, 1802242880412, 2342915744535, 2366344901980, 2390008350999, 2413908434508, 2438047518853, 5412465491853, 5466590146771, 5521256048238, 5576468608720, 5632233294807, 11377111255510, 12514822381061, 13766304619167, 15142935081083, 16657228589191, 33647601750165, 37012361925181, 40713598117699, 44784957929468, 49263453722414, 99512176519276, 109463394171203, 120409733588323, 132450706947155, 145695777641870, 294305470836577, 323736017920234, 356109619712257, 391720581683483, 430892639851831, 870403132500699, 957443445750769, 1053187790325845, 1158506569358425, 1737759854037637],
-  "gates": [[265, "Hotel Arcus, Item Burning stages 5-6"], [270, "Odium, Mayrin, Item Burning stages 7-8"], [275, "Shangri-La, Item Burning stages 9-10"], [280, "Arteria, Item Burning stage 11, end of Beyond Burning"]],
+  "gates": [[265, "Hotel Arcus", "Item Burning stages 5-6"], [270, "Odium, Mayrin", "Item Burning stages 7-8"], [275, "Shangri-La", "Item Burning stages 9-10"], [280, "Arteria", "Item Burning stage 11, end of Beyond Burning"]],
+  "gatesNote": "The third part of a gate is about the Item Burning Plus and Beyond Burning events; it is shown only while they run (ibp.json endsAt).",
   "beyondBurningNote": "Beyond Burning gives one extra level per level-up until 280, so only every other level costs EXP."
  },
  "erda": {

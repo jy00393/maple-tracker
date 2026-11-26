@@ -129,6 +129,27 @@ function counts(v, max) {
   return out;
 }
 
+// Saved calculator settings. Anything out of range is dropped, so the page falls back to its own default.
+function calcOf(v, fields) {
+  if (!isObj(v)) return undefined;
+  const out = {};
+  for (const [k, kind, a, b] of fields) {
+    if (!(k in v)) continue;
+    const x = v[k];
+    if (kind === 'int') { if (num(x, null, a, b) !== null) out[k] = Math.floor(x); }
+    else if (kind === 'num') { if (num(x, null, a, b) !== null) out[k] = x; }
+    else if (kind === 'bool') out[k] = x === true;
+    else if (kind === 'enum') { if (a.includes(x)) out[k] = x; }
+    else if (kind === 'str') { if (typeof x === 'string' && x.length <= 60) out[k] = x; }
+    else if (kind === 'weights') { if (isObj(x)) { const w = {}; for (const [wk, wv] of Object.entries(x)) if (num(wv, null, 0, 100) !== null) w[wk] = wv; out[k] = w; } }
+    else if (kind === 'intOrNull') { if (x === null) out[k] = null; else if (num(x, null, a, b) !== null) out[k] = Math.floor(x); }
+  }
+  return out;
+}
+const SF_CALC = [['level', 'int', 0, 300], ['from', 'int', 0, 30], ['to', 'int', 0, 30], ['discount', 'bool'], ['lessBoom', 'bool'], ['safeguard', 'bool'], ['mvp', 'enum', ['none', 'silver', 'gold', 'diamond']], ['spare', 'num', 0, 1e15]];
+const CUBE_CALC = [['from', 'enum', [1, 2, 3]], ['to', 'enum', [2, 3, 4]]];
+const FLAME_CALC = [['slot', 'str'], ['level', 'int', 0, 300], ['adv', 'bool'], ['type', 'str'], ['target', 'num', 0, 99999], ['have', 'intOrNull', 0, 1e7], ['weights', 'weights'], ['secondary', 'enum', ['STR', 'DEX', 'INT', 'LUK', null]]];
+
 function shopOf(s) {
   return { ...s, have: num(s.have, 0, 0, 1e9), claims: num(s.claims, 0, 0, 1e4), want: counts(s.want, 1e5) };
 }
@@ -159,6 +180,12 @@ export function sanitiseState(raw, base) {
   const ui = obj(raw.ui);
   out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone) };
   if ('sessionMins' in out.ui && ![30, 60, 90].includes(out.ui.sessionMins)) delete out.ui.sessionMins;
+  for (const [k, fields] of [['sfCalc', SF_CALC], ['cubeCalc', CUBE_CALC], ['flameCalc', FLAME_CALC]]) {
+    if (!(k in out.ui)) continue;
+    const c = calcOf(out.ui[k], fields);
+    if (c) out.ui[k] = c; else delete out.ui[k];
+  }
+  if ('bossMargin' in out.ui && ![1, 1.5, 2, 3].includes(out.ui.bossMargin)) delete out.ui.bossMargin;
 
   const m = obj(raw.mesos);
   out.mesos = { ...base.mesos, ...m, held: num(m.held, 0, 0, 1e15), ursusRuns: num(m.ursusRuns, 1, 0, 3) };

@@ -109,11 +109,18 @@ export function isStorageOk() {
   return storageOk;
 }
 
+// Every changed part gets its own time. (Moving the old whole-part "ui"/"mesos" stamp as well was tried and
+// dropped: it made entries added on another device, which have no stamp of their own here, look older than
+// any later edit, so the merge deleted them.)
+function stampPath(stamps, path, t) {
+  stamps[path] = t;
+}
+
 export function update(mutator) {
   const next = structuredClone(state);
   mutator(next);
   const now = Date.now();
-  for (const path of changedPaths(state, next)) next.stamps[path] = now;
+  for (const path of changedPaths(state, next)) stampPath(next.stamps, path, now);
   next.updatedAt = now;
   state = next;
   save();
@@ -128,9 +135,20 @@ export function replaceState(raw, keepTime = false) {
     // An import or a reset replaces everything, so every part (kept, changed or removed) is stamped now.
     const now = Date.now();
     state.stamps = {};
-    for (const path of new Set([...units(before).keys(), ...units(state).keys()])) state.stamps[path] = now;
+    for (const path of new Set([...units(before).keys(), ...units(state).keys()])) stampPath(state.stamps, path, now);
     state.updatedAt = now;
   }
+  save();
+  listeners.forEach((fn) => fn(state));
+}
+
+// "Clear all data": a fresh start with no change times at all. Stamping every removed part as changed now (as
+// replaceState does for an import) would make those removals newer than everything in the synced copy, so
+// reconnecting Sync would delete the data on every other device. With no stamps, a reconnect downloads it.
+export function resetState() {
+  state = normalise(blankState());
+  state.stamps = {};
+  state.updatedAt = 0;
   save();
   listeners.forEach((fn) => fn(state));
 }

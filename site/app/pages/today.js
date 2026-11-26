@@ -8,7 +8,7 @@ import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
 import { computeIncome, fmtMesos } from '../calc/income.js';
 import { endingSoon, eventKey } from '../calc/events.js';
 import { resetWarnings } from '../calc/reminders.js';
-import { upgradeOptions, affordableAt, bestUpgrade } from '../calc/advice.js';
+import { upgradeOptions, affordableAt, bestUpgrade, withCubeRates } from '../calc/advice.js';
 import { comingUp } from '../calc/upcoming.js';
 import { damageEstimateSupported } from '../calc/upgrades.js';
 import { weeklyIncome } from './mesos.js';
@@ -106,7 +106,9 @@ function hideEvent(e, now) {
 }
 
 export function TodayPage({ data, state }) {
-  const now = useNow(30000);
+  // Redrawn every 30 s; each draw uses the current time, the same clock a tick uses.
+  useNow(30000);
+  const now = Date.now();
   const char = activeCharacter(state);
   const who = whoOf(data, state);
   const prog = dailyProgress(data.checklist, state.checklist, now, who);
@@ -115,7 +117,7 @@ export function TodayPage({ data, state }) {
   const ending = soon.shown;
   const maint = upcomingMaintenance(data, now)[0];
   const income = char ? computeIncome(state.characters, state, data.bosses, data.bossById, now).perChar[char.id] : null;
-  const gear = char ? gearSummary(data.gear, state.gear[char.id]) : null;
+  const gear = char ? gearSummary(data.gear, state.gear[char.id], char.mainStat || 'STR') : null;
   const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now) : null;
   const erdaState = char ? state.erda[char.id] : null;
   const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
@@ -123,7 +125,7 @@ export function TodayPage({ data, state }) {
   const level = char ? levelOutlook(data, state, char, now) : null;
   const gate = level && level.gates[0];
   const gearGap = gear ? gear.gaps.find((r) => !r.entry.temporary) : null;
-  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], data.upgrades, data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
+  const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], withCubeRates(data.upgrades, state.mesos.cubeRates), data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
   const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who });
@@ -139,13 +141,13 @@ export function TodayPage({ data, state }) {
       <div class=${'tile' + (prog.total && prog.done >= prog.total ? ' ok' : '')}><span class="k">Core dailies</span><span class="v">${prog.done} / ${prog.total}</span><${Bar} pct=${prog.total ? prog.done / prog.total : 0} />
         <span class="s">${streak ? `${streak}-day streak` : 'start a streak today'} · <a href="#checklist">checklist</a></span></div>
       ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.planned)} planned · resets Thu 09:00 KST`} accent />` : null}
-      ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.at ? (gate.days < 1 ? 'today' : `${Math.ceil(gate.days)} days`) : '—'} s=${gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
+      ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? (fmtDate(gate.at) === fmtDate(now) ? 'today' : `${Math.ceil(gate.days)} day${Math.ceil(gate.days) === 1 ? '' : 's'}`) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
       <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? `next: ${ending[0].title} in ${fmtLeft(Date.parse(ending[0].end) - now)}` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
       ${maint ? html`<${Tile} k="Next maintenance" v=${fmtKst(Date.parse(maint.start), false)} s=${`${fmtKst(Date.parse(maint.start))} → ${fmtKst(Date.parse(maint.end))}`} />` : null}
     </div>
     ${char ? null : html`<div class="grid two" style=${{ marginBottom: '14px' }}><${QuickSetup} data=${data} /></div>`}
     ${best ? html`<div class="insight best"><span class="k">Best next upgrade</span><span class="big accent">${best.label}</span>
-      <span>Expected ${fmtBig(best.cost)}${best.kind === 'sf' ? ` · ${fmtBig(best.sunnyCost)} on a Star Force Sunny Sunday` : ` · ${fmtBig(best.cost90)} with bad luck (9 in 10)`} · <b>${bestAt === null ? 'add your income on Mesos for a date' : bestAt <= now ? 'affordable now' : `affordable ${fmtDate(bestAt)}`}</b></span>
+      <span>Expected ${fmtBig(best.cost)}${best.kind === 'sf' ? ` · ${fmtBig(best.sunnyCost)} on a Star Force Sunny Sunday` : ` · ${fmtBig(best.cost90)} with bad luck (9 in 10)`} · <b>${bestAt === null ? 'add your income on Mesos for a date' : bestAt === Infinity ? 'not in reach at your income' : bestAt <= now ? 'affordable now' : `affordable ${fmtDate(bestAt)}`}</b></span>
       ${timing && timing.kind === 'now' ? html`<span class="small" style=${{ color: 'var(--ok)' }}>A Star Force Sunny Sunday is on now, until ${fmtKst(timing.day.end)}. Do it today and save about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'wait' ? html`<span class="small" style=${{ color: 'var(--warn)' }}>Wait for the Star Force Sunny Sunday on ${fmtKst(timing.day.start)}: it saves about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'none' ? html`<span class="small muted">No Star Force Sunny Sunday is announced through ${fmtDate(timing.through)}, so there is no discount to wait for.</span>` : null}

@@ -74,6 +74,9 @@ async function syncOnce() {
   if (!c) return;
   setStatus('busy', 'Syncing…');
   const remote = await readRemote(c);
+  // Disconnected (or "Clear all data" pressed) while the gist was being read: nothing is merged or written.
+  const still = () => { const now = syncConfig(); return Boolean(now) && now.gistId === c.gistId; };
+  if (!still()) return;
   const local = getState();
   if (!remote) {
     await writeRemote(c);
@@ -88,6 +91,7 @@ async function syncOnce() {
     try { replaceState(merged, true); } finally { applying = false; }
   }
   const sentNew = !sameEntries(merged, remote);
+  if (!still()) return;
   if (sentNew || !sameStamps(merged, remote)) await writeRemote(c);
   setStatus('ok', gotNew && sentNew ? 'Merged entries from both devices' : gotNew ? 'Loaded newer entries from your other device' : sentNew ? 'Saved to your gist' : 'Up to date');
 }
@@ -163,8 +167,11 @@ export function tokenFromHash(hash) {
 // A pairing link never connects by itself: the token waits here until the person confirms on the Settings page.
 // (Otherwise any link someone sends could attach this device to their gist.)
 let pendingToken = null;
-export function setPendingPair(token) { pendingToken = token || null; }
+const pendingListeners = new Set();
+export function setPendingPair(token) { pendingToken = token || null; pendingListeners.forEach((fn) => fn(pendingToken)); }
 export function pendingPair() { return pendingToken; }
+// Settings listens, so a pairing link that arrives while it is already open shows its question too.
+export function onPendingPair(fn) { pendingListeners.add(fn); return () => pendingListeners.delete(fn); }
 
 export function disconnect() {
   saveConfig(null);

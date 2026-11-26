@@ -56,7 +56,7 @@ export function SessionPlanner({ data, state, now }) {
         <div class="right"><span class="min">${m} min · ${why}</span></div>
       </div>`;
     })}</div>` : html`<p class="okbox">Everything that fits is done. Nice.</p>`}
-    <p class="note">Counters (Shadow Supplies, hunts) fill up while you grind, so they aren't listed. Ticks here are the same as on the Checklist.</p>
+    <p class="note">Kill counters (event counters, hunts) fill up while you grind, so they aren't listed. Ticks here are the same as on the Checklist.</p>
   <//>`;
 }
 

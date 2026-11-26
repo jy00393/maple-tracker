@@ -589,7 +589,7 @@
    "reset": "weekly",
    "price": 0,
    "noCrystal": true,
-   "note": "No crystal. Once a week per account."
+   "note": "No crystal. Weekly, Challenger World only; clears count only toward the Challenger World and Item Burning Plus missions (Nexon, news id 47305)."
   },
   {
    "id": "mayrin-normal",

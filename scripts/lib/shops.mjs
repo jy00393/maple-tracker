@@ -41,8 +41,29 @@ export function parseItemCell(html) {
     else break; // an ordinary bracket that belongs to the name
     name = name.slice(tag[0].length);
   }
-  const colon = name.indexOf(':');
-  if (colon > 0) name = name.slice(0, colon);
+  // A name with a colon of its own ("Heart Upgrade Module: Plasma") is kept whole when Nexon's bold text marks where
+  // it ends: the bold text ends with the colon, or the colon comes straight after the bold. Otherwise (no bold, or
+  // a bold that runs on into the description, "Karma Bright Cube: Tradable within world,") the name is cut at the
+  // first colon, as before.
+  const TAG = /^\(\s*(?:[^)]*worlds?[^)]*|not available in challenger[^)]*)\)\s*/i;
+  const source = String(html);
+  let fromBold = null;
+  for (const m of source.matchAll(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi)) {
+    let s = clean(m[2]);
+    while (TAG.test(s)) s = s.replace(TAG, '');
+    if (!s.trim()) continue;
+    const after = cleanText(source.slice(m.index + m[0].length, m.index + m[0].length + 40));
+    if (/:\s*$/.test(s)) fromBold = s.replace(/\s*:\s*$/, '').trim();
+    else if (/^\s*:/.test(after)) fromBold = s.trim();
+    break; // only the first bold with text can be the name
+  }
+  // A colon inside the bold must be part of the name, not the start of the description.
+  const tail = fromBold && fromBold.includes(':') ? fromBold.slice(fromBold.indexOf(':') + 1).trim() : '';
+  if (fromBold && !/^(un)?tradable|^permanent|^expires|^use\b|^can\b|,/i.test(tail)) name = fromBold;
+  else {
+    const colon = name.indexOf(':');
+    if (colon > 0) name = name.slice(0, colon);
+  }
   name = name.replace(/\s+/g, ' ').trim();
   if (/not available in challenger world/i.test(flat)) out.notChallenger = true;
   const note = /Note:\s*([^\n]+)/i.exec(text);
@@ -156,8 +177,14 @@ export function mergeShops(existing, parsed, now) {
     if (!fresh) { out.push(prev); continue; }
     used.add(prev.name.toLowerCase());
     const prevItems = new Map((prev.items || []).map((it) => [String(it.name).toLowerCase(), it]));
+    // When the parser learns to read a name more fully ("Heart Upgrade Module" became "Heart Upgrade Module:
+    // Plasma"), the item is still the same one: matched by the part before the colon at the same price, so its id,
+    // and the picks saved under it, carry over.
+    const short = (s) => String(s).split(':')[0].trim().toLowerCase();
+    const findWas = (it) => prevItems.get(it.name.toLowerCase())
+      || (prev.items || []).find((p) => short(p.name) === short(it.name) && p.cost === it.cost && !fresh.items.some((f) => f.name.toLowerCase() === String(p.name).toLowerCase()));
     const items = fresh.items.map((it) => {
-      const was = prevItems.get(it.name.toLowerCase());
+      const was = findWas(it);
       if (!was) return it;
       return { ...it, id: was.id, ...(it.note || !was.note ? {} : { note: was.note }) };
     });

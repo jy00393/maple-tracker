@@ -21,7 +21,7 @@ export function QuickSetup({ data }) {
     <form class="grid" onSubmit=${(e) => { e.preventDefault(); if (valid) update((s) => { applySetup(s, f, ids, newId()); }); }}>
       <div class="form-grid">
         <label class="field"><span>Character name</span><input id="qs-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
-        <label class="field"><span>Class</span><input id="qs-class" class="input" list="qs-class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat) }); }} /></label>
+        <label class="field"><span>Class</span><input id="qs-class" class="input" list="qs-class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat, data.classes && data.classes.mainStat) }); }} /></label>
         <label class="field"><span>Level</span><${NumberInput} id="qs-level" className="input" label="Level" value=${f.level} min=${1} max=${300} onChange=${(v) => set({ level: v })} /></label>
         <label class="field"><span>Combat Power (optional)</span><${MesoInput} label="Combat Power" placeholder="e.g. 45M" value=${f.cp || null} onChange=${(v) => set({ cp: v || null })} /></label>
         <label class="field"><span>EXP % (optional)</span><${NumberInput} id="qs-pct" className="input" label="EXP percent" value=${f.pct} min=${0} max=${99.999} step=${0.001} onChange=${(v) => set({ pct: v })} /></label>

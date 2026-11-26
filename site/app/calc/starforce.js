@@ -72,22 +72,37 @@ export function starPlan(sf, itemLevel, from, to, opts = {}, replaceCost = 0) {
   const target = Math.min(to, max);
   if (from >= target) return { from, to: target, max, cost: 0, booms: 0, attempts: 0, noBoom: 1, steps: [] };
   const { at, lo } = table(sf, itemLevel, from, target, opts);
-  const E = {}, B = {}, A = {};
-  for (let s = lo; s <= target; s++) E[s] = B[s] = A[s] = 0;
-  for (let iter = 0; iter < 50000; iter++) {
-    let delta = 0;
-    for (let s = target - 1; s >= lo; s--) {
-      const a = at[s];
-      const r = a.destroy > 0 ? restoreStar(sf, s) : s;
-      const go = a.success + a.destroy;
-      const e = (a.cost + a.success * E[s + 1] + a.destroy * (replaceCost + E[r])) / go;
-      B[s] = (a.success * B[s + 1] + a.destroy * (1 + B[r])) / go;
-      A[s] = (1 + a.success * A[s + 1] + a.destroy * A[r]) / go;
-      delta = Math.max(delta, Math.abs(e - E[s]));
-      E[s] = e;
-    }
-    if (delta < 0.5) break;
+  // Solved exactly. For each star s below the target (a failed try stays put, so only success and boom move):
+  //   (success + destroy) x[s] - success x[s+1] - destroy x[restore(s)] = what one move costs
+  // for x = mesos, booms and attempts at once, with x[target] = 0. At most 31 unknowns, so plain Gaussian
+  // elimination is instant and, unlike repeated sweeps, never stops short near 30 stars.
+  const n = target - lo;
+  const M = Array.from({ length: n }, () => new Array(n + 3).fill(0));
+  for (let s = lo; s < target; s++) {
+    const a = at[s];
+    const row = M[s - lo];
+    const go = a.success + a.destroy;
+    row[s - lo] += go;
+    if (s + 1 < target) row[s + 1 - lo] -= a.success;
+    if (a.destroy > 0) row[restoreStar(sf, s) - lo] -= a.destroy;
+    row[n] = a.cost + a.destroy * replaceCost;
+    row[n + 1] = a.destroy;
+    row[n + 2] = 1;
   }
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    const piv = M[c][c];
+    for (let k = c; k < n + 3; k++) M[c][k] /= piv;
+    for (let r = 0; r < n; r++) {
+      if (r === c || M[r][c] === 0) continue;
+      const f = M[r][c];
+      for (let k = c; k < n + 3; k++) M[r][k] -= f * M[c][k];
+    }
+  }
+  const E = {}, B = {}, A = {};
+  for (let s = lo; s < target; s++) { E[s] = M[s - lo][n]; B[s] = M[s - lo][n + 1]; A[s] = M[s - lo][n + 2]; }
   const steps = [];
   let noBoom = 1;
   for (let s = from; s < target; s++) {

@@ -1,8 +1,8 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
-import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink, pendingPair, setPendingPair, setTokenExpiry } from '../sync.js';
+import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink, pendingPair, setPendingPair, onPendingPair, setTokenExpiry } from '../sync.js';
 import { qrEncode, qrPath } from '../calc/qr.js';
 import { appStatus } from '../calc/status.js';
-import { getState, replaceState, isStorageOk, blankState, listBackups, restoreBackup } from '../store.js';
+import { getState, replaceState, resetState, isStorageOk, listBackups, restoreBackup, snapshotNow } from '../store.js';
 import { describeBackup } from '../calc/backups.js';
 import { Card, Fold, PageHead } from '../ui.js';
 import { fmtKst } from '../time.js';
@@ -28,6 +28,7 @@ function SyncCard() {
   const [pending, setPending] = useState(pendingPair());
   const dropPending = () => { setPendingPair(null); setPending(null); };
   useEffect(() => onSyncStatus(setSt), []);
+  useEffect(() => onPendingPair(setPending), []);
   const cfg = syncConfig();
   const run = async (fn) => {
     setBusy(true);
@@ -158,8 +159,11 @@ export function SettingsPage({ data }) {
               try {
                 const parsed = JSON.parse(await file.text());
                 if (!parsed || parsed.v !== 1) throw new Error('not a Maple Tracker backup');
+                // A safety copy first, so an import that turns out wrong can be undone from Restore.
+                snapshotNow('before import');
                 replaceState(parsed);
-                setMessage(`Imported ${parsed.characters?.length || 0} characters from ${file.name}.`);
+                const n = getState().characters.length;
+                setMessage(`Imported ${n} character${n === 1 ? '' : 's'} from ${file.name}. A copy of the previous data is saved under Restore (the last three such copies are kept).`);
               } catch (err) {
                 setMessage(`Couldn't import that file: ${err.message}.`);
               }
@@ -172,7 +176,7 @@ export function SettingsPage({ data }) {
         <p class="note">Clears every character, tick and entry in this browser. Export a backup first if you might want them back.${syncConfig() ? ' This device is disconnected from Sync first, so your other devices and the synced copy keep their data.' : ''}</p>
         <div class="toolbar">
           ${confirmReset
-            ? html`<button type="button" class="btn danger" onClick=${() => { const wasSynced = Boolean(syncConfig()); if (wasSynced) disconnect(); replaceState(blankState()); setConfirmReset(false); setMessage(wasSynced ? 'Everything was cleared here, and this device was disconnected from Sync.' : 'Everything was cleared.'); }}>Yes, clear everything</button>
+            ? html`<button type="button" class="btn danger" onClick=${() => { const wasSynced = Boolean(syncConfig()); if (wasSynced) disconnect(); snapshotNow('before clearing'); resetState(); setConfirmReset(false); setMessage(wasSynced ? 'Everything was cleared here, and this device was disconnected from Sync.' : 'Everything was cleared.'); }}>Yes, clear everything</button>
                 <button type="button" class="btn" onClick=${() => setConfirmReset(false)}>Keep my data</button>`
             : html`<button type="button" class="btn danger" onClick=${() => setConfirmReset(true)}>Clear all data</button>`}
         </div>

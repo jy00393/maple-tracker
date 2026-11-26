@@ -3,7 +3,8 @@
 // ---------- cubes ----------
 // Tiers: 1 Rare, 2 Epic, 3 Unique, 4 Legendary. tierUp[0] is Rare -> Epic. Each cube is an independent try.
 export function cubePlan(cube, fromTier, toTier) {
-  const start = Math.max(1, fromTier || 0);
+  const start = Math.max(1, Math.min(4, Math.floor(Number(fromTier) || 0)));
+  toTier = Math.max(1, Math.min(4, Math.floor(Number(toTier) || 0)));
   const legs = [];
   let expected = 0;
   for (let t = start; t < toTier; t++) {
@@ -49,17 +50,24 @@ export function isMainStat(stat, mainStat) {
   if (mainStat === 'XENON') return stat === 'STR' || stat === 'DEX' || stat === 'LUK';
   return stat === (mainStat || 'STR');
 }
-// Special-case classes get their main stat set when the class is picked.
-export function mainStatForClass(cls) {
+// A class's main stat from data/classes.json (classStats = its "mainStat" map), matched without regard to case.
+// Without the map only the two special classes are known.
+export function mainStatForClass(cls, classStats) {
   const c = String(cls || '').trim().toLowerCase();
+  if (classStats) {
+    for (const [name, stat] of Object.entries(classStats)) if (name.toLowerCase() === c) return stat;
+    return null;
+  }
   return c === 'demon avenger' ? 'HP' : c === 'xenon' ? 'XENON' : null;
 }
 // What picking a class does to the main stat: a special class sets its own; leaving a special class whose stat
 // was set that way goes back to STR; otherwise the player's choice is left alone. Returns {} or { mainStat }.
-export function mainStatOnClassChange(oldCls, newCls, mainStat) {
-  const special = mainStatForClass(newCls);
-  if (special) return { mainStat: special };
-  if ((mainStat === 'HP' || mainStat === 'XENON') && mainStatForClass(oldCls) === mainStat) return { mainStat: 'STR' };
+// Picking a known class sets its main stat. Typing a name the list doesn't know leaves the choice alone, except that
+// leaving a special class whose stat was set that way goes back to STR. Returns {} or { mainStat }.
+export function mainStatOnClassChange(oldCls, newCls, mainStat, classStats) {
+  const known = mainStatForClass(newCls, classStats);
+  if (known) return { mainStat: known };
+  if ((mainStat === 'HP' || mainStat === 'XENON') && mainStatForClass(oldCls, classStats) === mainStat) return { mainStat: 'STR' };
   return {};
 }
 // The damage estimate only knows the standard formula.
@@ -132,19 +140,22 @@ export function defaultValue(up, type, tier, itemLevel) {
 }
 
 const DAMAGE = new Set(['main', 'allstat', 'boss', 'ied', 'critdmg', 'cdr']);
-const WSE_DAMAGE = new Set(['att', 'dmg']);
-export function lineKind(slot, line) {
+// Magicians use Magic ATT; everyone else uses (Weapon) ATT.
+export function attackLine(mainStat) {
+  return mainStat === 'INT' ? 'matt' : 'att';
+}
+export function lineKind(slot, line, mainStat = 'STR') {
   if (!line || !line.type) return 'none';
   if (line.type === 'meso' || line.type === 'drop') return 'farm';
   if (DAMAGE.has(line.type)) return 'damage';
-  if (WSE_DAMAGE.has(line.type) && ['weapon', 'secondary', 'emblem'].includes(slot.type)) return 'damage';
+  if ((line.type === 'dmg' || line.type === attackLine(mainStat)) && ['weapon', 'secondary', 'emblem'].includes(slot.type)) return 'damage';
   return 'other';
 }
 
 // Useful lines on a slot: damage lines, plus meso/drop lines on accessories (they're there on purpose).
-export function usefulLines(slot, entry) {
+export function usefulLines(slot, entry, mainStat = 'STR') {
   if (!Array.isArray(entry.potLines)) return entry.lines || 0;
-  return entry.potLines.filter((l) => ['damage', 'farm'].includes(lineKind(slot, l))).length;
+  return entry.potLines.filter((l) => ['damage', 'farm'].includes(lineKind(slot, l, mainStat))).length;
 }
 
 // Totals across all gear: main stat % (incl. All Stats), boss, meso, drop, IED combined multiplicatively.
@@ -162,11 +173,11 @@ export function lineTotals(slots, gearState, mainStat = 'STR') {
       else if (l.type === 'boss') out.boss += v;
       else if (l.type === 'meso') out.meso += v;
       else if (l.type === 'drop') out.drop += v;
-      else if (l.type === 'att') out.att += v;
+      else if (l.type === attackLine(mainStat)) out.att += v;
       else if (l.type === 'critdmg') out.critdmg += v;
       else if (l.type === 'cdr') out.cdr += v;
       else if (l.type === 'ied') iedKeep *= 1 - v / 100;
-      const kind = lineKind(slot, l);
+      const kind = lineKind(slot, l, mainStat);
       if (kind === 'damage') out.damageLines++;
       if (kind === 'farm') out.farmLines++;
     }
@@ -182,7 +193,7 @@ export function lineLabel(line, mainStat = 'STR') {
   const t = LINE_TYPES[line.type] || LINE_TYPES.other;
   if (line.type === 'other') return line.text || 'Other line';
   if (line.type === 'cdr') return `Cooldown -${line.value || 0}s`;
-  const name = line.type === 'main' ? `${line.stat || mainStat} %` : t.label(mainStat);
+  const name = line.type === 'main' || (line.type === 'offstat' && line.stat) ? `${line.stat || mainStat} %` : t.label(mainStat);
   return `${name.replace(' %', '')} +${line.value || 0}${t.unit}`;
 }
 
