@@ -4,7 +4,7 @@ import { qrEncode, qrPath } from '../calc/qr.js';
 import { appStatus } from '../calc/status.js';
 import { getState, replaceState, resetState, isStorageOk, listBackups, restoreBackup, snapshotNow } from '../store.js';
 import { describeBackup } from '../calc/backups.js';
-import { Card, Fold, PageHead } from '../ui.js';
+import { Card, Fold, PageHead, useClock } from '../ui.js';
 import { fmtKst } from '../time.js';
 
 function download(name, text) {
@@ -54,7 +54,7 @@ function SyncCard() {
       </div>
       ${showQr ? html`<${PairQr} />` : null}
       <label class="field"><span>Token expiry date (optional). The top bar warns you a week before.</span><input class="input" type="date" value=${cfg.expires || ''} onInput=${(e) => { setTokenExpiry(e.currentTarget.value); setSt({ ...syncStatus() }); }} /></label>
-      <p class="note">Changes save to your secret gist a few seconds after you make them, and each device checks for newer entries when you open it. Entries from both devices are merged; if both changed the same thing, the newer edit wins.</p>`
+      <p class="note">Changes save to your secret gist a few seconds after you make them, and each device checks for newer entries when you open it and every few minutes while it is on screen. Entries from both devices are merged; if both changed the same thing, the newer edit wins.</p>`
     : html`<p class="note">Keeps your ticks and entries the same on every device, using a secret (unlisted) gist on your own GitHub account.</p>
       <ol class="note" style=${{ paddingLeft: '18px', margin: 0 }}>
         <li>On GitHub: Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token. Tick only <b>gist</b>, and pick an expiry.</li>
@@ -83,13 +83,15 @@ function PairQr() {
 
 // The same status the top-bar pill shows, spelled out.
 function StatusCard({ data }) {
+  // The same clock as the pill, so the two never disagree about how old the data is.
+  const now = useClock({ every: 60000 });
   const [sync, setSync] = useState(syncStatus());
   useEffect(() => { const off = onSyncStatus(setSync); setSync(syncStatus()); return off; }, []);
-  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now: Date.now(), tokenExpires: syncConfig()?.expires });
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires, refresh: data.refresh });
   const names = { sync: 'Your devices', token: 'Sync token', nexon: 'Nexon events and news', tables: 'Game tables' };
   return html`<${Card} title="Status" meta=${st.label} className="span2">
     ${st.parts.map((p) => html`<p class=${p.level === 'error' || p.level === 'warn' ? 'warnbox' : 'note'}><b>${names[p.key]}:</b> ${p.text}${p.url ? html` <a href=${p.url} target="_blank" rel="noopener">Open the post</a>` : null}</p>`)}
-    <p class="note">Events and news refresh from Nexon every 6 hours. The game tables were copied by hand from the sources below and only change with a patch, so they are checked, not refreshed.</p>
+    <p class="note">Events and news refresh from Nexon every 6 hours, and this page picks up the new copy by itself while it stays open. The game tables were copied by hand from the sources below and only change with a patch, so they are checked, not refreshed.</p>
   <//>`;
 }
 

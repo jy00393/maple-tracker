@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
-import { Card, Counter, PageHead, useNow, Bar } from '../ui.js';
+import { Card, Counter, PageHead, useClock, Bar } from '../ui.js';
 import { periodKey } from '../time.js';
 import { StreakRecorder, StreakCard } from './session.js';
 import { itemStatus, resetOf, recordKey, flagKey, moveResetDay, RESET_CYCLE } from '../calc/checklist.js';
@@ -137,7 +137,9 @@ export function Item({ item, group, cs, now, who }) {
 }
 
 export function ChecklistPage({ data, state }) {
-  const now = useNow(15000);
+  // The current time at every draw (not a time kept from the last timer), so a tick made right after a reset
+  // shows at once; redrawn at the reset itself, so yesterday's ticks clear the second it passes.
+  const now = useClock({ every: 15000 });
   const cs = state.checklist;
   const who = whoOf(data, state);
   const prog = dailyProgress(data.checklist, cs, now, who);

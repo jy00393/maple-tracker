@@ -4,7 +4,7 @@ import { lineChoices, makeLine, refreshLines } from '../calc/potential.js';
 import { FLAME_FIELDS, cleanFlame, flameLabel, flameTotals, starStats, detectSets, setBonusLabel, STAT_FIELDS } from '../calc/gearstats.js';
 import { upgradeOptions } from '../calc/advice.js';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig, plural } from '../ui.js';
+import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig, plural, useClock } from '../ui.js';
 import { gearSummary, gearProjection, historyFor } from '../calc/progress.js';
 import { maxStarsFor } from '../calc/starforce.js';
 import { itemLevel, slotOutlook, withCubeRates } from '../calc/advice.js';
@@ -339,11 +339,13 @@ export function GearPage({ data, state }) {
   const char = activeCharacter(state);
   const [open, setOpen] = useState(null);
   const [view, setView] = useState('window');
+  // The pace and its date are counted from today: redrawn every minute and at each reset.
+  const now = useClock({ every: 60000 });
   if (!char) return html`<${PageHead} title="Gear" /><${Card} title="Add a character first"><p class="note"><a href="#characters">Add your character</a> to track gear.</p><//>`;
   const g = state.gear[char.id] || blankGear();
   const mainStat = char.mainStat || 'STR';
   const sum = gearSummary(data.gear, g, mainStat);
-  const proj = gearProjection(g.history, sum.overall, Date.now(), g.preset || 'mid');
+  const proj = gearProjection(g.history, sum.overall, now, g.preset || 'mid');
   const up = withCubeRates(data.upgrades, state.mesos.cubeRates);
   const msLabel = mainStatLabel(mainStat);
   // Totals count what is worn: a Bottom left under an overall is not.

@@ -1,5 +1,5 @@
 import { html, useEffect, useRef, useState } from '../vendor/htm-preact.mjs';
-import { fmtLeft } from './time.js';
+import { fmtLeft, nextReset } from './time.js';
 import { plural } from './calc/plural.js';
 
 export { plural };
@@ -13,20 +13,108 @@ export function useNow(intervalMs = 1000) {
   return now;
 }
 
-// A countdown that keeps itself up to date, whatever its page does: every second while seconds show (under an
-// hour), every 30 s otherwise.
-// before / after: words printed around the time ("starts in ", " left"). done: what to show once the moment has
-// passed, so the words and the number come from one clock (never "now left"). Without done it ends on "now".
-export function Left({ until, before = '', after = '', done }) {
+// ---- Clocks -------------------------------------------------------------------------------------------------
+// Everything on screen that depends on the time is redrawn by one of three pieces: useClock (a page or a bar),
+// Left (a countdown) and Ago (an age). They aim their timers at the moment the text changes, so nothing is
+// "up to 30 s behind", and they wake each other: when a countdown ends, every page clock redraws at once.
+const wakers = new Set();
+
+// Redraws every component that uses useClock, now.
+export function wakePages() {
+  [...wakers].forEach((fn) => fn());
+}
+
+// A tab that comes back to the front (a phone woken up, a laptop opened) redraws at once: its timers may have
+// been asleep across a reset.
+let watching = null;
+function watchVisibility() {
+  const doc = typeof document !== 'undefined' ? document : null;
+  if (!doc || watching === doc || typeof doc.addEventListener !== 'function') return;
+  watching = doc;
+  doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'visible') wakePages(); });
+}
+
+// The longest wait a browser timer takes (about 24.8 days).
+const TIMER_MAX = 2147483647;
+
+// The time for this draw, and a redraw:
+// - on every round `every` ms of the clock (30 s by default: 09:00:00, 09:00:30, ...),
+// - at the next reset, to the millisecond (daily 00:00 UTC, which is also when the weekly and monthly ones fall),
+// - when a countdown on screen (Left) ends,
+// - when the tab comes back to the front.
+// Each draw reads the clock afresh, so a redraw for any other reason (a tick being saved) is up to date too.
+export function useClock({ every = 30000 } = {}) {
   const [, tick] = useState(0);
-  const ms = until - Date.now();
-  const step = ms < 3630000 ? 1000 : 30000;
   useEffect(() => {
-    const id = setInterval(() => tick((n) => n + 1), step);
-    return () => clearInterval(id);
-  }, [step]);
-  if (ms <= 0 && done !== undefined) return done;
+    let id = null;
+    const arm = () => {
+      const now = Date.now();
+      const wait = Math.min(every - (now % every), nextReset('daily', now) - now, TIMER_MAX);
+      // A timer can fire a moment early; aiming again from the clock each time makes the next one land.
+      id = setTimeout(() => { tick((n) => n + 1); arm(); }, Math.max(1, wait));
+    };
+    arm();
+    const wake = () => tick((n) => n + 1);
+    wakers.add(wake);
+    watchVisibility();
+    return () => { clearTimeout(id); wakers.delete(wake); };
+  }, [every]);
+  return Date.now();
+}
+
+const HOUR_MS = 3600000;
+
+// A countdown that keeps itself up to date, whatever its page does. It redraws exactly when its text changes:
+// every second while seconds show (under an hour), every minute otherwise.
+// before / after: words printed around the time ("starts in ", " left"), so the words and the number come from
+// one clock. done: what to show once the moment has passed; without it the countdown disappears. It never reads
+// "in now" or "now left". The moment it ends, the pages redraw (wakePages), so what hung on it moves on too.
+export function Left({ until, before = '', after = '', done = null }) {
+  const [, tick] = useState(0);
+  // Whether the last draw still showed a running countdown.
+  const running = useRef(false);
+  useEffect(() => {
+    if (!Number.isFinite(until)) return undefined;
+    if (until <= Date.now()) {
+      // It ended between the draw and this moment: draw the ending, as the timer would have.
+      if (running.current) { tick((n) => n + 1); wakePages(); }
+      return undefined;
+    }
+    let id = null;
+    const arm = () => {
+      const left = until - Date.now();
+      if (left <= 0) { id = null; wakePages(); return; }
+      const unit = left >= HOUR_MS ? 60000 : 1000;
+      // The text changes when the time left drops below a whole unit; in the last second, when it runs out.
+      id = setTimeout(() => { tick((n) => n + 1); arm(); }, left < 1000 ? left : (left % unit) + 1);
+    };
+    arm();
+    return () => clearTimeout(id);
+  }, [until]);
+  const ms = until - Date.now();
+  running.current = ms > 0;
+  if (ms <= 0) return done;
   return before + fmtLeft(ms) + after;
+}
+
+// How long ago something happened ("9m 50s", "1h 05m", "2d 3h"), counting up by itself: every second while
+// seconds show, every minute after that.
+export function Ago({ since }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!Number.isFinite(since)) return undefined;
+    let id = null;
+    const arm = () => {
+      const age = Math.max(0, Date.now() - since);
+      const unit = age >= HOUR_MS ? 60000 : 1000;
+      id = setTimeout(() => { tick((n) => n + 1); arm(); }, unit - (age % unit));
+    };
+    arm();
+    return () => clearTimeout(id);
+  }, [since]);
+  const age = Date.now() - since;
+  if (!Number.isFinite(age)) return '—';
+  return age < 1000 ? 'a moment' : fmtLeft(age);
 }
 
 export function Card({ title, meta, children, className = '', bodyClass = 'card-b' }) {

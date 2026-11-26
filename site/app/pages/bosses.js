@@ -1,6 +1,6 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, PageHead, Tile, useNow, Seg, Empty } from '../ui.js';
+import { Card, PageHead, Tile, useClock, Seg, Empty } from '../ui.js';
 import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart, shareKey, entryBlock, entryBlockText } from '../calc/income.js';
 import { knownLevel } from './level.js';
 import { dayKey } from '../time.js';
@@ -12,7 +12,7 @@ import { reach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
 // earned, and as `planned` the week's target on the same basis (earned plus what was still open). Mounted
 // once for the whole app (main.js), so a clear ticked on any page is saved.
 export function IncomeKeeper({ data, state }) {
-  const now = useNow(60000);
+  const now = useClock({ every: 60000 });
   const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
   return html`<${IncomeRecorder} income=${income} state=${state} now=${now} />`;
 }
@@ -157,9 +157,8 @@ function Picker({ char, data, picks, margin, who }) {
 }
 
 export function BossesPage({ data, state }) {
-  // Redrawn every 30 s, but each draw uses the current time, the same clock a tick uses.
-  useNow(30000);
-  const now = Date.now();
+  // Redrawn every 30 s and at each reset; each draw uses the current time, the same clock a tick uses.
+  const now = useClock();
   const char = activeCharacter(state);
   if (!char) return html`<${PageHead} title="Bosses" /><${Card} title="Add a character first"><p class="note">Bosses, income and progress are tracked per character. <a href="#characters">Add your character</a> to start.</p><//>`;
   const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
