@@ -41,7 +41,9 @@ test('a daily boss cleared on one difficulty is done on the other', () => {
 test('a tick on a difficulty that is no longer picked still counts', () => {
   const lines = run({ 'lotus-hard': { party: 1 } }, { 'lotus-normal': { [week]: true } });
   assert.equal(lineOf(lines, 'lotus-hard').doneAs, 'Normal');
-  assert.equal(lineOf(lines, 'lotus-hard').cleared, 0);
+  // The Normal crystal was earned, so the picked line carries it.
+  assert.equal(lineOf(lines, 'lotus-hard').cleared, 1);
+  assert.deepEqual(lineOf(lines, 'lotus-hard').earned, [bossById['lotus-normal'].price * 5]);
 });
 
 test('two difficulties ticked for one period: only the better crystal is earned', () => {

@@ -1,5 +1,5 @@
 // Which bosses a character's Combat Power is enough for, from data/bosscp.json (the game's solo entry minimums).
-import { crystalValue } from './income.js';
+import { crystalValue, shareKey } from './income.js';
 
 export function minCpFor(cpData, boss) {
   const v = cpData && cpData.minCp ? cpData.minCp[boss.id] : undefined;
@@ -31,7 +31,14 @@ export function suggestBosses(bossesData, cpData, cp, margin, char, keep = []) {
   // Ranked by what the crystal is worth even for a character who can't sell it (Quanah), so the list still
   // picks the hardest difficulty within reach; the total then shows what is really earned.
   const rankAs = { ...(char || {}), quanah: false };
-  const keptRanks = keep.filter((b) => b.reset === 'weekly' && !b.noCrystal).map((b) => crystalValue(b, rankAs, bossesData, b.party || 1)).filter((v) => v > 0);
+  // Two kept difficulties of one boss share one clear: only the better crystal takes a place.
+  const keptBest = new Map();
+  for (const b of keep) {
+    if (b.reset !== 'weekly' || b.noCrystal) continue;
+    const v = crystalValue(b, rankAs, bossesData, b.party || 1);
+    if (v > (keptBest.get(shareKey(b)) || 0)) keptBest.set(shareKey(b), v);
+  }
+  const keptRanks = [...keptBest.values()];
   const cap = bossesData.limits.weeklyPerCharacter;
   const best = new Map();
   let beyond = 0;

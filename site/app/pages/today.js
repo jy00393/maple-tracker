@@ -77,7 +77,7 @@ function TodoCard({ data, state, now, who, char, lines, prog }) {
       ${lines.length ? lines.map((l) => {
         const id = `today-boss-${l.bossId}`;
         return html`<div class=${'row' + (l.clearedNow || l.doneAs ? ' done' : '')}>
-          <input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${() => toggleClear(char.id, l.boss, l)} />
+          <input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${(e) => toggleClear(char.id, l.boss, l, e.currentTarget.checked)} />
           <label class="lbl" for=${id}>${l.boss.difficulty} ${l.boss.boss}${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}</span>` : null}</label>
           <div class="right"><span class="min">${l.kind === 'daily' ? 'daily' : l.kind === 'monthly' ? 'monthly' : 'weekly'}${l.value ? ` · ${fmtMesos(l.value)}` : ''}</span></div>
         </div>`;
@@ -119,7 +119,7 @@ export function TodayPage({ data, state }) {
   const maint = upcomingMaintenance(data, now)[0];
   const income = char ? computeIncome(state.characters, state, data.bosses, data.bossById, now).perChar[char.id] : null;
   const gear = char ? gearSummary(data.gear, state.gear[char.id], char.mainStat || 'STR') : null;
-  const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now) : null;
+  const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now, data.bossById) : null;
   const erdaState = char ? state.erda[char.id] : null;
   const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
   const symbols = char ? nextSymbolLevels(data, state, char.id) : [];
@@ -129,7 +129,7 @@ export function TodayPage({ data, state }) {
   const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], withCubeRates(data.upgrades, state.mesos.cubeRates), data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
-  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who });
+  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who, weeklyCap: data.bosses.limits.weeklyPerCharacter });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
   const coming = comingUp(data.upcoming, now, char, 5, data.events.events);
@@ -141,7 +141,7 @@ export function TodayPage({ data, state }) {
     <div class="tiles">
       <div class=${'tile' + (prog.total && prog.done >= prog.total ? ' ok' : '')}><span class="k">Core dailies</span><span class="v">${prog.done} / ${prog.total}</span><${Bar} pct=${prog.total ? prog.done / prog.total : 0} />
         <span class="s">${streak ? `${streak}-day streak` : 'start a streak today'} · <a href="#checklist">checklist</a></span></div>
-      ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.planned)} planned · resets Thu 09:00 KST`} accent />` : null}
+      ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.target)} planned · resets Thu 09:00 KST`} accent />` : null}
       ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? (fmtDate(gate.at) === fmtDate(now) ? 'today' : `${Math.ceil(gate.days)} day${Math.ceil(gate.days) === 1 ? '' : 's'}`) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
       <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? html`next: ${ending[0].title} in <${Left} until=${Date.parse(ending[0].end)} />` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
       ${maint ? html`<${Tile} k="Next maintenance" v=${fmtKst(Date.parse(maint.start), false)} s=${`${fmtKst(Date.parse(maint.start))} → ${fmtKst(Date.parse(maint.end))}`} />` : null}

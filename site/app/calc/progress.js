@@ -1,5 +1,6 @@
 import { usefulLines } from './upgrades.js';
 import { DAY } from '../time.js';
+import { shareKey } from './income.js';
 
 const sum = (arr) => arr.reduce((a, b) => a + b, 0);
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -36,7 +37,24 @@ export function symbolPlan(kindData, area, entry = {}) {
 }
 
 // ---------- liberation ----------
-export function liberationPlan(def, entry = {}, now = Date.now()) {
+// The ticked sources that count: difficulties of one boss with the same reset share one clear (bosses.json
+// `sharedClear`), so of several ticked ones only the best counts. Without `bossById` every tick counts by itself.
+export function liberationCounted(def, picks = {}, bossById = null) {
+  const best = new Map();
+  for (const [bossId, on] of Object.entries(picks || {})) {
+    const amount = def.sources[bossId];
+    if (!on || !amount) continue;
+    const boss = bossById ? bossById[bossId] : null;
+    const key = boss ? shareKey(boss) : bossId;
+    const cur = best.get(key);
+    if (!cur || amount > cur.amount || (amount === cur.amount && bossId < cur.bossId)) {
+      best.set(key, { bossId, amount, monthly: boss ? boss.reset === 'monthly' : bossId.startsWith('black-mage') });
+    }
+  }
+  return [...best.values()];
+}
+
+export function liberationPlan(def, entry = {}, now = Date.now(), bossById = null) {
   const stages = def.stages;
   const stage = clamp(Math.floor(entry.stage || 0), 0, stages.length);
   if (stage >= stages.length) return { done: true, remaining: 0, perWeek: 0, weeks: 0, eta: now, stage, total: sum(stages.map((s) => s.need)) };
@@ -46,10 +64,9 @@ export function liberationPlan(def, entry = {}, now = Date.now()) {
   const mult = entry.pass ? def.passMultiplier || 1 : 1;
   let weekly = 0;
   let monthly = 0;
-  for (const [bossId, on] of Object.entries(picks)) {
-    if (!on || !def.sources[bossId]) continue;
-    if (bossId.startsWith('black-mage')) monthly += def.sources[bossId];
-    else weekly += def.sources[bossId];
+  for (const c of liberationCounted(def, picks, bossById)) {
+    if (c.monthly) monthly += c.amount;
+    else weekly += c.amount;
   }
   const perWeek = (weekly + monthly / 4.345) * mult;
   const weeks = perWeek > 0 ? Math.ceil(remaining / perWeek) : Infinity;

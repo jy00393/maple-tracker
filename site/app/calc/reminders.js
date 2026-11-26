@@ -27,10 +27,17 @@ export function resetWarnings(checklistData, checklistState, bossLines, now, opt
       slot(st.kind).items.push(item.label);
     }
   }
-  for (const line of bossLines || []) {
+  // Only so many weekly crystals sell (opts.weeklyCap, from bosses.json): once that many are cleared nothing more
+  // can be lost, and before that only the best open ones count.
+  const weeklyCap = opts.weeklyCap > 0 ? opts.weeklyCap : Infinity;
+  let room = weeklyCap - (bossLines || []).filter((l) => l.kind === 'weekly' && l.value > 0 && l.cleared).length;
+  const byValue = [...(bossLines || [])].sort((a, b) => b.value - a.value);
+  for (const line of byValue) {
     // Done on another difficulty, or a second pick for the same clear: nothing left to lose.
     if (!(line.value > 0) || line.doneAs || line.spare) continue;
     if (line.kind === 'weekly' && !line.cleared && close('thu')) {
+      if (room <= 0) continue;
+      room--;
       const w = slot('thu');
       w.bosses.count++;
       w.bosses.value += line.value;
