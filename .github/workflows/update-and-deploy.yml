@@ -21,7 +21,11 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      # Always the newest main, not the commit that started the run: a run that waited behind another one then
+      # starts from that run's data commit.
       - uses: actions/checkout@v7
+        with:
+          ref: main
 
       - uses: actions/setup-node@v7
         with:
@@ -42,7 +46,17 @@ jobs:
             echo "No data changes."
           else
             git commit -m "Update Nexon data"
-            git push
+            # main can move while this run works (a push from the computer). Then the data commit is put on top of
+            # the new main and pushed once more; where both changed a data file, this run's fresh copy is kept. If
+            # that fails too, the next run saves the data. The site is deployed from this run's files either way.
+            if ! git push origin HEAD:main; then
+              if git pull --rebase --autostash -X theirs origin main && git push origin HEAD:main; then
+                echo "Saved after catching up with main."
+              else
+                git rebase --abort 2>/dev/null || true
+                echo "::warning::main moved during this run; the next run will save the data."
+              fi
+            fi
           fi
 
       - uses: actions/configure-pages@v6

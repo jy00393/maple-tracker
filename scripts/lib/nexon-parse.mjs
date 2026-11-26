@@ -182,10 +182,14 @@ export function findDateRanges(text) {
       const t2 = sep ? readTime(rest, sep[0].length) : null;
       if (t2) {
         used.add(i);
-        const tz = a.time.tz || t2.tz || 'UTC';
+        const tz = a.time.tz || t2.tz || zoneLabelBefore(text, a.start) || 'UTC';
+        const start = toUtcMs(a.date, a.time, tz, false);
+        let end = toUtcMs(a.date, t2, t2.tz || tz, true);
+        // "10:00 PM - 2:00 AM": the window runs past midnight, so it ends the next day.
+        if (end <= start) end += 86400000;
         ranges.push({
-          start: toUtcMs(a.date, a.time, tz, false),
-          end: toUtcMs(a.date, t2, t2.tz || tz, true),
+          start,
+          end,
           startApprox: false,
           endApprox: false,
           afterMaintenance: a.afterMaintenance,
@@ -208,14 +212,20 @@ export function findDateRanges(text) {
       });
     }
   }
-  return ranges;
+  // A window that ends before it starts (a typo in the post, or two dates the wrong way round) is not a window.
+  return ranges.filter((r) => r.start === null || r.end > r.start);
+}
+
+// A zone written as a label in front of a date ("PST: Thursday, November 12, 2026 12:00 AM - ...",
+// "PST (UTC -8): ..."), or null.
+function zoneLabelBefore(text, at) {
+  const label = /\b(UTC|PST|PDT|PT)(?:\s*\(UTC\s*[-+−]?\s*\d+\))?\s*:\s*$/i.exec(text.slice(Math.max(0, at - 30), at));
+  return label ? label[1].toUpperCase() : null;
 }
 
 function makeRange(text, a, b) {
-  // A zone written as a label in front ("PST: Thursday, November 12, 2026 12:00 AM - ...") counts when neither
-  // time names one.
-  const label = /\b(UTC|PST|PDT|PT)(?:\s*\(UTC\s*[-+−]?\s*\d+\))?\s*:\s*$/i.exec(text.slice(Math.max(0, a.start - 30), a.start));
-  const tz = (a.time && a.time.tz) || (b.time && b.time.tz) || (label ? label[1].toUpperCase() : 'UTC');
+  // The label in front counts when neither time names a zone.
+  const tz = (a.time && a.time.tz) || (b.time && b.time.tz) || zoneLabelBefore(text, a.start) || 'UTC';
   return {
     start: toUtcMs(a.date, a.time, (a.time && a.time.tz) || tz, false),
     end: toUtcMs(b.date, b.time, (b.time && b.time.tz) || tz, true),
@@ -419,7 +429,14 @@ export function wantsDetail(post, now) {
   const age = now - Date.parse(post.liveDate);
   // Announced maintenance is titled without a bracket ("Scheduled Maintenance - November 24, 2026") and gets a
   // "[Completed]" bracket afterwards; both are read. Other maintenance-category posts (notices) are skipped.
-  if (post.category === 'maintenance') return age < 21 * 86400000 && /^\s*(?:\[(?:scheduled|completed|updated|unscheduled)[^\]]*\]\s*)?(?:un)?scheduled\b|^\s*\[(?:scheduled|completed|updated|unscheduled)/i.test(post.name);
+  // The title may start with any bracket ("[Update Nov 26]", "[Extended]") and need not say "Scheduled":
+  // "Emergency Maintenance - June 20, 2026" and "<World> Channel Maintenance - ..." are maintenance too. Known-issues
+  // notices have neither word.
+  if (post.category === 'maintenance') {
+    const name = String(post.name);
+    const title = name.replace(/^\s*(?:\[[^\]]*\]\s*)+/, '');
+    return age < 21 * 86400000 && (/\b(?:un)?scheduled\b|\bmaintenance\b/i.test(title) || /^\s*\[(?:scheduled|completed|updated|unscheduled)/i.test(name));
+  }
   return age < 150 * 86400000;
 }
 
@@ -450,7 +467,8 @@ export function parsePost(post, body) {
     return window ? [toEvent(post, post.name, window, [])] : [];
   }
   const events = [];
-  const seen = new Map();
+  const seen = new Set();
+  const ids = new Set();
   for (const block of blocks) {
     if (!block.heading || SKIP_HEADINGS.test(block.heading)) continue;
     // Sunny Sunday is a list of single Sundays (findSunnySchedule), not one event; a claim deadline inside it
@@ -458,16 +476,17 @@ export function parsePost(post, body) {
     if (/^sunny sundays?$/i.test(block.heading.trim())) continue;
     const range = firstWindow(block.text, post);
     if (!range) continue;
-    let id = `${post.id}-${slugify(block.heading)}`;
-    // A repeated heading with the same window is the same event; long headings that only share their first 60
-    // characters (the slug length) but have their own windows are kept apart.
-    const window = `${range.start}|${range.end}`;
-    if (seen.has(id)) {
-      if (seen.get(id).includes(window)) continue;
-      const n = seen.get(id).length + 1;
-      seen.get(id).push(window);
-      id = `${id}-${n}`;
-    } else seen.set(id, [window]);
+    // A repeated heading with the same window is the same event. The whole heading is compared, not the slug:
+    // long headings that only share their first 60 characters (the slug length) are different events.
+    const same = `${block.heading.replace(/\s+/g, ' ').trim().toLowerCase()}|${range.start}|${range.end}`;
+    if (seen.has(same)) continue;
+    seen.add(same);
+    // Every event of a post gets its own id: the heading's slug, then -2, -3, … until it is free (a later heading
+    // "X 2" must not collide with the second "X").
+    const base = `${post.id}-${slugify(block.heading)}`;
+    let id = base;
+    for (let n = 2; ids.has(id); n++) id = `${base}-${n}`;
+    ids.add(id);
     events.push({ ...toEvent(post, block.heading, range, findResetNotes(block.text)), id });
   }
   if (events.length === 0) {

@@ -117,7 +117,7 @@ test('parsed shops are merged over the existing file: ids, hand-added fields and
     { id: 'ended', name: 'Long Closed Shop', currency: 'Old', start: '2026-08-01T00:00:00Z', end: '2026-10-01T00:00:00Z', items: [] }
   ] };
   const out = mergeShops(existing, parsed, now);
-  assert.deepEqual(out.shops.map((s) => s.id), ['tiny-coin-shop', 'hand', 'star']); // soonest to close first
+  assert.deepEqual(out.shops.map((s) => s.id), ['tiny-coin-shop-2026-12-01', 'hand', 'star']); // soonest to close first; a new shop's id carries its start date
   const star = out.shops.find((s) => s.id === 'star');
   assert.equal(star.event, 'Winter');
   assert.equal(star.scope, 'Shared by the account.');
@@ -134,7 +134,7 @@ test('parsed shops are merged over the existing file: ids, hand-added fields and
   // Running it again changes nothing.
   assert.deepEqual(mergeShops(out, parsed, now), out);
   // Nothing parsed (the post left the cache): the file keeps what it has until each shop closes.
-  assert.deepEqual(mergeShops(out, [], now).shops.map((s) => s.id), ['tiny-coin-shop', 'hand', 'star']);
+  assert.deepEqual(mergeShops(out, [], now).shops.map((s) => s.id), ['tiny-coin-shop-2026-12-01', 'hand', 'star']);
   assert.deepEqual(mergeShops(out, [], Date.parse('2027-06-01T00:00:00Z')).shops, []);
   // Two posts with the same shop: the newer post's version is used.
   const older = { ...parsed[0], liveDate: '2026-10-01T00:00:00Z', postId: 800, items: [{ id: 'x', name: 'Only In Old Post', cost: 1, limit: 1 }] };
