@@ -10,7 +10,7 @@ import { FakeNode, installFakeBrowser, tick } from './lib/fake-dom.mjs';
 const siteFile = (name) => fileURLToPath(new URL(`../../site/${name}`, import.meta.url));
 installFakeBrowser({ files: { 'data/items.json': siteFile('data/items.json') } });
 
-const { html, render, useState } = await import('../../site/vendor/htm-preact.mjs');
+const { html, render, useState, useEffect } = await import('../../site/vendor/htm-preact.mjs');
 const store = await import('../../site/app/store.js');
 const { NumberInput, Stepper, Left, parseMesos } = await import('../../site/app/ui.js');
 const { DAY, dayKey, kstDays, dayWord, fmtDate } = await import('../../site/app/time.js');
@@ -52,8 +52,12 @@ function mount(vnode) {
   return el;
 }
 async function show(Page, data = DATA) {
-  const App = () => html`<${Page} data=${data} state=${store.useStore()} />`;
+  // Returns only once the page listens to the store. Preact runs effects up to about 100 ms after the first
+  // draw; a test that typed before that was reading a page that had not subscribed yet.
+  let ready = false;
+  const App = () => { const state = store.useStore(); useEffect(() => { ready = true; }, []); return html`<${Page} data=${data} state=${state} />`; };
   const el = mount(html`<${App} />`);
+  for (const end = Date.now() + 5000; !ready && Date.now() < end;) await tick(5);
   await tick(5);
   return el;
 }

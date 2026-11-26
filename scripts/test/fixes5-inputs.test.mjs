@@ -310,7 +310,8 @@ test('29 a refused goal\'s message goes away on the next goal action; arrows at 
   const first = String(goals[0].name);
   const last = String(goals[goals.length - 1].name);
   const btn = (text) => el.find((n) => n.localName === 'button' && n.attrs['aria-label'] === text);
-  assert.ok(flag(btn('Move up: ' + first), 'disabled'), 'the first goal cannot move up');
+  // The list is redrawn from the store a moment after the last action: wait for it instead of racing it.
+  assert.ok(await until(() => btn('Move up: ' + first) && flag(btn('Move up: ' + first), 'disabled') && btn('Move down: ' + last)), 'the first goal cannot move up');
   assert.ok(!flag(btn('Move down: ' + first), 'disabled'));
   assert.ok(flag(btn('Move down: ' + last), 'disabled'), 'the last goal cannot move down');
   assert.ok(!flag(btn('Move up: ' + last), 'disabled'));
