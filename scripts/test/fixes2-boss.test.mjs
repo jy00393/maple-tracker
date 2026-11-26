@@ -176,7 +176,8 @@ test('the target keeps to the weekly cap and to days still in the plan', () => {
   const r = income(picks, {}, FRI);
   assert.equal(r.target, r.planned, 'weekly bosses only: target and plan are the same 14 crystals');
   const d = income(solo('zakum-normal'), { 'zakum-normal': { [day]: true } }, FRI);
-  assert.equal(d.target, 7 * heroic('zakum-normal'));
+  // Friday, ticked today; Thursday passed without a clear and has left the target: Friday plus the five days after it.
+  assert.equal(d.target, 6 * heroic('zakum-normal'));
   assert.equal(d.earned, heroic('zakum-normal'));
 });
 

@@ -1,7 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty } from '../ui.js';
-import { symbolPlan, liberationPlan, liberationCounted, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
+import { symbolPlan, liberationPlan, liberationCounted, liberationFromBosses, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos, shareKey } from '../calc/income.js';
 import { fmtDate, nextReset, DAY } from '../time.js';
 import { LevelView, ErdaCosts } from './level.js';
@@ -42,7 +42,9 @@ function SymbolTable({ kind, kindData, char, entries }) {
   <//>`;
 }
 
-function Liberation({ which, def, char, entry, bossById }) {
+// A plan, not a record: the list says which trace bosses the character clears each week, and the traces are
+// typed in. It can be set from the bosses picked on Bosses, and then changed freely.
+function Liberation({ which, def, char, entry, bossById, bossPicks }) {
   const plan = liberationPlan(def, entry, Date.now(), bossById);
   const set = (patch) => update((s) => {
     const lib = charSlice(s, 'liberation', char.id, () => ({}));
@@ -58,6 +60,9 @@ function Liberation({ which, def, char, entry, bossById }) {
     if (next[bossId] && b) for (const id of Object.keys(def.sources)) if (id !== bossId && next[id] && bossById[id] && shareKey(bossById[id]) === shareKey(b)) next[id] = false;
     set({ picks: next });
   };
+  const fromBosses = liberationFromBosses(def, bossPicks, bossById);
+  const mine = Object.keys(picks).filter((id) => picks[id] && def.sources[id] && bossById[id]).sort().join(',');
+  const theirs = Object.keys(fromBosses).sort().join(',');
   const doubled = liberationCounted(def, picks, bossById).length < Object.keys(picks).filter((id) => picks[id] && def.sources[id] && bossById[id]).length;
   return html`<${Card} title=${def.name} meta=${plan.done ? 'Done' : `${plan.remaining.toLocaleString()} left`}>
     <${Bar} pct=${plan.done ? 1 : plan.pct} big />
@@ -72,7 +77,11 @@ function Liberation({ which, def, char, entry, bossById }) {
     </div>
     ${!plan.done ? html`<p class=${Number.isFinite(plan.weeks) ? 'okbox' : 'note'}>${Number.isFinite(plan.weeks)
       ? `About ${plan.weeks} ${plan.weeks === 1 ? 'week' : 'weeks'} at ${Math.round(plan.perWeek)} a week: around ${fmtDate(plan.eta)}.`
-      : 'Tick the bosses you clear each week to see a finish date.'}</p>` : null}
+      : 'Choose the bosses you clear each week to see a finish date.'}</p>` : null}
+    <div class="toolbar">
+      <button type="button" class="btn" id=${`lib-from-bosses-${which}`} disabled=${!theirs || theirs === mine} onClick=${() => set({ picks: fromBosses })}>${theirs && theirs === mine ? 'Matches your Bosses picks' : 'Use the bosses I picked on Bosses'}</button>
+      <span class="small muted">${theirs ? 'Sets this list to your picked bosses that give traces.' : html`None of the bosses you picked on <a href="#bosses">Bosses</a> gives traces.`}</span>
+    </div>
     <div class="chips" style=${{ gridColumn: 'auto' }}>
       ${sources.map(([bossId, amount]) => {
         const b = bossById[bossId];
@@ -82,6 +91,7 @@ function Liberation({ which, def, char, entry, bossById }) {
       })}
     </div>
     ${doubled ? html`<p class="note">Difficulties of one boss share one clear, so only the best ticked one counts.</p>` : null}
+    <p class="note">This is a plan, not a record of clears. Ticking a boss on Bosses or Today does not add traces: type the traces you hold in "Collected in this stage" after your clears, and the finish date is worked out from that number.</p>
     <p class="note">Each stage also needs its quest kill (shown in the stage list). ${def.passMultiplier > 1 ? 'The Genesis Pass triples traces.' : ''}</p>
   <//>`;
 }
@@ -186,9 +196,10 @@ export function ProgressPage({ data, state }) {
     </div>`;
   } else if (view === 'liberation') {
     const lib = state.liberation[char.id] || {};
+    const bossPicks = (state.bosses[char.id] || {}).picks || {};
     body = html`<div class="grid two">
-      <${Liberation} which="genesis" def=${data.liberation.genesis} char=${char} entry=${lib.genesis || {}} bossById=${data.bossById} />
-      <${Liberation} which="destiny" def=${data.liberation.destiny} char=${char} entry=${lib.destiny || {}} bossById=${data.bossById} />
+      <${Liberation} which="genesis" def=${data.liberation.genesis} char=${char} entry=${lib.genesis || {}} bossById=${data.bossById} bossPicks=${bossPicks} />
+      <${Liberation} which="destiny" def=${data.liberation.destiny} char=${char} entry=${lib.destiny || {}} bossById=${data.bossById} bossPicks=${bossPicks} />
       <p class="note span2">${data.liberation.source}</p>
     </div>`;
   } else if (view === 'champions') {

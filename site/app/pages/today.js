@@ -5,7 +5,7 @@ import { DAY, fmtDate, fmtKst, fmtLeft, kstDays, dayWord } from '../time.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
-import { computeIncome, fmtMesos } from '../calc/income.js';
+import { computeIncome, fmtMesos, shareKey, bossResetHint } from '../calc/income.js';
 import { endingSoon, eventKey } from '../calc/events.js';
 import { resetWarnings } from '../calc/reminders.js';
 import { upgradeOptions, affordableAt, bestUpgrade, withCubeRates } from '../calc/advice.js';
@@ -62,28 +62,37 @@ function SeasonCard({ season, state, now }) {
 }
 
 // Everything you tick on a normal day, without leaving Today: core dailies, then the bosses you run.
-// The ticks are the same ones as on Checklist and Bosses.
+// The ticks are the same ones as on Checklist and Bosses. A boss is listed once: the daily bosses are the chips
+// of the "Daily bosses" item, so the list under "Bosses" holds the rest (weekly and monthly ones).
 function TodoCard({ data, state, now, who, char, lines, prog }) {
   const cs = state.checklist;
   const group = data.checklist.groups.find((g) => g.key === 'daily');
+  const onChips = new Set();
   const items = group.items.filter((item) => {
     const st = itemStatus(item, group, cs, now, who);
-    return !item.optional && !st.locked && !st.expired && !st.link;
+    // The pointer to Bosses (no daily boss picked yet) is shown; other link rows are not.
+    const shown = !item.optional && !st.locked && !st.expired && (!st.link || st.prompt);
+    if (shown && st.rows) for (const r of st.rows) onChips.add(shareKey(r.boss));
+    return shown;
   });
+  const listed = lines.filter((l) => !onChips.has(shareKey(l.boss)));
   // A boss cleared on another difficulty is done too: the difficulties share one clear.
-  const cleared = lines.filter((l) => l.clearedNow || l.doneAs).length;
-  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} ${plural(lines.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
+  const cleared = listed.filter((l) => l.clearedNow || l.doneAs).length;
+  const hint = bossResetHint(listed);
+  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${listed.length ? ` · ${cleared} / ${listed.length} ${plural(listed.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
     <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
     ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
-    ${char ? html`<div class="group-h"><h4>Bosses <span class="hint">weekly reset Thu 09:00 KST</span></h4><a class="small" href="#bosses">Pick bosses</a></div>
-      ${lines.length ? lines.map((l) => {
+    ${char ? html`<div class="group-h"><h4>Bosses${hint ? html` <span class="hint">${hint}</span>` : null}</h4><a class="small" href="#bosses">Pick bosses</a></div>
+      ${listed.length ? listed.map((l) => {
         const id = `today-boss-${l.bossId}`;
         return html`<div class=${'row' + (l.clearedNow || l.doneAs ? ' done' : '')}>
           <input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${(e) => toggleClear(char.id, l.boss, l, e.currentTarget.checked)} />
           <label class="lbl" for=${id}>${l.boss.difficulty} ${l.boss.boss}${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}</span>` : null}</label>
           <div class="right"><span class="min">${l.kind === 'daily' ? 'daily' : l.kind === 'monthly' ? 'monthly' : 'weekly'}${l.value ? ` · ${fmtMesos(l.value)}` : ''}</span></div>
         </div>`;
-      }) : html`<p class="note" style=${{ padding: '4px 8px 8px' }}>No bosses picked yet. Choose the ones you run on <a href="#bosses">Bosses</a> and they show up here to tick.</p>`}` : null}
+      }) : lines.length
+        ? html`<p class="note" style=${{ padding: '4px 8px 8px' }}>Your daily bosses are under Core dailies above. Weekly and monthly bosses you pick on <a href="#bosses">Bosses</a> show up here.</p>`
+        : html`<p class="note" style=${{ padding: '4px 8px 8px' }}>No bosses picked yet. Choose the ones you run on <a href="#bosses">Bosses</a> and they show up here to tick.</p>`}` : null}
   <//>`;
 }
 

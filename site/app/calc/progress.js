@@ -55,6 +55,13 @@ export function liberationCounted(def, picks = {}, bossById = null) {
   return [...best.values()];
 }
 
+// The Liberation list set from the bosses picked on Bosses: every picked boss that gives traces, one per shared
+// clear (the difficulty with the most traces when two are picked). `bossPicks` is state.bosses[charId].picks.
+export function liberationFromBosses(def, bossPicks = {}, bossById = null) {
+  const on = Object.fromEntries(Object.keys(bossPicks || {}).filter((id) => bossPicks[id] && def.sources[id] && (!bossById || bossById[id])).map((id) => [id, true]));
+  return Object.fromEntries(liberationCounted(def, on, bossById).map((c) => [c.bossId, true]));
+}
+
 export function liberationPlan(def, entry = {}, now = Date.now(), bossById = null) {
   const stages = def.stages;
   const stage = clamp(Math.floor(entry.stage || 0), 0, stages.length);
