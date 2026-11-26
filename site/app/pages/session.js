@@ -1,7 +1,7 @@
 import { html, useEffect, useRef } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
 import { Card, Fold, Seg } from '../ui.js';
-import { itemStatus, setRecord, dailyProgress, whoOf, whoFor, recordKey } from './checklist.js';
+import { itemStatus, tickItem, dailyProgress, whoOf, whoFor } from './checklist.js';
 import { streakToday } from '../calc/checklist.js';
 import { DAY, dayKey, nextReset } from '../time.js';
 import { knownLevel } from './level.js';
@@ -33,7 +33,7 @@ export function planSession(checklistData, cs, now, minutes, who) {
   let used = 0;
   for (const [item, group, mins, why] of candidates) {
     const st = itemStatus(item, group, cs, now, who);
-    if (st.done || st.locked || st.expired || st.link || item.type === 'count' || item.type === 'chips') continue;
+    if (st.done || st.locked || st.expired || st.link || st.rows || item.type === 'count' || item.type === 'chips') continue;
     if (used + mins > minutes) continue;
     used += mins;
     add(item, group, mins, why);
@@ -51,7 +51,7 @@ export function SessionPlanner({ data, state, now }) {
     ${plan.picks.length ? html`<div>${plan.picks.map(({ item, group, mins: m, why }) => {
       const st = itemStatus(item, group, cs, now, who);
       return html`<div class=${'row' + (st.done ? ' done' : '')}>
-        <input type="checkbox" id=${'plan-' + item.id} checked=${st.done} onChange=${(e) => setRecord(recordKey(item, who), st.kind, { d: e.currentTarget.checked ? 1 : 0 })} />
+        <input type="checkbox" id=${'plan-' + item.id} checked=${st.done} onChange=${(e) => tickItem(item, st, who, e.currentTarget.checked)} />
         <label class="lbl" for=${'plan-' + item.id}>${item.label}</label>
         <div class="right"><span class="min">${m} min · ${why}</span></div>
       </div>`;

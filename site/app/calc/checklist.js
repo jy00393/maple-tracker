@@ -5,7 +5,16 @@
 // - An item with "scope": "account" is ticked once for the whole account.
 // - An item with "only": "challenger" is hidden for characters that are not in Challenger World.
 // - An item with "minLevel" stays locked until the character reaches it.
+//
+// One record per boss clear: the ticks on the Bosses page (state.bosses[charId].clears) are the only record.
+// - An item with "bosses": "daily" (or "weekly") follows the bosses of that reset the character picked on Bosses:
+//   one row per shared clear, done when all are cleared. With none picked it is only a pointer to Bosses and is
+//   not counted anywhere (`link`).
+// - An item with "boss": [ids] is the clear of that boss (its difficulties): the same tick as its Bosses row,
+//   also when the boss is not picked. With "scope": "account" a clear on any character counts.
+// For these `who.bosses` carries what is needed: { data, byId, all, char, chars } (see whoFor in pages/checklist.js).
 import { periodKey } from '../time.js';
+import { characterLines, bossRows, bossClear } from './income.js';
 
 export const RESET_CYCLE = ['mon', 'wed', 'thu'];
 
@@ -59,6 +68,26 @@ function record(checklistState, item, suffix, kind, now, w) {
   return null;
 }
 
+// The boss lines of the character being looked at (empty without a character).
+function bossLines(w, now) {
+  const b = w.bosses;
+  return b && b.char && b.data && b.byId ? characterLines(b.char, (b.all || {})[b.char.id], b.data, b.byId, now) : [];
+}
+
+// The clear an item with `boss` stands for: `own` is the character's (where a tick goes); `on` also counts a
+// clear on another character when the item is account-wide; `others` lists those characters' clears.
+function bossItemClear(item, w, now) {
+  const b = w.bosses;
+  if (!b || !b.char || !b.byId) return null;
+  const all = b.all || {};
+  const own = bossClear(item.boss, all[b.char.id], b.byId, now);
+  if (!own) return null;
+  const others = item.scope === 'account'
+    ? (b.chars || []).filter((c) => c && c.id !== b.char.id).map((c) => ({ id: c.id, name: c.name, ...bossClear(item.boss, all[c.id], b.byId, now) })).filter((c) => c.on)
+    : [];
+  return { ...own, own: own.on, on: own.on || others.length > 0, others };
+}
+
 export function itemStatus(item, group, checklistState, now, who) {
   const w = asWho(who);
   const kind = resetOf(item, group, checklistState);
@@ -78,8 +107,18 @@ export function itemStatus(item, group, checklistState, now, who) {
     const on = item.chips.map(([cid]) => Boolean(record(checklistState, item, `_${cid}`, kind, now, w)?.d));
     return { kind, locked, tooLow, gated, expired, on, done: on.every(Boolean) };
   }
+  if (item.bosses) {
+    const rows = bossRows(bossLines(w, now), item.bosses);
+    const count = rows.filter((r) => r.on).length;
+    const pointer = item.type === 'link';
+    // `prompt`: nothing is picked, so the row only says where to pick.
+    return { kind, locked, tooLow, gated, expired, rows, count, total: rows.length, done: rows.length > 0 && count === rows.length, link: pointer || rows.length === 0, prompt: !pointer && rows.length === 0 };
+  }
   if (item.type === 'link') return { kind, locked, tooLow, gated, expired, done: false, link: true };
   const r = record(checklistState, item, '', kind, now, w);
+  const clear = item.boss ? bossItemClear(item, w, now) : null;
+  // `old`: a tick made on the checklist before the row became the boss's own tick. It still shows for its week.
+  if (clear) return { kind, locked, tooLow, gated, expired, done: Boolean(clear.on || (r && r.d)), clear, old: Boolean(r && r.d) };
   return { kind, locked, tooLow, gated, expired, done: Boolean(r && r.d) };
 }
 

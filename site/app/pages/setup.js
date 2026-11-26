@@ -2,7 +2,7 @@ import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
 import { Card, NumberInput, MesoInput } from '../ui.js';
 import { suggestBosses, fmtCp } from '../calc/bosscp.js';
-import { applySetup } from '../calc/setup.js';
+import { applySetup, toggleSetupPick } from '../calc/setup.js';
 import { crystalValue, fmtMesos } from '../calc/income.js';
 import { CLASSES } from './characters.js';
 import { MAIN_STAT_CHOICES, mainStatOnClassChange } from '../calc/upgrades.js';
@@ -34,8 +34,9 @@ export function QuickSetup({ data }) {
       </div>
       <div class="field"><span>Weekly bosses you clear · ${ids.length} picked${ids.length > cap ? ` (only the best ${cap} crystals count)` : ''}${total ? ` · ${fmtMesos(total)} a week` : ''}</span>
         ${f.cp > 0 && data.bossCp ? html`<div class="toolbar"><button type="button" id="qs-suggest" class="btn" onClick=${() => setPicked(Object.fromEntries(suggestBosses(data.bosses, data.bossCp, f.cp, 1, f).ids.map((id) => [id, true])))}>Pick what ${fmtCp(f.cp)} Combat Power can enter</button><span class="small muted">The best-paying difficulty of each boss, by the game's solo entry minimums. Change it freely.</span></div>` : null}
+        <span class="small muted">One clear a week per boss: picking another difficulty replaces the first. Daily bosses are picked later, on Bosses.</span>
         <div class="chipbox">${weekly.map((b) => html`<button type="button" class="chip" aria-pressed=${String(Boolean(picked[b.id]))}
-          onClick=${() => setPicked((p) => ({ ...p, [b.id]: !p[b.id] }))}>${b.difficulty} ${b.boss} · ${fmtMesos(crystalValue(b, f, data.bosses))}</button>`)}</div>
+          onClick=${() => setPicked((p) => toggleSetupPick(p, b, data.bosses.bosses))}>${b.difficulty} ${b.boss} · ${fmtMesos(crystalValue(b, f, data.bosses))}</button>`)}</div>
       </div>
       <div class="toolbar"><button type="submit" class="btn primary" disabled=${!valid}>Start tracking</button><span class="small muted">Everything stays in this browser.</span></div>
       <datalist id="qs-class-list">${CLASSES.map((c) => html`<option value=${c} />`)}</datalist>

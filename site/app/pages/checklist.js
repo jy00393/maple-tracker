@@ -5,6 +5,7 @@ import { periodKey } from '../time.js';
 import { StreakRecorder, StreakCard } from './session.js';
 import { itemStatus, resetOf, recordKey, flagKey, moveResetDay, RESET_CYCLE } from '../calc/checklist.js';
 import { knownLevel } from './level.js';
+import { toggleClear } from './bosses.js';
 
 export { itemStatus, resetOf, recordKey };
 
@@ -13,9 +14,12 @@ export function whoOf(data, state) {
   return whoFor(data, state, activeCharacter(state));
 }
 
-// The same for any one character.
+// The same for any one character. `bosses` is what the boss items read (calc/checklist.js): the Bosses page's
+// picks and ticks are the one record of a boss clear.
 export function whoFor(data, state, c) {
-  return c ? { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger) } : {};
+  if (!c) return {};
+  const bosses = data.bosses && data.bossById ? { data: data.bosses, byId: data.bossById, all: state.bosses || {}, char: c, chars: state.characters || [] } : null;
+  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses };
 }
 
 const DAY_NAMES = { mon: ['Mon', 'Monday'], wed: ['Wed', 'Wednesday'], thu: ['Thu', 'Thursday'] };
@@ -54,10 +58,22 @@ export function bumpCount(item, group, who, step) {
   });
 }
 
+// A tick on a plain item. An item that stands for a boss clear (`st.clear`) writes the Bosses tick instead, on
+// the difficulty that is picked. Unticking also takes away a clear on another character when the item is
+// account-wide, and a tick left from when the row was a checklist tick of its own.
+export function tickItem(item, st, who, checked) {
+  if (!st.clear) return setRecord(recordKey(item, who), st.kind, { d: checked ? 1 : 0 });
+  const c = st.clear;
+  if (checked || c.own) toggleClear(who.id, c.boss, { shared: c.shared }, checked);
+  if (!checked) {
+    for (const o of c.others) toggleClear(o.id, o.boss, { shared: o.shared }, false);
+    if (st.old) setRecord(recordKey(item, who), st.kind, { d: 0 });
+  }
+}
+
 export function Item({ item, group, cs, now, who }) {
   const st = itemStatus(item, group, cs, now, who);
   const level = who.level;
-  const key = recordKey(item, who);
   if (st.expired) return null;
   const cls = 'row' + (st.done ? ' done' : '') + (item.optional || group.optional ? ' optional' : '') + (st.locked ? ' locked' : '');
   const id = 'cl-' + item.id;
@@ -71,12 +87,17 @@ export function Item({ item, group, cs, now, who }) {
   } else if (item.type === 'chips') {
     left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
     right.push(html`<span class="min">${st.on.filter(Boolean).length} / ${item.chips.length}</span>`);
-  } else if (item.type === 'link') {
+  } else if (st.rows && !st.prompt) {
+    // The bosses picked on Bosses: the count is theirs, and each chip is that boss's own tick.
+    left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
+    if (st.total) right.push(html`<span class="min">${st.count} / ${st.total}</span>`);
+    if (item.type === 'link') right.push(html`<a class="btn" href=${item.href}>Open</a>`);
+  } else if (item.type === 'link' || st.prompt) {
     left = html`<span class="mark" aria-hidden="true"></span>`;
-    right.push(html`<a class="btn" href=${item.href}>Open</a>`);
+    if (!st.prompt) right.push(html`<a class="btn" href=${item.href}>Open</a>`);
   } else {
     left = html`<input type="checkbox" id=${id} checked=${st.done} disabled=${st.locked}
-      onChange=${(e) => setRecord(key, st.kind, { d: e.currentTarget.checked ? 1 : 0 })} />`;
+      onChange=${(e) => tickItem(item, st, who, e.currentTarget.checked)} />`;
     if (item.min) right.push(html`<span class="min">${item.min}</span>`);
   }
   if (accountPill) right.unshift(accountPill);
@@ -99,14 +120,19 @@ export function Item({ item, group, cs, now, who }) {
   if (st.gated && !st.tooLow) {
     right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[flagKey(item.gate, who)] = true; })}>Mark unlocked</button>`);
   }
-  const label = item.type === 'check' || !item.type
-    ? html`<label class="lbl" for=${id}>${item.label}</label>`
-    : html`<span class="lbl">${item.label}</span>`;
+  const chips = st.rows && !st.prompt && item.type !== 'link' ? st.rows : null;
+  const label = st.prompt
+    ? html`<span class="lbl"><a href=${item.href || '#bosses'}>${item.empty || item.label}</a></span>`
+    : st.rows || (item.type && item.type !== 'check')
+      ? html`<span class="lbl">${item.label}</span>`
+      : html`<label class="lbl" for=${id}>${item.label}</label>`;
   return html`<div class=${cls}>
     ${left}${label}<div class="right">${right}</div>
     ${item.type === 'chips' ? html`<div class="chips">${item.chips.map(([cid, text], i) => html`<button type="button" class="chip" aria-pressed=${String(st.on[i])}
       onClick=${() => setRecord(recordKey(item, who, `_${cid}`), st.kind, { d: st.on[i] ? 0 : 1 })}>${text}</button>`)}</div>` : null}
-    ${item.note ? html`<p class="note">${item.note}</p>` : null}
+    ${chips ? html`<div class="chips">${chips.map((r) => html`<button type="button" class="chip" id=${`${id}-${r.bossId}`} aria-pressed=${String(r.on)} disabled=${st.locked}
+      onClick=${() => toggleClear(who.id, r.boss, r.line, !r.on)}>${r.boss.difficulty} ${r.boss.boss}</button>`)}</div>` : null}
+    ${item.note && !st.prompt ? html`<p class="note">${item.note}</p>` : null}
   </div>`;
 }
 

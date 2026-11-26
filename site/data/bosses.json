@@ -595,6 +595,7 @@
    "reset": "weekly",
    "price": 0,
    "noCrystal": true,
+   "only": "challenger",
    "note": "No crystal. Weekly, Challenger World only; clears count only toward the Challenger World and Item Burning Plus missions (Nexon, news id 47305)."
   },
   {
@@ -604,6 +605,8 @@
    "reset": "weekly",
    "price": 0,
    "noCrystal": true,
+   "only": "challenger",
+   "minLevel": 270,
    "note": "No crystal; drops Golden Meso Pouches. Lv. 270+, once a week per account."
   },
   {
@@ -613,7 +616,10 @@
    "reset": "weekly",
    "price": 0,
    "noCrystal": true,
+   "only": "challenger",
+   "minLevel": 280,
    "note": "No crystal; drops Golden Meso Pouches. Lv. 280+, once a week per account."
   }
- ]
+ ],
+ "entryNote": "Entry fields: \"only\": \"challenger\" = offered only to Challenger World characters; \"minLevel\" = locked below that level. They restate rules this tracker's data already held, nothing new: Kai is Challenger World only (its note; Nexon, news id 47305); Mayrin is the Challenger World season boss from Lv. 270 (checklist.json w-mayrin, from the same notice); Hard Mayrin from Lv. 280 (its note). Added 2026-11-26."
 }

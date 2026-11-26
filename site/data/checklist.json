@@ -54,22 +54,10 @@
     {
      "id": "d-bosses",
      "label": "Daily bosses",
-     "type": "chips",
-     "chips": [
-      [
-       "cyg",
-       "Cygnus (Normal)"
-      ],
-      [
-       "hilla",
-       "Hilla (Hard)"
-      ],
-      [
-       "pb",
-       "Pink Bean (Chaos)"
-      ]
-     ],
-     "note": "Daily since v.272. Track their crystals on the Bosses page too."
+     "bosses": "daily",
+     "href": "#bosses",
+     "empty": "Pick your daily bosses on Bosses",
+     "note": "The daily bosses you picked on Bosses. One tick per clear: the same tick as on Bosses."
     },
     {
      "id": "d-seal",
@@ -163,8 +151,9 @@
      "id": "w-crystals",
      "label": "Weekly bosses",
      "type": "link",
+     "bosses": "weekly",
      "href": "#bosses",
-     "note": "Tick clears on the Bosses page; it tracks your 14-crystal cap and income."
+     "note": "Cleared this week out of the weekly bosses you picked. Tick clears on the Bosses page or on Today; Bosses tracks your 14-crystal cap and income."
     },
     {
      "id": "w-pass",
@@ -185,7 +174,10 @@
     {
      "id": "w-kai",
      "label": "Normal Kai",
-     "note": "Challenger World only, solo. No crystal.",
+     "boss": [
+      "kai-normal"
+     ],
+     "note": "Challenger World only, solo. No crystal. The same tick as Kai on Bosses.",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
     },
@@ -193,7 +185,11 @@
      "id": "w-mayrin",
      "label": "Mayrin (from Lv. 270)",
      "minLevel": 270,
-     "note": "Season boss, once a week per account. Golden Meso Pouches, +3% ATT soul.",
+     "boss": [
+      "mayrin-normal",
+      "mayrin-hard"
+     ],
+     "note": "Season boss, once a week per account. Golden Meso Pouches, +3% ATT soul. The same tick as Mayrin on Bosses.",
      "until": "2027-02-09T23:59:00Z",
      "scope": "account",
      "only": "challenger"
@@ -252,5 +248,5 @@
    ]
   }
  ],
- "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (Cernium 260 and Arcus 265 are the symbol areas' unlock levels in symbols.json; Mayrin 270 is in Nexon's notice)."
+ "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (Cernium 260 and Arcus 265 are the symbol areas' unlock levels in symbols.json; Mayrin 270 is in Nexon's notice). One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses."
 }

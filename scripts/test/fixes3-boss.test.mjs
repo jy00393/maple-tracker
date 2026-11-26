@@ -208,18 +208,20 @@ test('a character\'s target is never below what it earned when the world is over
     .filter((b, i, all) => all.findIndex((o) => o.boss === b.boss) === i);
   const days = Array.from({ length: 7 }, (_, i) => periodKey('daily', Date.parse('2026-11-26T00:00:00Z') + i * DAY));
   const a = { ...char, id: 'a' };
-  const b = { ...char, id: 'b', name: 'Mule' };
+  // On the last day of the week a daily boss has one day left, so it takes several mules with open bosses to
+  // go over the world cap.
+  const mules = ['b', 'c', 'd', 'e'].map((id) => ({ ...char, id, name: 'Mule ' + id }));
   const state = { bosses: {
     a: { picks: solo(...dailies.map((d) => d.id)), clears: Object.fromEntries(dailies.map((d) => [d.id, Object.fromEntries(days.map((k) => [k, true]))])) },
-    b: { picks: solo(...dailies.map((d) => d.id), ...weeklyBest.slice(0, 14).map((w) => w.id)), clears: {} }
+    ...Object.fromEntries(mules.map((m) => [m.id, { picks: solo(...dailies.map((d) => d.id), ...weeklyBest.slice(0, 14).map((w) => w.id)), clears: {} }]))
   } };
-  const r = computeIncome([a, b], state, bosses, bossById, WED);
+  const r = computeIncome([a, ...mules], state, bosses, bossById, WED);
   const world = r.worlds[0];
   assert.ok(world.targetDropped > 0, 'the case is over the world cap');
   const alone = computeIncome([a], state, bosses, bossById, WED).perChar.a;
   assert.equal(r.perChar.a.earned, alone.earned);
   assert.ok(r.perChar.a.target >= r.perChar.a.earned, `${r.perChar.a.target} >= ${r.perChar.a.earned}`);
-  assert.equal(r.perChar.a.target + r.perChar.b.target, world.targetTotal, 'the characters add up to the world');
+  assert.equal(sum([a, ...mules].map((c) => r.perChar[c.id].target)), world.targetTotal, 'the characters add up to the world');
   assert.ok(world.targetTotal >= world.earnedTotal);
   assert.equal(world.targetCount, bosses.limits.perWorldPerWeek);
 });
@@ -257,7 +259,7 @@ test('target >= earned for every character, and the parts add up, over random wo
     assert.equal(sum(chars.map((c) => r.perChar[c.id].earned)), sum(r.worlds.map((w) => w.earnedTotal)), label);
     // One character alone, no world cap in play: the Thursday warning is exactly target less earned (weekly part).
     const one = computeIncome([chars[0]], state, { ...tight, limits: { ...tight.limits, perWorldPerWeek: 9999 } }, bossById, WED).perChar[chars[0].id];
-    const weeklyOnly = (kind) => sum(one.units[kind].map((u) => u.value)) - sum(one.lines.filter((l) => l.kind !== 'weekly').flatMap((l) => kind === 'earned' ? l.earned : [...l.earned, ...Array(l.spare ? 0 : l.kind === 'daily' ? Math.max(0, l.planned - l.cleared) : l.clearedNow || l.doneAs ? 0 : 1).fill(l.value)]))
+    const weeklyOnly = (kind) => sum(one.units[kind].map((u) => u.value)) - sum(one.lines.filter((l) => l.kind !== 'weekly').flatMap((l) => kind === 'earned' ? l.earned : [...l.earned, ...Array(l.spare ? 0 : l.kind === 'daily' ? l.open : l.clearedNow || l.doneAs ? 0 : 1).fill(l.value)]))
       - sum(one.unpicked.filter((u) => u.kind !== 'weekly').flatMap((u) => u.earned));
     const open = weeklyOpen(one.lines, tight.limits.weeklyPerCharacter, one.unpicked.filter((u) => u.kind === 'weekly').flatMap((u) => u.earned));
     assert.equal(open.value, weeklyOnly('target') - weeklyOnly('earned'), label + ' warning = target - earned');

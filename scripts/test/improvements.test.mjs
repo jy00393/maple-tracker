@@ -746,10 +746,10 @@ test('checklist: each character has its own ticks; account items are shared; Cha
   cs.items[recordKey(item('d-ursus'), main)] = { p: periodKey('daily', now), d: 1 };
   assert.equal(itemStatus(item('d-ursus'), daily, cs, now, main).done, true);
   assert.equal(itemStatus(item('d-ursus'), daily, cs, now, mule).done, false);
-  // Chips and counters too.
+  // "Daily bosses" follows the Bosses page; a chip tick saved by an older version stays in the data, unread.
   cs.items[recordKey(item('d-bosses'), mule, '_cyg')] = { p: periodKey('daily', now), d: 1 };
-  assert.deepEqual(itemStatus(item('d-bosses'), daily, cs, now, mule).on, [true, false, false]);
-  assert.deepEqual(itemStatus(item('d-bosses'), daily, cs, now, main).on, [false, false, false]);
+  assert.equal(itemStatus(item('d-bosses'), daily, cs, now, mule).done, false);
+  assert.equal(itemStatus(item('d-bosses'), daily, cs, now, mule).link, true, 'no daily boss picked: a pointer, not counted');
 
   // Account-wide items are one tick for everyone; Challenger-only items are hidden for a regular-world mule.
   assert.equal(item('w-mayrin').scope, 'account');

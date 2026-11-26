@@ -27,6 +27,9 @@ export function resetWarnings(checklistData, checklistState, bossLines, now, opt
       const st = itemStatus(item, group, checklistState, now, opts.who ?? opts.level);
       if (st.done || st.locked || st.expired || st.link) continue;
       if (!close(st.kind)) continue;
+      // Bosses picked on Bosses: the open ones that pay a crystal are in the boss count below, so the item is
+      // not named a second time.
+      if (st.rows && st.rows.every((r) => r.on || r.line.value > 0)) continue;
       slot(st.kind).items.push(item.label);
     }
   }

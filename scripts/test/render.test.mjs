@@ -273,7 +273,8 @@ test('ticking a checklist box saves it for the active character only', async () 
 test('Today ticks dailies and bosses directly, with the same ticks as Checklist and Bosses', async () => {
   store.replaceState(richState(), true);
   const el = await show('today');
-  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · 2 \/ 4 bosses/);
+  // The daily boss (Normal Cygnus) is a chip of "Daily bosses", so the boss list holds the three weekly ones.
+  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · 1 \/ 3 bosses/);
   const daily = el.find((n) => n.localName === 'input' && n.attrs.id === 'cl-d-coupon');
   assert.ok(daily, 'a core daily can be ticked on Today');
   daily.checked = true;
@@ -288,7 +289,7 @@ test('Today ticks dailies and bosses directly, with the same ticks as Checklist 
   assert.equal(s.bosses.main.clears['will-hard'][week], true);
   close(el);
   const again = await show('today');
-  assert.match(again.text.replace(/\s+/g, ' '), /3 \/ 4 bosses/);
+  assert.match(again.text.replace(/\s+/g, ' '), /2 \/ 3 bosses/);
   close(again);
   // A character with no bosses picked gets a pointer instead of an empty list.
   store.update((x) => { x.activeId = 'da'; });
