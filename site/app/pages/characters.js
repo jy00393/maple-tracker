@@ -56,14 +56,17 @@ export function CharactersPage({ data, state }) {
         ${state.characters.length === 0 ? html`<${Empty}>None yet. Add one on the right.<//>` : state.characters.map((c) => {
           const n = nexonFor(c);
           if (editing === c.id) {
-            return html`<${CharacterForm} initial=${c} classStats=${classStats} saveLabel="Save" onCancel=${() => setEditing(null)}
+            // Keyed by character: without a key, pressing Edit on another character reused this form with the
+            // first character's fields (id included) and saved them over the second.
+            return html`<${CharacterForm} key=${'edit-' + c.id} initial=${c} classStats=${classStats} saveLabel="Save" onCancel=${() => setEditing(null)}
               onSave=${(f) => { update((s) => {
                 const i = s.characters.findIndex((x) => x.id === c.id);
-                s.characters[i] = { ...c, ...f };
+                if (i < 0) return; // deleted on another device while the form was open
+                s.characters[i] = { ...s.characters[i], ...f, id: c.id };
                 if ((c.mainStat || 'STR') !== (f.mainStat || 'STR')) reclassifyLines(data, s.gear[c.id], f.mainStat || 'STR', c.mainStat || 'STR');
               }); setEditing(null); }} />`;
           }
-          return html`<div class="row">
+          return html`<div class="row" key=${c.id}>
             <input type="radio" name="active-char" id=${'act-' + c.id} checked=${state.activeId === c.id} aria-label=${'Show ' + c.name}
               onChange=${() => update((s) => { s.activeId = c.id; })} />
             <label class="lbl" for=${'act-' + c.id}>${c.name} <span class="small muted">${c.cls || ''}${c.level ? ' · Lv. ' + c.level : ''}</span></label>

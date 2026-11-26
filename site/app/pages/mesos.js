@@ -1,4 +1,4 @@
-import { html } from '../../vendor/htm-preact.mjs';
+import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, newId } from '../store.js';
 import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow, parseMesos, MESO_MAX } from '../ui.js';
 import { computeIncome, crystalWeekStart } from '../calc/income.js';
@@ -7,7 +7,7 @@ import { cubePlan } from '../calc/upgrades.js';
 import { gearSummary, symbolPlan } from '../calc/progress.js';
 import { slotOutlook } from './gear.js';
 import { withCubeRates } from '../calc/advice.js';
-import { DAY, dayKey, fmtDate } from '../time.js';
+import { DAY, dayKey, fmtDate, kstDays, dayWord } from '../time.js';
 import { Flames } from './flames.js';
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
@@ -56,6 +56,7 @@ function Planner({ data, state, now }) {
   const char = activeCharacter(state);
   const inc = weeklyIncome(data, state, now);
   const dated = goalDates(m.goals, m.held, inc.total, now);
+  const [goalErr, setGoalErr] = useState('');
   // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
   const addGoal = (name, cost) => { if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
   const move = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
@@ -78,9 +79,9 @@ function Planner({ data, state, now }) {
   return html`<div class="grid wide-left">
     <${Card} title="Goals" meta=${inc.total ? `${fmtBig(inc.total)} a week` : 'no income entered'}>
       ${dated.length ? dated.map((g, i) => html`<div class="goal">
-        <div><b>${g.name}</b><div class="small muted">${fmtBig(g.cost)} · ${fmtBig(g.cumulative)} with everything above</div></div>
+        <div><b>${String(g.name || '').trim() || 'Goal'}</b><div class="small muted">${fmtBig(g.cost)} · ${fmtBig(g.cumulative)} with everything above</div></div>
         <span class=${'date' + (g.now ? ' now' : '')}>${g.now ? 'Affordable now' : g.at ? fmtDate(g.at) : g.tooFar ? 'not in reach' : '—'}</span>
-        <span class="small muted">${g.at && !g.now ? `${Math.ceil((g.at - now) / DAY)} days` : ''}</span>
+        <span class="small muted">${g.at && !g.now ? dayWord(kstDays(now, g.at)) : ''}</span>
         <span style=${{ display: 'flex', gap: '4px' }}>
           <button type="button" class="iconbtn" aria-label=${'Move up: ' + g.name} onClick=${() => move(i, -1)}>↑</button>
           <button type="button" class="iconbtn" aria-label=${'Move down: ' + g.name} onClick=${() => move(i, 1)}>↓</button>
@@ -91,15 +92,20 @@ function Planner({ data, state, now }) {
       <form class="form-grid" onSubmit=${(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);
+        const name = String(f.get('name') || '').trim();
         const cost = parseMesosLoose(f.get('cost'));
-        if (!f.get('name') || !cost) return;
-        addGoal(String(f.get('name')), cost);
+        // A refused goal says why, instead of leaving the typed text sitting there.
+        if (!name) return setGoalErr('Give the goal a name.');
+        if (!cost) return setGoalErr('Type the cost like 750m or 2.4b (1,000T at most).');
+        setGoalErr('');
+        addGoal(name, cost);
         e.currentTarget.reset();
       }}>
         <label class="field"><span>Goal</span><input class="input" name="name" placeholder="e.g. Arcus symbol to Lv. 5" /></label>
         <label class="field"><span>Cost</span><input class="input" name="cost" placeholder="e.g. 750m or 2.4b" /></label>
         <button class="btn primary" type="submit">Add goal</button>
       </form>
+      ${goalErr ? html`<p class="warnbox" role="alert">${goalErr}</p>` : null}
     <//>
     <${Card} title="Your meso income" meta="per week">
       <div class="insight"><span class="k">Weekly income</span><span class="big accent">${fmtBig(inc.total)}</span><${IncomeBar} inc=${inc} /></div>
@@ -128,16 +134,19 @@ function StarForce({ data, state }) {
   const set = (patch) => update((s) => { s.ui.sfCalc = { ...o, ...patch }; });
   const max = maxStarsFor(sfData, o.level);
   const to = Math.min(o.to, max);
+  // The saved stars are kept as typed (the level box saves per keystroke); the boxes and the sum use what fits.
+  const from = Math.min(o.from, max);
+  const todo = from < to;
   const opts = { discount: o.discount, lessBoom: o.lessBoom, safeguard: o.safeguard, mvp: o.mvp };
-  const plan = starPlan(sfData, o.level, o.from, to, opts, o.spare || 0);
+  const plan = starPlan(sfData, o.level, from, to, opts, o.spare || 0);
   // The spread comes from simulated runs, so it is skipped when a run would take thousands of attempts.
-  const spread = plan.attempts > 0 && plan.attempts <= 2000 ? starSpread(sfData, o.level, o.from, to, opts, o.spare || 0, 2500) : null;
+  const spread = plan.attempts > 0 && plan.attempts <= 2000 ? starSpread(sfData, o.level, from, to, opts, o.spare || 0, 2500) : null;
   return html`<div class="grid wide-left">
     <${Card} title="Star Force calculator" meta="GMS v.272 rates and costs">
       <div class="form-grid">
         <label class="field"><span>Item level</span><${NumberInput} className="input" label="Item level" value=${o.level} max=${300} onChange=${(v) => set({ level: v || 0 })} /></label>
-        <div class="field"><span>From stars</span><${Stepper} label="Current stars" value=${o.from} max=${max} onChange=${(v) => set({ from: v || 0 })} /></div>
-        <div class="field"><span>To stars (max ${max})</span><${Stepper} label="Target stars" value=${o.to} max=${max} onChange=${(v) => set({ to: v || 0 })} /></div>
+        <div class="field"><span>From stars</span><${Stepper} label="Current stars" value=${from} max=${max} onChange=${(v) => set({ from: v || 0 })} /></div>
+        <div class="field"><span>To stars (max ${max})</span><${Stepper} label="Target stars" value=${to} max=${max} onChange=${(v) => set({ to: v || 0 })} /></div>
         <label class="field"><span>MVP</span><select class="select" value=${o.mvp} onChange=${(e) => set({ mvp: e.currentTarget.value })}><option value="none">None</option><option value="silver">Silver (3%)</option><option value="gold">Gold (5%)</option><option value="diamond">Diamond+ (10%)</option></select></label>
         <label class="field"><span>Spare item cost per boom</span><${MesoInput} label="Spare item cost" placeholder="0" value=${o.spare} onChange=${(v) => set({ spare: v || 0 })} /></label>
       </div>
@@ -146,7 +155,7 @@ function StarForce({ data, state }) {
         <label class="toggle"><input type="checkbox" checked=${o.lessBoom} onChange=${(e) => set({ lessBoom: e.currentTarget.checked })} /> 30% less destruction</label>
         <label class="toggle"><input type="checkbox" checked=${o.safeguard} onChange=${(e) => set({ safeguard: e.currentTarget.checked })} /> Safeguard 15–17★</label>
       </div>
-      <div class="tiles">
+      ${!todo ? html`<p class="note">${max === 0 ? 'An item of this level cannot take stars.' : 'Pick a target above the current stars.'}</p>` : html`<div class="tiles">
         <div class="tile accent"><span class="k">Expected cost</span><span class="v">${fmtBig(plan.cost)}</span><span class="s">${plan.attempts.toFixed(0)} attempts on average</span></div>
         <div class="tile"><span class="k">Typical · bad luck</span><span class="v">${spread ? fmtBig(spread.p50) : '—'}</span><span class="s">${spread ? `1 in 10 runs costs over ${fmtBig(spread.p90)}` : 'not shown when the upgrade takes thousands of attempts'}</span></div>
         <div class=${'tile' + (plan.noBoom > 0.8 ? ' ok' : '')}><span class="k">No boom</span><span class="v">${Math.round(plan.noBoom * 100)}%</span><span class="s">${plan.booms.toFixed(2)} booms expected</span></div>
@@ -159,7 +168,7 @@ function StarForce({ data, state }) {
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>Attempt</th><th class="num">Success</th><th class="num">Boom</th><th class="num">Cost per try</th></tr></thead>
         <tbody>${plan.steps.map((a) => html`<tr><td>${a.star} → ${a.star + 1}★${a.guard ? ' (Safeguard)' : ''}</td><td class="num">${(a.success * 100).toFixed(2)}%</td><td class="num">${a.destroy ? (a.destroy * 100).toFixed(2) + '%' : '—'}</td><td class="num">${fmtBig(a.cost)}</td></tr>`)}</tbody>
-      </table></div>
+      </table></div>`}
     <//>
     <${Fold} title="How it's worked out" meta="tap to open">
       <p class="note">Rates are the wiki base table with the old Star Catch bonus folded in (GMS made it permanent in v.271). Failing never drops a star. A boom leaves a trace restored at 12★ (15–19★), 15★ (20★), 17★ (21–22★), 19★ (23–25★) or 20★ (26★+).</p>
@@ -199,8 +208,8 @@ function Cubes({ data, state }) {
         <summary class="small muted">Tier-up odds used (community estimates, editable)</summary>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Cube</th><th class="num">Rare → Epic</th><th class="num">Epic → Unique</th><th class="num">Unique → Legendary</th></tr></thead>
           <tbody>${['bright', 'glowing'].map((id) => html`<tr><td>${c.types[id].name}</td>${[0, 1, 2].map((i) => html`<td class="num">
-            <input class="input num sm" type="number" step="0.1" min="0.1" max="100" aria-label=${`${c.types[id].name} tier-up ${i + 1} percent`} value=${(typeFor(id).tierUp[i] * 100).toFixed(1)}
-              onInput=${(e) => { const v = Number(e.currentTarget.value); if (!(v >= 0.1 && v <= 100)) return; update((s) => { const r = { ...(s.mesos.cubeRates || {}) }; const arr = [...(r[id] || c.types[id].tierUp)]; arr[i] = v / 100; r[id] = arr; s.mesos.cubeRates = r; }); }} />%</td>`)}</tr>`)}</tbody></table></div>
+            <${NumberInput} step=${0.1} min=${0.1} max=${100} label=${`${c.types[id].name} tier-up ${i + 1} percent`} value=${Number((typeFor(id).tierUp[i] * 100).toFixed(3))}
+              onChange=${(v) => { if (!(v >= 0.1 && v <= 100)) return; update((s) => { const r = { ...(s.mesos.cubeRates || {}) }; const arr = [...(r[id] || c.types[id].tierUp)]; arr[i] = v / 100; r[id] = arr; s.mesos.cubeRates = r; }); }} />%</td>`)}</tr>`)}</tbody></table></div>
         <button type="button" class="btn ghost" onClick=${() => update((s) => { delete s.mesos.cubeRates; })}>Reset to the estimates</button>
       </details>
     <//>
@@ -218,8 +227,11 @@ function History({ data, state, now }) {
     const key = dayKey(crystalWeekStart(now) - i * 7 * DAY);
     weeks.push({ key, ...(hist[key] || { earned: 0, planned: 0 }) });
   }
-  const max = Math.max(1, ...weeks.map((w) => Math.max(w.earned || 0, w.planned || 0)));
-  const recorded = weeks.filter((w) => w.earned > 0);
+  const top = Math.max(0, ...weeks.map((w) => Math.max(w.earned || 0, w.planned || 0)));
+  const max = Math.max(1, top);
+  // The last entry is the crystal week still running: its part-total is shown, but not averaged with full weeks.
+  const thisWeek = weeks[weeks.length - 1];
+  const recorded = weeks.slice(0, -1).filter((w) => w.earned > 0);
   const avg = recorded.length ? recorded.reduce((a, w) => a + w.earned, 0) / recorded.length : 0;
   const W = 720;
   const H = 220;
@@ -228,7 +240,7 @@ function History({ data, state, now }) {
     <${Card} title="Weekly crystal income" meta="last 12 crystal weeks (Thursday to Wednesday)">
       <svg class="chart" viewBox=${`0 0 ${W} ${H + 28}`} role="img" aria-label="Weekly crystal income chart">
         ${[0.25, 0.5, 0.75, 1].map((f) => html`<line x1="0" x2=${W} y1=${H - f * (H - 16)} y2=${H - f * (H - 16)} stroke="#333" stroke-dasharray="3 4" />
-          <text x="4" y=${H - f * (H - 16) - 4} fill="#8C9087" font-size="11">${fmtBig(max * f)}</text>`)}
+          ${top > 0 ? html`<text x="4" y=${H - f * (H - 16) - 4} fill="#8C9087" font-size="11">${fmtBig(max * f)}</text>` : null}`)}
         ${weeks.map((w, i) => {
           const x = i * bw + bw * 0.18;
           const bwInner = bw * 0.64;
@@ -244,7 +256,7 @@ function History({ data, state, now }) {
       <div class="legend"><span><i style=${{ background: '#FEAC42' }}></i>Earned</span><span><i style=${{ background: '#3A3A3A' }}></i>Planned</span></div>
     <//>
     <${Card} title="Summary">
-      <div class="insight"><span class="k">Average earned week</span><span class="big accent">${fmtBig(avg)}</span><span class="small muted">${recorded.length} week${recorded.length === 1 ? '' : 's'} recorded</span></div>
+      <div class="insight"><span class="k">Average earned week</span><span class="big accent">${fmtBig(avg)}</span><span class="small muted">${recorded.length} finished week${recorded.length === 1 ? '' : 's'} recorded · this week so far: ${fmtBig(thisWeek.earned || 0)}</span></div>
       <p class="note">A week is saved while the tracker is open, so the chart fills in as you use it. Totals are all characters, after the 14-per-character and 180-per-world caps.</p>
     <//>
   </div>`;

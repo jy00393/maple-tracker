@@ -19,6 +19,24 @@
 <body>
 <div id="app"><p class="boot">Loading your tracker…</p></div>
 <noscript><p class="boot">This tracker needs JavaScript turned on.</p></noscript>
+<script>
+// If the app's own files fail to load or to fit together (a dropped request, or old and new files mixed right
+// after an update), say so instead of showing "Loading" for ever. Only acts while the loading line is on screen.
+(function () {
+  var first = document.querySelector('#app .boot');
+  var loading = first ? first.textContent : '';
+  function failed(e) {
+    var t = e && e.target;
+    // Pictures, fonts and style sheets that fail are not the app failing to start.
+    if (t && t !== window && t.nodeName !== 'SCRIPT') return;
+    var boot = document.querySelector('#app .boot');
+    if (!boot || boot.textContent !== loading) return;
+    boot.textContent = "The tracker didn't load properly. Reload the page. If it keeps happening, check your connection.";
+  }
+  window.addEventListener('error', failed, true);
+  window.addEventListener('unhandledrejection', failed);
+})();
+</script>
 <script type="module" src="app/main.js"></script>
 </body>
 </html>

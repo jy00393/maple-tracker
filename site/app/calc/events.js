@@ -72,7 +72,24 @@ export function dedupeEvents(events) {
     for (const e of g) if (e !== winner) fold(winner, e);
     out.push(winner);
   }
-  return out;
+  // A post can name the same offer in the plural ("Genesis Pass" in the patch notes, "Genesis Passes" in the
+  // sale post). Same window and a title that differs only by a plural ending: one offer, from different posts.
+  // eventKey itself stays as it is: hidden events are saved under it.
+  const loose = (e) => {
+    let t = titleOf(e).split('|')[0];
+    while (t.endsWith('s')) t = t.slice(0, t.endsWith('es') ? -2 : -1);
+    return `${t}|${e.start || ''}|${e.end}`;
+  };
+  const byLoose = new Map();
+  for (const e of out) {
+    const key = loose(e);
+    const prev = byLoose.get(key);
+    if (!prev) byLoose.set(key, e);
+    else if (String(prev.postId) === String(e.postId)) byLoose.set(Symbol('same post'), e);
+    else if (better(e, prev)) byLoose.set(key, fold(e, prev));
+    else fold(prev, e);
+  }
+  return [...byLoose.values()];
 }
 
 // Today's "Ending soon" list: live events ending within the horizon, soonest first. Cash Shop sales and events

@@ -12,7 +12,9 @@ export function useNow(intervalMs = 1000) {
 
 // A countdown that keeps itself up to date, whatever its page does: every second while seconds show (under an
 // hour), every 30 s otherwise.
-export function Left({ until }) {
+// before / after: words printed around the time ("starts in ", " left"). done: what to show once the moment has
+// passed, so the words and the number come from one clock (never "now left"). Without done it ends on "now".
+export function Left({ until, before = '', after = '', done }) {
   const [, tick] = useState(0);
   const ms = until - Date.now();
   const step = ms < 3630000 ? 1000 : 30000;
@@ -20,7 +22,8 @@ export function Left({ until }) {
     const id = setInterval(() => tick((n) => n + 1), step);
     return () => clearInterval(id);
   }, [step]);
-  return fmtLeft(ms);
+  if (ms <= 0 && done !== undefined) return done;
+  return before + fmtLeft(ms) + after;
 }
 
 export function Card({ title, meta, children, className = '', bodyClass = 'card-b' }) {
@@ -53,11 +56,28 @@ export function Seg({ options, value, onChange, label }) {
   </div>`;
 }
 
+// Saves on every keystroke. The text being typed is left alone until the box is left or the saved number changes
+// some other way (a − / + button, another device). Rewriting it from the saved number on every redraw turned a
+// half-typed "0.0" into "0", so 0.05 could not be typed.
 export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label, className = 'input num sm' }) {
-  return html`<input id=${id} class=${className} type="number" inputmode="numeric" min=${min} max=${max} step=${step}
-    aria-label=${label} value=${value ?? ''}
+  const box = useRef(null);
+  // { text: what the box held after the last keystroke, after: the saved text on the first redraw that followed }
+  const typed = useRef(null);
+  const [, redraw] = useState(0);
+  const saved = value === null || value === undefined ? '' : String(value);
+  let shown = saved;
+  const t = typed.current;
+  if (t && box.current && box.current.value === t.text) {
+    if (!('after' in t)) t.after = saved;
+    if (t.after === saved) shown = t.text;
+    else typed.current = null;
+  } else typed.current = null;
+  return html`<input ref=${box} id=${id} class=${className} type="number" inputmode=${Number.isInteger(step) ? 'numeric' : 'decimal'} min=${min} max=${max} step=${step}
+    aria-label=${label} value=${shown}
+    onBlur=${() => { if (typed.current) { typed.current = null; redraw((n) => n + 1); } }}
     onInput=${(e) => {
       const raw = e.currentTarget.value;
+      typed.current = { text: raw };
       if (raw === '') return onChange(null);
       let n = Number(raw);
       if (!Number.isFinite(n)) return;
@@ -184,6 +204,8 @@ export function parseMesos(text) {
   }
   const m = /^(\d+(?:\.\d*)?|\.\d+)(k|m|b|t|thousand|million|billion|trillion)?$/.exec(t);
   if (!m) return null;
+  // A fraction with no unit ("1.5", "0.4") is not a meso amount: refused, not rounded to 2 or 0 mesos.
+  if (!m[2] && !Number.isInteger(parseFloat(m[1]))) return null;
   const mult = { k: 1e3, m: 1e6, b: 1e9, t: 1e12, thousand: 1e3, million: 1e6, billion: 1e9, trillion: 1e12 }[m[2]] || 1;
   const v = Math.round(parseFloat(m[1]) * mult);
   return Number.isFinite(v) ? v : null;
