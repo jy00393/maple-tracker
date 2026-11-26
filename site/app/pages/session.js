@@ -1,9 +1,9 @@
-import { html, useEffect, useRef } from '../../vendor/htm-preact.mjs';
+import { html, useEffect, useRef, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
 import { Card, Fold, Seg } from '../ui.js';
 import { itemStatus, setRecord, dailyProgress, whoOf, whoFor, recordKey } from './checklist.js';
 import { streakToday } from '../calc/checklist.js';
-import { DAY, dayKey, nextReset } from '../time.js';
+import { DAY, dayKey, nextReset, fmtDate } from '../time.js';
 import { knownLevel } from './level.js';
 
 export function minutesOf(item, fallback) {
@@ -121,22 +121,43 @@ export function streakInfo(history, now) {
   return { streak, best: Math.max(best, streak) };
 }
 
+const showDay = (k) => fmtDate(Date.parse(k + 'T00:00:00Z'));
+const dayCount = (h) => (h ? `${h.done} of ${h.total} core dailies` : 'no record');
+
 export function StreakCard({ state, now }) {
   const history = state.checklist.history || {};
+  // The square picked by a tap or the arrow keys (a day key). Nothing picked means today. Not saved.
+  const [pick, setPick] = useState(null);
   const { streak, best } = streakInfo(history, now);
   const today = Date.parse(dayKey(now) + 'T00:00:00Z');
   const weekday = (new Date(today).getUTCDay() + 6) % 7; // Monday = 0
   const start = today - (15 * 7 + weekday) * DAY;
-  const cells = [];
-  for (let t = start; t <= today; t += DAY) {
-    const k = dayKey(t);
+  const keys = [];
+  for (let t = start; t <= today; t += DAY) keys.push(dayKey(t));
+  const todayKey = keys[keys.length - 1];
+  // A pick that has scrolled out of the 16 weeks falls back to today.
+  const shown = keys.includes(pick) ? pick : todayKey;
+  // Columns are weeks: left and right move a week, up and down a day. Only the picked square is a Tab stop.
+  const onKey = (e, i) => {
+    const d = { ArrowLeft: -7, ArrowRight: 7, ArrowUp: -1, ArrowDown: 1 }[e.key];
+    const j = e.key === 'Home' ? 0 : e.key === 'End' ? keys.length - 1 : d ? i + d : -1;
+    if (j < 0 || j >= keys.length) return;
+    e.preventDefault();
+    setPick(keys[j]);
+    const next = e.currentTarget.parentNode && e.currentTarget.parentNode.childNodes[j];
+    if (next && next.focus) next.focus();
+  };
+  const cells = keys.map((k, i) => {
     const h = history[k];
     const r = h && h.total ? h.done / h.total : 0;
     const lvl = !h || r === 0 ? 0 : r < 0.34 ? 1 : r < 0.67 ? 2 : r < 1 ? 3 : 4;
-    cells.push(html`<i class=${`h${lvl}${t === today ? ' today' : ''}`} title=${`${k}: ${h ? `${h.done}/${h.total} core dailies` : 'no record'}`}></i>`);
-  }
+    return html`<button type="button" class=${`h${lvl}${k === todayKey ? ' today' : ''}${k === shown ? ' sel' : ''}`} tabindex=${k === shown ? 0 : -1}
+      aria-pressed=${String(k === shown)} aria-label=${`${showDay(k)}: ${dayCount(h)}`} title=${`${showDay(k)}: ${dayCount(h)}`}
+      onClick=${() => setPick(k)} onKeyDown=${(e) => onKey(e, i)}></button>`;
+  });
   return html`<${Card} title="Dailies streak" meta=${`best ${best} day${best === 1 ? '' : 's'}`}>
     <div class="insight"><span class="k">Current streak</span><span class="big accent">${streak} day${streak === 1 ? '' : 's'}</span><span class="small muted">Days with every core daily ticked (game days, 09:00 KST to 09:00 KST)</span></div>
-    <div class="heat" role="img" aria-label="Last 16 weeks of dailies">${cells}</div>
+    <div class="heat" role="group" aria-label="Last 16 weeks of dailies. Pick a day to see its count.">${cells}</div>
+    <p class="heat-day small" aria-live="polite"><b>${shown === todayKey ? 'Today' : showDay(shown)}:</b> ${dayCount(history[shown])}. <span class="muted">Pick a square to see that day.</span></p>
   <//>`;
 }

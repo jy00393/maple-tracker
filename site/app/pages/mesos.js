@@ -58,8 +58,11 @@ function Planner({ data, state, now }) {
   const dated = goalDates(m.goals, m.held, inc.total, now);
   const [goalErr, setGoalErr] = useState('');
   // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
-  const addGoal = (name, cost) => { if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
-  const move = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
+  // Any goal action takes down an earlier "can't read that" message: it was about a different try.
+  const addGoal = (name, cost) => { setGoalErr(''); if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
+  const removeGoal = (i) => { setGoalErr(''); setM((x) => { x.goals.splice(i, 1); }); };
+  const move = (i, d) => { setGoalErr(''); moveGoal(i, d); };
+  const moveGoal = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
   // One suggestion of each kind: the first one a goal can hold. One above the limit is passed over, not the end of the search.
   const offerable = (cost) => cost > 0 && cost <= MESO_MAX;
   const quick = [];
@@ -85,13 +88,13 @@ function Planner({ data, state, now }) {
         <span class=${'date' + (g.now ? ' now' : '')}>${g.now ? 'Affordable now' : g.at ? fmtDate(g.at) : g.tooFar ? 'not in reach' : '—'}</span>
         <span class="small muted">${g.at && !g.now ? dayWord(kstDays(now, g.at)) : ''}</span>
         <span style=${{ display: 'flex', gap: '4px' }}>
-          <button type="button" class="iconbtn" aria-label=${'Move up: ' + g.name} onClick=${() => move(i, -1)}>↑</button>
-          <button type="button" class="iconbtn" aria-label=${'Move down: ' + g.name} onClick=${() => move(i, 1)}>↓</button>
-          <button type="button" class="iconbtn" aria-label=${'Remove: ' + g.name} onClick=${() => setM((x) => { x.goals.splice(i, 1); })}>×</button>
+          <button type="button" class="iconbtn" aria-label=${'Move up: ' + g.name} disabled=${i === 0} onClick=${() => move(i, -1)}>↑</button>
+          <button type="button" class="iconbtn" aria-label=${'Move down: ' + g.name} disabled=${i === dated.length - 1} onClick=${() => move(i, 1)}>↓</button>
+          <button type="button" class="iconbtn" aria-label=${'Remove: ' + g.name} onClick=${() => removeGoal(i)}>×</button>
         </span>
       </div>`) : html`<${Empty}>No goals yet. Add one below, or tap a suggestion.<//>`}
       <div class="toolbar">${quick.filter(([, cost]) => offerable(cost)).map(([name, cost]) => html`<button type="button" class="chip" onClick=${() => addGoal(name, cost)}>+ ${name} · ${fmtBig(cost)}</button>`)}</div>
-      <form class="form-grid" onSubmit=${(e) => {
+      <form class="form-grid" onInput=${() => { if (goalErr) setGoalErr(''); }} onSubmit=${(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);
         const name = String(f.get('name') || '').trim();
@@ -104,7 +107,7 @@ function Planner({ data, state, now }) {
         e.currentTarget.reset();
       }}>
         <label class="field"><span>Goal</span><input class="input" name="name" placeholder="e.g. Arcus symbol to Lv. 5" /></label>
-        <label class="field"><span>Cost</span><input class="input" name="cost" placeholder="e.g. 750m or 2.4b" /></label>
+        <label class="field"><span>Cost</span><input class="input" name="cost" inputmode="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck=${false} placeholder="e.g. 750m or 2.4b" /></label>
         <button class="btn primary" type="submit">Add goal</button>
       </form>
       ${goalErr ? html`<p class="warnbox" role="alert">${goalErr}</p>` : null}

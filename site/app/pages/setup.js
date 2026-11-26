@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
-import { Card, NumberInput, MesoInput } from '../ui.js';
+import { Card, NumberInput, MesoInput, useFields } from '../ui.js';
 import { suggestBosses, fmtCp } from '../calc/bosscp.js';
 import { applySetup } from '../calc/setup.js';
 import { crystalValue, fmtMesos } from '../calc/income.js';
@@ -9,16 +9,15 @@ import { MAIN_STAT_CHOICES, mainStatOnClassChange } from '../calc/upgrades.js';
 
 // First-run setup on Today: one short form fills the character, the boss list and the first level reading.
 export function QuickSetup({ data }) {
-  const [f, setF] = useState({ name: '', cls: '', level: null, pct: null, region: 'na', world: 'heroic', challenger: false, beyondBurning: false, mainStat: 'STR' });
+  const [f, set, latest] = useFields({ name: '', cls: '', level: null, pct: null, region: 'na', world: 'heroic', challenger: false, beyondBurning: false, mainStat: 'STR' });
   const [picked, setPicked] = useState({});
-  const set = (patch) => setF((prev) => ({ ...prev, ...patch }));
   const cap = data.bosses.limits.weeklyPerCharacter;
   const weekly = data.bosses.bosses.filter((b) => b.reset === 'weekly' && !b.noCrystal).sort((a, b) => b.price - a.price);
   const ids = Object.keys(picked).filter((id) => picked[id]);
   const total = ids.map((id) => crystalValue(data.bossById[id], f, data.bosses)).sort((a, b) => b - a).slice(0, cap).reduce((a, b) => a + b, 0);
   const valid = f.name.trim().length > 0;
   return html`<${Card} title="Set up in one minute" meta="you can change all of this later" className="span2">
-    <form class="grid" onSubmit=${(e) => { e.preventDefault(); if (valid) update((s) => { applySetup(s, f, ids, newId()); }); }}>
+    <form class="grid" onSubmit=${(e) => { e.preventDefault(); const now = latest(); if (now.name.trim()) update((s) => { applySetup(s, now, ids, newId()); }); }}>
       <div class="form-grid">
         <label class="field"><span>Character name</span><input id="qs-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
         <label class="field"><span>Class</span><input id="qs-class" class="input" list="qs-class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat, data.classes && data.classes.mainStat) }); }} /></label>

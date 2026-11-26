@@ -108,17 +108,18 @@ function NavIcon({ name }) {
 function BottomNav({ route, newNews }) {
   const [more, setMore] = useState(false);
   useEffect(() => { setMore(false); }, [route]);
-  // The sheet also closes on Escape and on a tap anywhere outside the bar.
+  // The sheet also closes on Escape and on a tap anywhere outside the bar. The outside tap lands on a see-through
+  // sheet over the page (`more-back`), so it only closes the menu: it never also ticks the box under the finger.
   useEffect(() => {
     if (!more || typeof document === 'undefined' || typeof document.addEventListener !== 'function') return undefined;
     const onKey = (e) => { if (e.key === 'Escape') setMore(false); };
-    const onDown = (e) => { if (!(e.target && e.target.closest && e.target.closest('.bottomnav'))) setMore(false); };
     document.addEventListener('keydown', onKey);
-    document.addEventListener('pointerdown', onDown);
-    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onDown); };
+    return () => { document.removeEventListener('keydown', onKey); };
   }, [more]);
   const rest = ROUTES.filter(([key]) => !PRIMARY.includes(key));
-  return html`<nav class="bottomnav" aria-label="Sections, bottom bar">
+  // The backdrop is drawn outside the bar: the bar's blur makes it the frame for anything fixed inside it.
+  return html`${more ? html`<div class="more-back" aria-hidden="true" onClick=${() => setMore(false)}></div>` : null}
+  <nav class="bottomnav" aria-label="Sections, bottom bar">
     ${PRIMARY.map((key) => html`<a class="bn" href=${'#' + key} aria-current=${key === route ? 'page' : undefined} onClick=${() => setMore(false)}><${NavIcon} name=${key} /><span>${ROUTES.find((r) => r[0] === key)[1]}</span></a>`)}
     <button type="button" class="bn" aria-expanded=${String(more)} aria-current=${!PRIMARY.includes(route) ? 'page' : undefined} onClick=${() => setMore(!more)}>
       <${NavIcon} name="more" /><span>More</span>${newNews > 0 ? html`<i class="bn-dot" aria-label=${newNews + ' new posts'}></i>` : null}
