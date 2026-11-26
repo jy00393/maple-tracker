@@ -383,7 +383,9 @@ test('third round: section windows, event merging, Beyond Burning runs, tier hin
   assert.equal(tierFromName('Lionheart Painful Destiny', gear.slotTypes.weapon.filter(Boolean), gear.tierHints), 0);
   assert.ok(tierFromName('Destiny Hero Two-handed Sword', gear.slotTypes.weapon.filter(Boolean), gear.tierHints) > 0);
   // Kept picks that fill every crystal: the suggestion is empty, but bosses are within reach.
-  const priciest = bosses.bosses.filter((x) => x.reset === 'weekly' && !x.noCrystal).sort((x, y) => y.price - x.price).slice(0, 14).map((x) => ({ ...x, party: 1 }));
+  // (One difficulty per boss: two kept difficulties of one boss share a clear and take one place.)
+  const priciest = bosses.bosses.filter((x) => x.reset === 'weekly' && !x.noCrystal).sort((x, y) => y.price - x.price)
+    .filter((x, i, all) => all.findIndex((o) => o.boss === x.boss) === i).slice(0, 14).map((x) => ({ ...x, party: 1 }));
   const s = suggestBosses(bosses, cpData, 5e6, 1, { world: 'heroic' }, priciest);
   assert.equal(s.ids.length, 0);
   assert.ok(s.reachable > 0);
