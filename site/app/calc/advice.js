@@ -129,11 +129,14 @@ export function bestUpgrade(options) {
 }
 
 // When `cost` is covered by mesos held plus weekly income. null = never at this income.
-export function affordableAt(cost, held, weekly, now) {
+// since: when `held` was typed. Income counts from then, so the date stays put instead of sliding a day every
+// day; a date already passed (with `held` still short) means the typed amount is out of date.
+export function affordableAt(cost, held, weekly, now, since = now) {
   const short = cost - (held || 0);
   if (short <= 0) return now;
   if (!(weekly > 0)) return null;
-  const at = now + (short / weekly) * 7 * DAY;
+  const from = since > 0 && since <= now ? since : now;
+  const at = from + (short / weekly) * 7 * DAY;
   // More than a hundred years away: Infinity, so the page can say "not in reach" rather than "add your income".
   return at - now <= 100 * 365.25 * DAY ? at : Infinity;
 }

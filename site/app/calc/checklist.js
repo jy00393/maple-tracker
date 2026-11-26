@@ -5,6 +5,9 @@
 // - An item with "scope": "account" is ticked once for the whole account.
 // - An item with "only": "challenger" is hidden for characters that are not in Challenger World.
 // - An item with "minLevel" stays locked until the character reaches it.
+// - An item with "gate" (the id of a symbol area in symbols.json) stays locked until that area is unlocked:
+//   either Progress holds a symbol level above 0 for it (who.open lists those areas), which also proves the
+//   level, or the player pressed "Mark unlocked" (a flag, which can be taken back).
 import { periodKey } from '../time.js';
 
 export const RESET_CYCLE = ['mon', 'wed', 'thu'];
@@ -38,6 +41,27 @@ function isOwner(checklistState, w) {
   return !w.id || checklistState.owner === w.id;
 }
 
+// The areas a character has unlocked according to Progress: every symbol entry with a level above 0.
+export function openAreas(symbolEntries) {
+  return Object.entries(symbolEntries || {}).filter(([, e]) => e && e.level > 0).map(([id]) => id);
+}
+
+// The unlock flags "Mark unlocked" sets for an item, and "Lock again" takes back.
+export function unlockFlags(item) {
+  return [...(item.minLevel ? [`lvl:${item.id}`] : []), ...(item.gate ? [item.gate] : [])];
+}
+
+// "Mark unlocked" / "Lock again": sets every unlock flag of an item for character `who`. Flags are set to
+// false, not removed, so the change is carried to other devices like any other. Changes `checklistState` in place.
+export function setUnlocked(checklistState, item, who, on) {
+  const w = asWho(who);
+  for (const name of unlockFlags(item)) {
+    checklistState.flags[flagKey(name, w)] = Boolean(on);
+    // A flag saved before flags were per character still counts for the list's owner: it goes too.
+    if (!on && w.id && isOwner(checklistState, w) && checklistState.flags[name]) checklistState.flags[name] = false;
+  }
+}
+
 function flagOn(checklistState, name, w) {
   return Boolean(checklistState.flags[flagKey(name, w)] || (w.id && isOwner(checklistState, w) && checklistState.flags[name]));
 }
@@ -63,24 +87,45 @@ export function itemStatus(item, group, checklistState, now, who) {
   const w = asWho(who);
   const kind = resetOf(item, group, checklistState);
   // "lvl:<id>" is the player's own override ("Mark unlocked"), e.g. when the tracker's level is behind.
-  const tooLow = Boolean(item.minLevel && Number.isFinite(w.level) && w.level < item.minLevel && !flagOn(checklistState, `lvl:${item.id}`, w));
-  const gated = Boolean(item.gate && !flagOn(checklistState, item.gate, w));
+  // proven: Progress holds a symbol level for the item's area, so the area is open whatever else is known.
+  const proven = Boolean(item.gate && Array.isArray(w.open) && w.open.includes(item.gate));
+  const below = Boolean(item.minLevel && Number.isFinite(w.level) && w.level < item.minLevel);
+  const tooLow = !proven && below && !flagOn(checklistState, `lvl:${item.id}`, w);
+  const gated = Boolean(!proven && item.gate && !flagOn(checklistState, item.gate, w));
   const locked = gated || tooLow;
+  // byHand: open only because the player said so (nothing the tracker knows proves it), so it can be locked again.
+  const byHand = !locked && !proven && Boolean(below || item.gate);
   const notForChar = Boolean(item.only === 'challenger' && w.id && !w.challenger);
   const expired = Boolean((item.until && Date.parse(item.until) < now) || notForChar);
   if (item.type === 'count') {
     const r = record(checklistState, item, '', kind, now, w);
     // A whole number from 0 to the target, whatever was saved.
     const count = r && typeof r.c === 'number' && Number.isFinite(r.c) ? Math.max(0, Math.min(item.target, Math.floor(r.c))) : 0;
-    return { kind, locked, tooLow, gated, expired, count, done: count >= item.target };
+    return { kind, locked, tooLow, gated, byHand, expired, count, done: count >= item.target };
   }
   if (item.type === 'chips') {
     const on = item.chips.map(([cid]) => Boolean(record(checklistState, item, `_${cid}`, kind, now, w)?.d));
-    return { kind, locked, tooLow, gated, expired, on, done: on.every(Boolean) };
+    return { kind, locked, tooLow, gated, byHand, expired, on, done: on.every(Boolean) };
   }
-  if (item.type === 'link') return { kind, locked, tooLow, gated, expired, done: false, link: true };
+  if (item.type === 'link') return { kind, locked, tooLow, gated, byHand, expired, done: false, link: true };
   const r = record(checklistState, item, '', kind, now, w);
-  return { kind, locked, tooLow, gated, expired, done: Boolean(r && r.d) };
+  return { kind, locked, tooLow, gated, byHand, expired, done: Boolean(r && r.d) };
+}
+
+// The rows of a group the Checklist page draws. The symbol-area dailies form a ladder (Arcus, then Odium, ...).
+// A locked area is listed when the character's level has reached it; of the locked areas further up (or of all
+// of them while no level is known) only the first is listed, and the rest appear as the character gets there.
+export function listedItems(group, checklistState, now, who) {
+  const levelKnown = Number.isFinite(asWho(who).level);
+  let lockedBefore = false;
+  return group.items.filter((item) => {
+    if (!item.gate) return true;
+    const st = itemStatus(item, group, checklistState, now, who);
+    if (!st.locked) return true;
+    const show = (levelKnown && !st.tooLow) || !lockedBefore;
+    lockedBefore = true;
+    return show;
+  });
 }
 
 // The account's streak calendar has one entry per day. Decide what today's entry should be when character

@@ -1,4 +1,6 @@
-// First-run setup: one form creates the character, its boss list and its first level reading.
+// First-run setup: one form creates the character and its boss list, and its first level reading when an EXP %
+// was typed. With the EXP % left empty only the level is saved: an invented 0% reading would make the first real
+// reading look like a whole day's gain and pull every level date far too close.
 import { hasSharedTicks } from './checklist.js';
 export function applySetup(s, form, bossIds, id, now = Date.now()) {
   const level = Number.isFinite(form.level) ? form.level : null;
@@ -23,6 +25,6 @@ export function applySetup(s, form, bossIds, id, now = Date.now()) {
   const picks = {};
   for (const bossId of bossIds || []) picks[bossId] = { party: 1 };
   s.bosses[id] = { picks, clears: {} };
-  if (level) s.level[id] = { ...(s.level[id] || {}), log: [{ t: now, level, pct: Number.isFinite(form.pct) ? form.pct : 0 }] };
+  if (level && Number.isFinite(form.pct)) s.level[id] = { ...(s.level[id] || {}), log: [{ t: now, level, pct: form.pct }] };
   return s;
 }

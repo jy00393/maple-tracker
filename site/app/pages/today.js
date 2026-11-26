@@ -1,7 +1,8 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
 import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left, plural } from '../ui.js';
-import { DAY, fmtDate, fmtKst, fmtLeft, kstDays, dayWord } from '../time.js';
+import { DAY, fmtDate, fmtDay, fmtKst, fmtLeft, kstDays, dayWord, asOf } from '../time.js';
+import { changedAt } from '../calc/asof.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
@@ -19,34 +20,49 @@ import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps, erdaTemplateFor
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
 import { levelOutlook, knownLevel } from './level.js';
 
-function nextSymbolLevels(data, state, charId) {
+// The next symbol levels, soonest first. Each date is fixed on the day the count was typed (symbolPlan), so it
+// does not move until the count is typed again.
+function nextSymbolLevels(data, state, charId, now) {
   const entries = state.symbols[charId] || {};
   const out = [];
   for (const kind of ['sacred', 'arcane']) {
     const kd = data.symbols[kind];
     for (const area of kd.areas) {
-      const plan = symbolPlan(kd, area, entries[area.id]);
-      if (plan.locked || plan.maxed || !Number.isFinite(plan.daysToNext)) continue;
+      const plan = symbolPlan(kd, area, entries[area.id], now);
+      if (plan.locked || plan.maxed || plan.nextAt === null) continue;
       out.push({ name: area.name, kind, ...plan });
     }
   }
   // Sacred symbols first (they carry progression past 260), then Arcane to fill the space.
-  const bySoonest = (a, b) => a.daysToNext - b.daysToNext;
+  const bySoonest = (a, b) => (b.affordable > 0) - (a.affordable > 0) || a.nextAt - b.nextAt;
   return [...out.filter((s) => s.kind === 'sacred').sort(bySoonest), ...out.filter((s) => s.kind === 'arcane').sort(bySoonest)].slice(0, 3);
 }
 
 // Challenger World: what must be claimed, spent or used before the season ends. Ticks are yours; dates are Nexon's.
 function SeasonCard({ season, state, now }) {
   const o = seasonOutlook(season, state.ui.seasonDone, now);
-  if (!o || o.over) return null;
+  if (!o) return null;
+  // After the last deadline: what the notice says is left to do with a Challenger World character.
+  if (o.over) {
+    const lastSteps = (season.actions || []).filter((a) => Date.parse(a.by) === o.last);
+    return html`<${Card} title=${`${season.name} has ended`} meta="every deadline has passed" className="span2">
+      <p class="note">The season ended on ${fmtKst(o.ends)}.${lastSteps.length ? ` The last ${plural(lastSteps.length, 'step')} closed on ${fmtKst(o.last)}: ${lastSteps.map((a) => a.label).join('; ')}.` : ''}</p>
+      ${lastSteps.map((a) => html`<p class="note">${a.detail}</p>`)}
+      <p class="note">If this character has left Challenger World, untick "Challenger World character" on <a href="#characters">Characters</a>. Its Challenger-only items and this card then go away.</p>
+      <p class="note">${season.source}</p>
+    <//>`;
+  }
   // Korean calendar days, the same count the coin shop uses for the same deadline.
   const d = kstDays(now, o.ends);
   const toggle = (id, on) => update((s) => { s.ui.seasonDone = { ...(s.ui.seasonDone || {}), [id]: on }; if (!on) delete s.ui.seasonDone[id]; });
-  return html`<${Card} title=${`${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : d <= 1 ? `ends ${dayWord(d)}` : `${d} days left`} className="span2">
-    <div class="insight"><span class="k">Season ends</span><span class="big accent">${fmtKst(o.ends)}</span>
-      <span class="small muted">${o.open} of ${o.total} end-of-season steps still open. Challenger gear stops working then, so spend nothing on it.</span></div>
+  const notTicked = (g) => g.items.filter((i) => !i.done).length;
+  return html`<${Card} title=${o.ended ? `${season.name} has ended` : `${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : d <= 1 ? `ends ${dayWord(d)}` : `${d} days left`} className="span2">
+    <div class="insight"><span class="k">${o.ended ? 'Season ended' : 'Season ends'}</span><span class="big accent">${fmtKst(o.ends)}</span>
+      <span class="small muted">${o.ended
+        ? `${o.open} ${plural(o.open, 'step')} can still be done${o.missed ? `; ${o.missed} ${plural(o.missed, 'was', 'were')} not ticked before ${plural(o.missed, 'its', 'their')} deadline` : ''}. Challenger gear has stopped working.`
+        : `${o.open} of ${o.total} end-of-season steps still open. Challenger gear stops working then, so spend nothing on it.`}</span></div>
     ${o.groups.map((g) => html`<details open=${o.daysLeft <= 14 && !g.passed && g.items.some((i) => !i.done) && g === o.groups.find((x) => !x.passed && x.items.some((i) => !i.done))}>
-      <summary><b>By ${fmtKst(g.at)}</b> <span class="small muted">· ${g.passed ? 'passed' : `${fmtLeft(g.left)} left`} · ${g.items.filter((i) => !i.done).length} open</span></summary>
+      <summary><b>By ${fmtKst(g.at)}</b> <span class="small muted">· ${g.passed ? `passed${notTicked(g) ? ` · ${notTicked(g)} not ticked` : ''}` : `${fmtLeft(g.left)} left · ${notTicked(g)} open`}</span></summary>
       ${g.items.map((i) => html`<div class=${'row' + (i.done ? ' done' : '')}>
         <input type="checkbox" id=${'season-' + i.id} checked=${i.done} onChange=${(e) => toggle(i.id, e.currentTarget.checked)} />
         <label class="lbl" for=${'season-' + i.id}>${i.label}</label>
@@ -124,13 +140,21 @@ export function TodayPage({ data, state }) {
   const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now, data.bossById) : null;
   const erdaState = char ? state.erda[char.id] : null;
   const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
-  const symbols = char ? nextSymbolLevels(data, state, char.id) : [];
+  const symbols = char ? nextSymbolLevels(data, state, char.id, now) : [];
   const level = char ? levelOutlook(data, state, char, now) : null;
   const gate = level && level.gates[0];
   const gearGap = gear ? gear.gaps.find((r) => !r.entry.temporary) : null;
   const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], withCubeRates(data.upgrades, state.mesos.cubeRates), data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
   const weekly = weeklyIncome(data, state, now).total;
-  const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
+  // Counted from the day the mesos held were typed, so the date does not slide a day every day.
+  const heldAt = changedAt(state, 'mesos/held', now);
+  const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now, heldAt || now) : null;
+  const bestWhen = bestAt === null ? 'add your income on Mesos for a date' : bestAt === Infinity ? 'not in reach at your income'
+    : best.cost <= (state.mesos.held || 0) ? 'affordable now'
+    : bestAt <= now ? `should be affordable by now: update your mesos on Mesos${heldAt ? ` (${asOf(heldAt, now)})` : ''}` : `affordable ${fmtDate(bestAt)}`;
+  // No date for the next gate yet: say what is missing (an EXP % reading, or a second one on another day).
+  const gateHint = !level ? '' : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from}`
+    : level.readings.length ? 'log your EXP % again on another day for a date' : 'log your EXP % on Progress for a date';
   const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who, weeklyCap: data.bosses.limits.weeklyPerCharacter, weeklyEarned: income ? income.unpicked.filter((u) => u.kind === 'weekly').flatMap((u) => u.earned) : [] });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
@@ -144,13 +168,13 @@ export function TodayPage({ data, state }) {
       <div class=${'tile' + (prog.total && prog.done >= prog.total ? ' ok' : '')}><span class="k">Core dailies</span><span class="v">${prog.done} / ${prog.total}</span><${Bar} pct=${prog.total ? prog.done / prog.total : 0} />
         <span class="s">${streak ? `${streak}-day streak` : 'start a streak today'} · <a href="#checklist">checklist</a></span></div>
       ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.target)} planned · resets Thu 09:00 KST`} accent />` : null}
-      ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? dayWord(kstDays(now, gate.at)) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
+      ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? dayWord(kstDays(now, gate.at)) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : `${gateHint} · ${gate.what}`} />` : null}
       <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? html`next: ${ending[0].title} in <${Left} until=${Date.parse(ending[0].end)} />` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
       ${maint ? html`<${Tile} k="Next maintenance" v=${fmtKst(Date.parse(maint.start), false)} s=${`${fmtKst(Date.parse(maint.start))} → ${fmtKst(Date.parse(maint.end))}`} />` : null}
     </div>
     ${char ? null : html`<div class="grid two" style=${{ marginBottom: '14px' }}><${QuickSetup} data=${data} /></div>`}
     ${best ? html`<div class="insight best"><span class="k">Best next upgrade</span><span class="big accent">${best.label}</span>
-      <span>Expected ${fmtBig(best.cost)}${best.kind === 'sf' ? ` · ${fmtBig(best.sunnyCost)} on a Star Force Sunny Sunday` : ` · ${fmtBig(best.cost90)} with bad luck (9 in 10)`} · <b>${bestAt === null ? 'add your income on Mesos for a date' : bestAt === Infinity ? 'not in reach at your income' : bestAt <= now ? 'affordable now' : `affordable ${fmtDate(bestAt)}`}</b></span>
+      <span>Expected ${fmtBig(best.cost)}${best.kind === 'sf' ? ` · ${fmtBig(best.sunnyCost)} on a Star Force Sunny Sunday` : ` · ${fmtBig(best.cost90)} with bad luck (9 in 10)`} · <b>${bestWhen}</b></span>
       ${timing && timing.kind === 'now' ? html`<span class="small" style=${{ color: 'var(--ok)' }}>A Star Force Sunny Sunday is on now, until ${fmtKst(timing.day.end)}. Do it today and save about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'wait' ? html`<span class="small" style=${{ color: 'var(--warn)' }}>Wait for the Star Force Sunny Sunday on ${fmtKst(timing.day.start)}: it saves about ${fmtBig(timing.saves)}.</span>` : null}
       ${timing && timing.kind === 'none' ? html`<span class="small muted">No Star Force Sunny Sunday is announced through ${fmtDate(timing.through)}, so there is no discount to wait for.</span>` : null}
@@ -179,10 +203,10 @@ export function TodayPage({ data, state }) {
           <p class="note" style=${{ padding: '6px 8px' }}>A date without a time is Nexon's server day: it can arrive up to 09:00 KST the next morning, usually after maintenance. Event start dates are read from Nexon's posts every 6 hours. The rest: ${(data.upcoming && data.upcoming.source) || 'typed in by hand.'}</p>
         <//>` : null}
         ${char ? html`<${Card} title="Next up">
-          ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}
+          ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} ${s.affordable ? 'ready now' : s.nextDue ? html`should be ready: <a href="#progress">update your count</a>` : `ready about ${fmtDay(s.nextAt, now)}`} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}
           ${erdaNext.length ? html`<div><b>6th job</b>${erdaNext.map((s) => html`<div class="small">${s.label}</div>`)}</div>` : null}
           ${gearGap && !best ? html`<div><b>Gear</b><div class="small">${gearGap.slot.name}: ${gearGap.gaps.slice(0, 2).join(', ')}</div></div>` : null}
-          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} ${plural(genesis.remaining, 'trace')} left · about ${genesis.weeks} ${plural(genesis.weeks, 'week')}</div></div>` : null}
+          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} ${plural(genesis.remaining, 'trace')} left ${asOf(genesis.at, now)} · ${genesis.due ? html`should be done: <a href="#progress">update your traces</a>` : `done around ${fmtDate(genesis.eta)}`}</div></div>` : null}
         <//>` : null}
       </div>
     </div>

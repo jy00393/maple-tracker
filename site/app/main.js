@@ -1,6 +1,6 @@
 import { html, render, useEffect, useState } from '../vendor/htm-preact.mjs';
 import { loadData } from './data.js';
-import { useStore, update } from './store.js';
+import { useStore, update, activeCharacter } from './store.js';
 import { useNow, Logo } from './ui.js';
 import { fmtLeft, fmtUtcTime, kstParts, nextReset } from './time.js';
 import { TodayPage } from './pages/today.js';
@@ -15,6 +15,7 @@ import { SettingsPage } from './pages/settings.js';
 import { startSync, setPendingPair, tokenFromHash, syncConfig, syncStatus, onSyncStatus } from './sync.js';
 import { appStatus } from './calc/status.js';
 import { setUpWorker } from './offline.js';
+import { worldName } from './calc/world.js';
 
 // [route, tab label, page, hidden from the tab row]
 const ROUTES = [
@@ -139,7 +140,7 @@ function App({ data }) {
     <header class="topbar">
       <div class="topbar-inner">
         <div class="brand-row">
-          <a class="brand" href="#today"><${Logo} /><div><h1>Maple Tracker</h1><div class="sub">GMS · Heroic · your own copy</div></div></a>
+          <a class="brand" href="#today"><${Logo} /><div><h1>Maple Tracker</h1><div class="sub">GMS · ${worldName(activeCharacter(state))} · your own copy</div></div></a>
           <div class="head-right"><${StatusPill} data=${data} /><${CharacterPicker} state=${state} /></div>
         </div>
         <${Clocks} />

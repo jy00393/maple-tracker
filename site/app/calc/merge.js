@@ -61,6 +61,14 @@ const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared']);
 // The same goes for which tab of a page is showing, and for the news read marker the Events page sets itself.
 const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
+// Typed figures (symbols held, traces) carry the day they were typed as `at`. Figures saved before that are
+// dated by each device on its own first load (store.js), with no change time moved. So two copies can hold the
+// same entry with the same change time and a different day, or one with a day and one without. The earlier day
+// then stands and a dated entry beats an undated one, on every device alike: without this the undated copy could
+// win the tie and be dated afresh at every sync.
+const TYPED = new Set(['symbols', 'liberation']);
+const typedDay = (v) => (typeof v.at === 'number' && Number.isFinite(v.at) ? v.at : Infinity);
+const sameButDay = (x, y) => isObj(x) && isObj(y) && canon({ ...x, at: 0 }) === canon({ ...y, at: 0 });
 // Per-character parts: when a character is gone after a merge, so is its data.
 const PER_CHAR = ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch'];
 const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
@@ -580,6 +588,8 @@ export function mergeStates(a, b, now = Date.now()) {
     else if (tb !== ta) takeB = tb > ta;
     // Same age: a unit only one side has is kept (a removal needs a strictly newer stamp); otherwise the newer copy wins.
     else if (ua.has(path) !== ub.has(path)) takeB = ub.has(path);
+    // The same typed figures, dated differently by two devices: the earlier day stands (see TYPED).
+    else if (p && TYPED.has(p.part) && sameButDay(ua.get(path), ub.get(path))) takeB = typedDay(ub.get(path)) < typedDay(ua.get(path));
     // Otherwise the newer copy wins; a full tie is broken by the values themselves, so both devices pick the same.
     else if ((b.updatedAt || 0) !== (a.updatedAt || 0)) takeB = bNewerOverall;
     else takeB = JSON.stringify(ub.get(path)) > JSON.stringify(ua.get(path));

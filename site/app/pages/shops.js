@@ -2,7 +2,8 @@ import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, Fold, NumberInput, Stepper, Empty, plural } from '../ui.js';
 import { shopPlan, itemCap, limitText } from '../calc/shops.js';
-import { fmtKst, kstDays } from '../time.js';
+import { fmtKst, kstDays, asOf } from '../time.js';
+import { changedAt } from '../calc/asof.js';
 import { resetOf } from '../calc/checklist.js';
 
 const num = (v) => Math.round(v).toLocaleString('en-US');
@@ -25,6 +26,10 @@ function Shop({ shop, state, char, now, resetKind }) {
   const plan = shopPlan(shop, saved, char, now, resetKind);
   // The closing day in Korea compared with today in Korea: 0 = today, 1 = tomorrow. Used for every wording.
   const closesIn = kstDays(now, Date.parse(shop.end));
+  // When the two typed amounts were last changed, shown beside them: nothing else moves them.
+  const stamp = (field) => changedAt(state, `shops/${encodeURIComponent(shop.id)}/${field}`, now);
+  const haveAt = stamp('have');
+  const claimsAt = stamp('claims');
   const set = (fn) => update((s) => { fn(charSlice(s, 'shops', shop.id, blankShop)); });
   const earn = shop.earn;
   const rows = plan.rows.filter((r) => !onlyPicked || r.want > 0);
@@ -38,12 +43,12 @@ function Shop({ shop, state, char, now, resetKind }) {
           <span class="v">${num(plan.short || plan.spare)}</span>
           <span class="s">${plan.picked ? `your picks cost ${num(plan.need)} ${coin}` : 'pick what you want below'}</span>
         </div>
-        <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${earn ? `${num(plan.have)} held + up to ${num(plan.toCome)} still to earn` : 'the amount you hold now'}</span></div>
+        <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${earn ? `${num(plan.have)} held${haveAt ? ` ${asOf(haveAt, now)}` : ''} + up to ${num(plan.toCome)} still to earn` : `the amount you hold${haveAt ? ` ${asOf(haveAt, now)}` : ' now'}`}</span></div>
         <div class="tile"><span class="k">Closes</span><span class="v">${closesIn === 0 ? 'Today' : closesIn === 1 ? 'Tomorrow' : `${closesIn} days`}</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
       </div>
       <div class="form-grid">
         <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = Math.floor(v || 0); })} /></label>
-        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max})</span><${Stepper} label=${earn.name + 's claimed'} value=${Math.min(saved.claims || 0, earn.max)} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
+        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max}${claimsAt ? `, ${asOf(claimsAt, now)}` : ''})</span><${Stepper} label=${earn.name + 's claimed'} value=${Math.min(saved.claims || 0, earn.max)} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
       </div>
       ${shop.note ? html`<p class="warnbox">${shop.note}</p>` : null}
       ${plan.short ? html`<p class="warnbox">Your picks cost ${num(plan.short)} ${coin} more than you can reach. Drop a pick, or lower a number.</p>` : null}
@@ -69,7 +74,7 @@ function Shop({ shop, state, char, now, resetKind }) {
         ${earn ? null : html`<p class="note">How ${coin} is earned is not listed here, so only the amount you hold is counted. Keep it up to date.</p>`}
         ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} ${plural(earn.perWeek, 'claim')} a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
           <p class="note">"Still to earn" assumes ${earn.perWeek} ${plural(earn.perWeek, 'claim')} in every week that is left, up to the ${earn.max} total.${RESET_DAY[resetKind] ? ` Weeks start on ${RESET_DAY[resetKind]} at 09:00 KST, the reset set for this mission on Checklist.` : ''}</p>` : null}
-        <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold up to date.</p>
+        <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold${earn ? ' and the claims' : ''} up to date: missions ticked on Checklist do not change them.</p>
         ${shop.useBy ? html`<p class="warnbox">Most items from this shop expire on ${fmtKst(Date.parse(shop.useBy))}. Use them before then.</p>` : null}
       <//>
       <${Fold} title="Source" meta="tap to open"><p class="note">${shop.sourceNote}</p><//>

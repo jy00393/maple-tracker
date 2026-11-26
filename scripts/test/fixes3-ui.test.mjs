@@ -224,18 +224,19 @@ test('22 Mesos: one flame, one attempt and one cube are singular; more than one 
   assert.match(t, /\d cubes on average/);
 });
 
+// (The planner now shows the day a step is reached, counted from when its figures were last changed.)
 test('22 Sol Erda planner: "1 day" and "1 Fragment"', async () => {
   const st = erdaNextSteps(DATA.erda.templates.erel, { levels: {}, steps: {} }, 6).filter((x) => x.node && x.node !== 'origin')[0];
   const erda = (costs, fragments = 0) => ({ c1: { template: 'erel', levels: {}, steps: {}, solErda: 0, fragments, weekly: { sol: 100, frag: 49 }, costs } });
   let t = await textOf(ProgressPage, (s) => { s.ui.progressView = 'sixth'; s.erda = erda({ [st.id]: { sol: 0, frag: 7 } }, 1); });
-  assert.match(t, /\(your entry\).*? 1 day /);
+  assert.match(t, /\(your entry\).*? about \d+ \w{3}/);
   assert.match(t, /· 1 Fragment held/);
   assert.doesNotMatch(t, WRONG);
   t = await textOf(ProgressPage, (s) => { s.ui.progressView = 'sixth'; s.erda = erda({ [st.id]: { sol: 0, frag: 1 } }); });
   assert.match(t, /\+ 1 Fragment \(your entry\)/);
   assert.match(t, /· 0 Fragments held/);
   t = await textOf(ProgressPage, (s) => { s.ui.progressView = 'sixth'; s.erda = erda({ [st.id]: { sol: 0, frag: 14 } }); });
-  assert.match(t, /\+ 14 Fragments \(your entry\).*? 2 days /);
+  assert.match(t, /\+ 14 Fragments \(your entry\).*? about \d+ \w{3}/);
 });
 
 test('22 Gear and Today: "+1 star", "1 more useful line", "0 / 1 boss"', async () => {

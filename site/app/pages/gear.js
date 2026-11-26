@@ -404,7 +404,7 @@ export function GearPage({ data, state }) {
           ${outlook.sf ? html`<div class="small">Star Force ${outlook.sf.from}→${outlook.sf.to}★: <b>≈ ${fmtBig(outlook.sf.plain.cost)}</b> (Sunny Sunday ≈ ${fmtBig(outlook.sf.sunny.cost)})</div>` : null}
           ${outlook.cube ? html`<div class="small">Cubes to ${POT[outlook.cube.to]}: <b>≈ ${fmtBig(outlook.cube.bright.cost)}</b> (${Math.round(outlook.cube.bright.expected)} Bright)</div>` : null}
         </div>`) : html`<${Empty}>Every permanent slot meets the target. Raise the target to keep going.<//>`}
-        <p class="note">${data.gear.note} Star Force and cube figures are expected values from the GMS v.272 tables (cube tier-up odds are community estimates).</p>
+        <p class="note">${data.gear.note} ${char.world === 'interactive' ? data.gear.interactiveNote : data.gear.heroicNote} Star Force and cube figures are expected values from the GMS v.272 tables (cube tier-up odds are community estimates).</p>
       <//>
     </div>
     <div class="grid two" style=${{ marginTop: '14px' }}>

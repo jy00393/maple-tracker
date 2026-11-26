@@ -7,7 +7,8 @@ import { cubePlan } from '../calc/upgrades.js';
 import { gearSummary, symbolPlan } from '../calc/progress.js';
 import { slotOutlook } from './gear.js';
 import { withCubeRates } from '../calc/advice.js';
-import { DAY, dayKey, fmtDate, kstDays, dayWord } from '../time.js';
+import { DAY, dayKey, fmtDate, kstDays, dayWord, asOf } from '../time.js';
+import { changedAt } from '../calc/asof.js';
 import { Flames } from './flames.js';
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
@@ -26,17 +27,20 @@ export function weeklyIncome(data, state, now) {
 const FAR = 100 * 365.25 * DAY;
 
 // Date each goal becomes affordable, in list order, from mesos held plus weekly income.
-export function goalDates(goals, held, weekly, now) {
+// since: when `held` was typed. Income counts from then, so a goal's date stays put instead of sliding a day
+// every day. due: that date has passed and `held` is still short, so the typed amount is out of date.
+export function goalDates(goals, held, weekly, now, since = now) {
+  const from = since > 0 && since <= now ? since : now;
   let need = 0;
   return goals.map((g) => {
     need += g.cost || 0;
     const short = need - (held || 0);
     if (short <= 0) return { ...g, cumulative: need, at: now, now: true };
     if (weekly <= 0) return { ...g, cumulative: need, at: null };
-    const at = now + (short / weekly) * 7 * DAY;
+    const at = from + (short / weekly) * 7 * DAY;
     // More than a hundred years away is shown as out of reach rather than as a date.
     if (!(at - now <= FAR)) return { ...g, cumulative: need, at: null, tooFar: true };
-    return { ...g, cumulative: need, at };
+    return { ...g, cumulative: need, at, ...(at <= now ? { due: true } : {}) };
   });
 }
 
@@ -55,7 +59,9 @@ function Planner({ data, state, now }) {
   const m = state.mesos;
   const char = activeCharacter(state);
   const inc = weeklyIncome(data, state, now);
-  const dated = goalDates(m.goals, m.held, inc.total, now);
+  // When "Mesos you have now" was last typed: goal dates count from that day.
+  const heldAt = changedAt(state, 'mesos/held', now);
+  const dated = goalDates(m.goals, m.held, inc.total, now, heldAt || now);
   const [goalErr, setGoalErr] = useState('');
   // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
   const addGoal = (name, cost) => { if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
@@ -63,8 +69,11 @@ function Planner({ data, state, now }) {
   // One suggestion of each kind: the first one a goal can hold. One above the limit is passed over, not the end of the search.
   const offerable = (cost) => cost > 0 && cost <= MESO_MAX;
   const quick = [];
-  quick.push(['200 Bright Cubes', 200 * data.upgrades.cubes.types.bright.price]);
-  quick.push(['100 Glowing Cubes', 100 * data.upgrades.cubes.types.glowing.price]);
+  // The cube prices are the Heroic Cube Shop's (upgrades.json), so they are not offered to an Interactive character.
+  if (!char || char.world !== 'interactive') {
+    quick.push(['200 Bright Cubes', 200 * data.upgrades.cubes.types.bright.price]);
+    quick.push(['100 Glowing Cubes', 100 * data.upgrades.cubes.types.glowing.price]);
+  }
   if (char) {
     const entries = state.symbols[char.id] || {};
     for (const area of data.symbols.sacred.areas) {
@@ -82,8 +91,8 @@ function Planner({ data, state, now }) {
     <${Card} title="Goals" meta=${inc.total ? `${fmtBig(inc.total)} a week` : 'no income entered'}>
       ${dated.length ? dated.map((g, i) => html`<div class="goal">
         <div><b>${String(g.name || '').trim() || 'Goal'}</b><div class="small muted">${fmtBig(g.cost)} · ${fmtBig(g.cumulative)} with everything above</div></div>
-        <span class=${'date' + (g.now ? ' now' : '')}>${g.now ? 'Affordable now' : g.at ? fmtDate(g.at) : g.tooFar ? 'not in reach' : '—'}</span>
-        <span class="small muted">${g.at && !g.now ? dayWord(kstDays(now, g.at)) : ''}</span>
+        <span class=${'date' + (g.now ? ' now' : '')}>${g.now ? 'Affordable now' : g.due ? 'should be affordable' : g.at ? fmtDate(g.at) : g.tooFar ? 'not in reach' : '—'}</span>
+        <span class="small muted">${g.due ? 'update your mesos' : g.at && !g.now ? dayWord(kstDays(now, g.at)) : ''}</span>
         <span style=${{ display: 'flex', gap: '4px' }}>
           <button type="button" class="iconbtn" aria-label=${'Move up: ' + g.name} onClick=${() => move(i, -1)}>↑</button>
           <button type="button" class="iconbtn" aria-label=${'Move down: ' + g.name} onClick=${() => move(i, 1)}>↓</button>
@@ -111,7 +120,7 @@ function Planner({ data, state, now }) {
     <//>
     <${Card} title="Your meso income" meta="per week">
       <div class="insight"><span class="k">Weekly income</span><span class="big accent">${fmtBig(inc.total)}</span><${IncomeBar} inc=${inc} /></div>
-      <label class="field"><span>Mesos you have now</span><${MesoInput} label="Mesos held" value=${m.held} onChange=${(v) => setM((x) => { x.held = v || 0; })} /></label>
+      <label class="field"><span>Mesos you have now${heldAt ? ` (${asOf(heldAt, now)})` : ''}</span><${MesoInput} label="Mesos held" value=${m.held} onChange=${(v) => setM((x) => { x.held = v || 0; })} /></label>
       <div class="field"><span>Boss crystals (from Bosses, all characters)</span><b>${fmtBig(inc.bosses)} a week</b></div>
       <div class="form-grid">
         <label class="field"><span>Ursus mesos per run (1 run a day)</span><${MesoInput} label="Ursus mesos per run" placeholder="e.g. 36m" value=${m.ursus} onChange=${(v) => setM((x) => { x.ursus = v; })} /></label>
@@ -182,6 +191,8 @@ function StarForce({ data, state }) {
 
 function Cubes({ data, state }) {
   const c = data.upgrades.cubes;
+  const char = activeCharacter(state);
+  const interactive = Boolean(char && char.world === 'interactive');
   const o = { from: 3, to: 4, ...(state.ui.cubeCalc || {}) };
   const rates = state.mesos.cubeRates || {};
   // Counts presses of "Reset to the estimates", so the odds boxes drop a number that was typed but not saved.
@@ -207,7 +218,7 @@ function Cubes({ data, state }) {
         <thead><tr><th>To be this sure</th>${plans.map(({ cube }) => html`<th class="num">${cube.name}s</th><th class="num">Mesos</th>`)}</tr></thead>
         <tbody>${[50, 75, 90, 95].map((q) => html`<tr><td>${q}%</td>${plans.map(({ cube, plan }) => html`<td class="num">${plan.sure[q].toLocaleString('en-US')}</td><td class="num">${fmtBig(plan.sure[q] * cube.price)}</td>`)}</tr>`)}</tbody>
       </table></div>
-      <p class="note">${cheaper.cube.name}s are the cheaper way to tier up here. ${c.heroicNoBonus}</p>`}
+      <p class="note">${cheaper.cube.name}s are the cheaper way to tier up here. ${interactive ? `These are Heroic Cube Shop prices; ${char.name || 'this character'} is on an Interactive world.` : c.heroicNoBonus}</p>`}
       <details>
         <summary class="small muted">Tier-up odds used (community estimates, editable from 0.1% to 100%)</summary>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Cube</th><th class="num">Rare → Epic</th><th class="num">Epic → Unique</th><th class="num">Unique → Legendary</th></tr></thead>

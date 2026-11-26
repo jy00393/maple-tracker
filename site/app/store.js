@@ -4,6 +4,7 @@ import { addBackup } from './calc/backups.js';
 import { hasSharedTicks } from './calc/checklist.js';
 import { dayKey } from './time.js';
 import { sanitiseState } from './calc/sanitise.js';
+import { dateTyped } from './calc/progress.js';
 
 // Everything you enter lives in this browser (localStorage). Export a backup from Settings to move it.
 const KEY = 'maple-tracker:v1';
@@ -16,6 +17,8 @@ let lastWritten = null;
 // time replaces whatever a tab holds; one with an earlier time was saved before the clearing and is ignored.
 // That holds however many changes either tab has made since (see takeStored).
 let clearedAt = 0;
+// True when loading dated a typed figure that had no date (see normalise): the copy is then saved once.
+let datedOnLoad = false;
 const clearedOf = (raw) => (raw && typeof raw === 'object' && typeof raw.cleared === 'number' && Number.isFinite(raw.cleared) && raw.cleared > 0 ? raw.cleared : 0);
 
 export function blankState() {
@@ -25,6 +28,8 @@ export function blankState() {
     activeId: null,
     checklist: { items: {}, resets: {}, flags: {}, history: {}, owner: null, ownerSet: false },
     bosses: {},
+    // symbols[charId][areaId] = { level, have, daily?, weekly?, at }; liberation[charId][weapon] = { stage, traces,
+    // picks, pass?, at }. `at` is when the figures were last typed; it starts out missing and normalise() fills it.
     symbols: {},
     liberation: {},
     ibp: {},
@@ -57,6 +62,10 @@ function normalise(raw) {
     out.checklist.ownerSet = true;
   }
   if (out.checklist.owner && !out.characters.some((c) => c.id === out.checklist.owner)) out.checklist.owner = null;
+  // Symbol counts and traces saved before they carried the day they were typed are dated now, so their dates
+  // count from the day this version first loads them. No change time moves: for sync nothing was edited, and two
+  // devices that dated the same entry differently settle on one of the two dates.
+  if (dateTyped(out, Date.now())) datedOnLoad = true;
   // Copies saved before sync merged part by part have no stamps: date every part by the copy's own updatedAt.
   out.stamps = { ...seedStamps(out) };
   return out;
@@ -77,6 +86,8 @@ function load() {
 
 let state = load();
 let saveTimer = null;
+// Keeps the dates given on load, so the next visit does not date the same figures again.
+if (datedOnLoad) save();
 
 // Safety copies: one snapshot per game day, kept in this browser only (see calc/backups.js). Never synced.
 const BACKUPS_KEY = 'maple-tracker:backups';

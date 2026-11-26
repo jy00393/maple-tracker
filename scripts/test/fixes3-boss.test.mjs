@@ -326,19 +326,19 @@ test('Today: the reset warning and the crystals tile agree with more than 14 wee
 });
 
 // ---- finding 20: "1 week" on Today, as on Progress ----
+// (Today now gives the finish date, fixed on the day the traces were typed, instead of a number of weeks.)
 test('Today and Progress both say "1 week" for Genesis', async (t) => {
   at(t, FRI);
   const g = liberation.genesis;
   const last = g.stages.length - 1;
   const genesis = { stage: last, traces: g.stages[last].need - 1, picks: { 'lucid-hard': true }, pass: false };
   const today = await show(t, TodayPage, (s) => { s.liberation = { a: { genesis: structuredClone(genesis) } }; });
-  assert.match(today.text, /traces? left · about 1 week(?!s)/);
+  assert.match(today.text, /1 trace left as of today · done around \d+ \w{3} \d{4}/);
   assert.doesNotMatch(today.text, /1 weeks/);
   render(null, today);
   const progress = await show(t, ProgressPage, (s) => { s.ui.progressView = 'liberation'; s.liberation = { a: { genesis: structuredClone(genesis) } }; });
   assert.match(progress.text, /About 1 week at /);
-  // Several weeks stay plural on Today.
   render(null, progress);
   const far = await show(t, TodayPage, (s) => { s.liberation = { a: { genesis: { ...genesis, stage: 0, traces: 0 } } }; });
-  assert.match(far.text, /about \d+ weeks/);
+  assert.match(far.text, /\d traces left as of today · done around \d+ \w{3} \d{4}/);
 });
