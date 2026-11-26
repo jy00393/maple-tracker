@@ -255,7 +255,7 @@ function SlotModal({ row, data, char, onClose, cubeRates }) {
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
       <div class="grid" style=${{ gap: '14px' }}>
-        ${row.covered ? html`<p class="warnbox">Your Top is marked as an overall, which fills this slot too. ${slot.name} is not scored while that is on.</p>` : null}
+        ${row.covered ? html`<p class="warnbox">Your Top is marked as an overall, which fills this slot too. ${slot.name} is not scored while that is on, and its potential lines, flame and set piece are left out of the totals.</p>` : null}
         <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} pot=${data.potential} mainStat=${mainStat} overallRule=${data.gear.overall} />
         <div class="form-grid">
           <label class="field"><span>Item tier</span>
@@ -346,9 +346,11 @@ export function GearPage({ data, state }) {
   const proj = gearProjection(g.history, sum.overall, Date.now(), g.preset || 'mid');
   const up = withCubeRates(data.upgrades, state.mesos.cubeRates);
   const msLabel = mainStatLabel(mainStat);
-  const totals = lineTotals(data.gear.slots, g, mainStat);
-  const flames = flameTotals(data.gear.slots, g);
-  const sets = detectSets(data.gearStats.sets, data.gear.slots, g);
+  // Totals count what is worn: a Bottom left under an overall is not.
+  const worn = sum.slots.filter((r) => !r.covered).map((r) => r.slot);
+  const totals = lineTotals(worn, g, mainStat);
+  const flames = flameTotals(worn, g);
+  const sets = detectSets(data.gearStats.sets, worn, g);
   const stats = g.stats || {};
   const dmgOk = damageEstimateSupported(mainStat);
   const dmgOpts = upgradeOptions(data.gear, g, up, data.gearStats, dmgOk ? stats : null, { fl: data.flames, mainStat, weights: (state.ui.flameCalc || {}).weights }).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 8);
