@@ -3,21 +3,68 @@ import { update, charSlice } from '../store.js';
 import { Card, NumberInput, Empty, fmtBig } from '../ui.js';
 import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
-import { DAY, fmtDate, fmtKst } from '../time.js';
+import { DAY, fmtDate, fmtKst, kstDays, dayWord } from '../time.js';
 import { ExpSourcesCard } from './expsources.js';
 
-// Your own readings that still stand, oldest first. Levels never go down, so a reading with a higher level than
-// one logged after it was a slip of the keyboard: the later reading wins and the earlier one is ignored.
+// Your own readings that still stand, oldest first. Levels never go down, so readings whose levels go down over
+// time cannot all be right. The longest run of readings that never goes down stands and the rest are ignored: one
+// slip, too high or too low, is outvoted by the real readings around it. When two runs are as long as each other
+// (a reading and one lower reading after it), the one that ends with the newest reading stands, since the newest
+// one is most likely the correction. Inside a run, a reading follows the highest earlier level that fits, so a
+// low slip is not kept as a stepping stone ([264, 207, 264] keeps both 264s).
 export function standingLog(log) {
   const rows = (Array.isArray(log) ? log : []).filter((r) => r && Number.isFinite(r.t) && Number.isFinite(r.level)).slice().sort((a, b) => a.t - b.t);
-  const out = [];
-  let lowest = Infinity;
-  for (let i = rows.length - 1; i >= 0; i--) {
-    if (rows[i].level > lowest) continue;
-    lowest = rows[i].level;
-    out.unshift(rows[i]);
+  const len = [];
+  const prev = [];
+  let end = -1;
+  for (let i = 0; i < rows.length; i++) {
+    len[i] = 1;
+    prev[i] = -1;
+    for (let j = 0; j < i; j++) {
+      if (rows[j].level > rows[i].level) continue;
+      const p = prev[i];
+      if (len[j] + 1 > len[i] || (len[j] + 1 === len[i] && p >= 0 && rows[j].level >= rows[p].level)) {
+        len[i] = len[j] + 1;
+        prev[i] = j;
+      }
+    }
+    if (end < 0 || len[i] >= len[end]) end = i;
   }
+  const out = [];
+  for (let i = end; i >= 0; i = prev[i]) out.unshift(rows[i]);
   return out;
+}
+
+// The character's level after "Log it" adds `reading` to a log (`logAfter` already holds it). A reading that
+// stands sets the level; one that is ignored (it does not fit the other readings) leaves the level alone.
+export function levelAfterLog(logAfter, reading, current) {
+  return standingLog(logAfter).includes(reading) ? reading.level : current;
+}
+
+// The character's level after deleting reading `r`. `logBefore` is your own log with `r` still in it, `left` is
+// every reading that remains (levelReadings: your standing ones and Nexon's), `current` is the level now.
+// Only the newest of your readings can have set the current level, and only if the level still equals it; any
+// other delete changes nothing, so a later reading is never contradicted. Undoing the newest one gives:
+//  - a reading (from Nexon's rankings) later than it, when there is one: that is newer than anything else;
+//  - else the higher of the latest reading left and `was`, the level the deleted reading replaced.
+export function levelAfterDelete(logBefore, r, left, current) {
+  if (current !== r.level) return current;
+  if ((logBefore || []).some((x) => x && x.t > r.t)) return current;
+  const latest = left.length ? left[left.length - 1] : null;
+  if (latest && latest.t > r.t) return latest.level;
+  const prior = [latest ? latest.level : null, r.was].filter((n) => Number.isFinite(n) && n > 0);
+  if (prior.length) return Math.max(...prior);
+  return r.was === null ? null : current;
+}
+
+// Each reading remembers the level it replaced (`was`). When `r` is deleted from the middle, the reading after it
+// would remember a level that only `r` had set, so it takes over what `r` replaced. Deleting every reading, in any
+// order, then ends at the level from before the first one, never at a deleted slip. `logAfter` is changed in place.
+export function passOnWas(logAfter, r) {
+  const next = (logAfter || []).filter((x) => x && x.t > r.t).sort((a, b) => a.t - b.t)[0];
+  if (!next || next.was === undefined || next.was !== r.level) return;
+  if (r.was === undefined) delete next.was;
+  else next.was = r.was;
 }
 
 // Readings: your own log, plus the Nexon rankings history if this character is listed in config/characters.json.
@@ -131,8 +178,13 @@ export function LevelView({ data, state, char, now }) {
           const l = charSlice(s, 'level', char.id, () => ({ log: [] }));
           const c = s.characters.find((x) => x.id === char.id);
           // was: the level this reading replaces, so deleting the reading can put it back.
-          l.log = [...(l.log || []), { t: Date.now(), level, pct, ...(c ? { was: Number.isFinite(c.level) ? c.level : null } : {}) }].slice(-200);
-          if (c) c.level = level;
+          // Never the same time as an earlier row: rows are told apart by their time.
+          let t = Date.now();
+          while ((l.log || []).some((x) => x && x.t === t)) t += 1;
+          const reading = { t, level, pct, ...(c ? { was: Number.isFinite(c.level) ? c.level : null } : {}) };
+          l.log = [...(l.log || []), reading].slice(-200);
+          // The level follows the reading, unless the reading is ignored (see standingLog).
+          if (c) c.level = levelAfterLog(l.log, reading, c.level);
         });
         e.currentTarget.reset();
       }}>
@@ -142,18 +194,16 @@ export function LevelView({ data, state, char, now }) {
       </form>
       <label class="toggle"><input type="checkbox" checked=${Boolean(char.beyondBurning)} onChange=${(e) => setChar(char, { beyondBurning: e.currentTarget.checked })} /> Beyond Burning (an extra level each level-up until 280)</label>
       ${log.length ? html`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Logged</th><th class="num">Level</th><th class="num">EXP %</th><th></th></tr></thead>
-        <tbody>${shown.slice().reverse().map((r) => html`<tr><td>${fmtKst(r.t)}${standing.has(r) ? '' : html`<div class="small muted">Ignored: a later reading has a lower level.</div>`}</td><td class="num">${r.level}</td><td class="num">${Number(r.pct).toFixed(3)}%</td>
+        <tbody>${shown.slice().reverse().map((r) => html`<tr><td>${fmtKst(r.t)}${standing.has(r) ? '' : html`<div class="small muted">Ignored: the level does not fit your other readings. If this one is right, delete the wrong ones.</div>`}</td><td class="num">${r.level}</td><td class="num">${Number(r.pct).toFixed(3)}%</td>
           <td class="num"><button type="button" class="iconbtn" aria-label="Delete this reading" onClick=${() => update((s) => {
             const l = s.level[char.id];
-            l.log = l.log.filter((x) => x.t !== r.t);
-            // "Log it" also set the character's level; deleting a mistyped reading takes that back to the latest
-            // reading left (your own or from Nexon's rankings) or to the level the reading replaced, whichever is higher.
+            if (!l || !Array.isArray(l.log)) return;
+            const before = l.log;
+            l.log = before.filter((x) => x.t !== r.t);
+            // "Log it" also set the character's level; deleting that reading takes it back (see levelAfterDelete).
             const c = s.characters.find((x) => x.id === char.id);
-            if (!c || c.level !== r.level) return;
-            const left = levelReadings(data, s, c);
-            const prior = [left.length ? left[left.length - 1].level : null, r.was].filter((n) => Number.isFinite(n) && n > 0);
-            if (prior.length) c.level = Math.max(...prior);
-            else if (r.was === null) c.level = null;
+            if (c) c.level = levelAfterDelete(before, r, levelReadings(data, s, c), c.level);
+            passOnWas(l.log, r);
           })}>×</button></td></tr>`)}</tbody></table></div>
         ${log.length > shown.length || showAll ? html`<button type="button" class="btn ghost" onClick=${() => setShowAll(!showAll)}>${showAll ? 'Show the last 6 only' : `Show all ${log.length} readings`}</button>` : null}` : null}
       <p class="note">Log your level and EXP % (shown under the EXP bar) once a day or so. If the character is listed in config/characters.json, the GitHub job also records it from Nexon's rankings every 6 hours. ${exp.beyondBurningNote}</p>
@@ -163,7 +213,7 @@ export function LevelView({ data, state, char, now }) {
         <div><b>Lv. ${g.level}</b><div class="small muted">${g.what}</div></div>
         <span class="small muted">${fmtBig(g.need)} EXP</span>
         <span class=${'date' + (g.days != null && g.days < 7 ? ' now' : '')}>${g.due ? 'due' : g.at ? fmtDate(g.at) : '—'}</span>
-        <span class="small muted">${g.due ? 'log your level' : g.days != null ? `${Math.ceil(g.days)} day${Math.ceil(g.days) === 1 ? '' : 's'}` : ''}</span>
+        <span class="small muted">${g.due ? 'log your level' : g.at != null ? dayWord(kstDays(now, g.at)) : ''}</span>
       </div>`) : html`<${Empty}>No gates ahead.<//>`}
       ${!o.rate ? html`<p class="note">${last && last.level < exp.from ? `Gate dates show from Lv. ${exp.from}, where the EXP figures start.` : "Dates show once you've logged your level on two different days."}</p>` : null}
       <p class="note">${exp.source}</p>

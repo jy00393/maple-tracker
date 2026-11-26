@@ -386,7 +386,7 @@ test('level log: every reading can be deleted, and deleting the only one puts th
   let el = await show(ProgressPage);
   const dels = () => el.findAll((n) => n.localName === 'button' && n.attrs['aria-label'] === 'Delete this reading');
   assert.equal(dels().length, 7, 'the last six and the ignored one');
-  assert.match(el.text.replace(/\s+/g, ' '), /Ignored: a later reading has a lower level/);
+  assert.match(el.text.replace(/\s+/g, ' '), /Ignored: the level does not fit your other readings/);
   el.find((n) => n.localName === 'button' && /^Show all 9 readings$/.test(n.text.trim())).fire('click');
   assert.ok(await until(() => dels().length === 9));
   dels()[8].fire('click'); // the oldest row, the slip
