@@ -232,8 +232,10 @@ export function findShops(body, post) {
 //   1. same post, same coin, same dates and mostly the same items, under the same name;
 //   2. the same under another name: two shops with the same heading in one post are named by their order, so
 //      they trade names when Nexon reorders the sections;
-//   3. same post and same name: Nexon corrected the dates (or the coin) of a shop in the post it came from;
-//   4. same name and the dates touch: the same run of a shop described by another post.
+//   3. same post, same coin and mostly the same items, whatever the name and dates: a date was corrected, with
+//      or without the sections being reordered in the same edit;
+//   4. same post and same name: Nexon corrected the coin (or everything else) of a shop in the post it came from;
+//   5. same name and the dates touch: the same run of a shop described by another post.
 // - A shop with the same name from another post that opens after the existing one closed is a new shop
 //   (Challenger World Shop comes back every season) and takes nothing from the old one. Every new shop's id ends
 //   with its start date, so the coins and picks saved for last season's shop never show up in this season's.
@@ -265,6 +267,7 @@ export function mergeShops(existing, parsed, now) {
   const rules = [
     (p, f) => samePost(p, f) && sameName(p, f) && sameCoin(p, f) && sameDates(p, f) && sameItems(p, f),
     (p, f) => samePost(p, f) && sameCoin(p, f) && sameDates(p, f) && sameItems(p, f),
+    (p, f) => samePost(p, f) && sameCoin(p, f) && sameItems(p, f),
     (p, f) => samePost(p, f) && sameName(p, f) && (sameRun(p, f) || sameCoin(p, f)),
     (p, f) => sameName(p, f) && sameRun(p, f)
   ];

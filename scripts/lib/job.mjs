@@ -21,7 +21,7 @@ export function checkNewsList(list, baseline = 0) {
     throw new Error(`News feed returned ${list.length - good.length} of ${list.length} posts without an id, a name or a date; kept the previous files`);
   }
   if (baseline > 0 && good.length * 2 < baseline) {
-    throw new Error(`News feed returned only ${good.length} posts (the last good feed had about ${baseline}); kept the previous files. If Nexon's feed really is this short now, lower "feedCount" in site/data/news.json by hand.`);
+    throw new Error(`News feed returned only ${good.length} posts (the last good feed had about ${baseline}); kept the previous files. If Nexon's feed really is like this now, add "acceptFeed": true to site/data/news.json by hand; the next run then takes the list as it is, once.`);
   }
   return good;
 }
@@ -31,13 +31,15 @@ export function checkNewsList(list, baseline = 0) {
 export function feedBaseline(lastNews) {
   const n = lastNews && Number.isFinite(lastNews.feedCount) && lastNews.feedCount > 0 ? Math.floor(lastNews.feedCount) : 0;
   const kept = lastNews && Array.isArray(lastNews.items) ? lastNews.items.length : 0;
-  return Math.max(n, kept);
+  return n > 0 ? n : kept;
 }
 
-// The `feedCount` a good run saves. It follows the feed up at once but down by at most a tenth per run, so one
-// accepted shorter list cannot open the door to a much shorter one on the next run.
+// The `feedCount` a good run saves. It comes down by at most a tenth per run, so one accepted shorter list
+// cannot open the door to a much shorter one on the next run. It goes up to at most twice the last figure, so one
+// over-long list (repeated entries, a doubled page) cannot set a size the normal feed then fails against.
 export function nextFeedCount(baseline, count) {
-  return Math.max(count, Math.floor(baseline * 0.9));
+  const up = baseline > 0 ? Math.min(count, baseline * 2) : count;
+  return Math.max(up, Math.floor(baseline * 0.9));
 }
 
 // A list that passed the size check can still be the wrong list (an old page, or one missing the posts that
@@ -48,7 +50,7 @@ export function checkCacheLoss(posts, list, now) {
   const inWindow = Object.entries(posts || {}).filter(([id, p]) => p && wantsDetail({ id, name: p.name, category: p.category, liveDate: p.liveDate }, now));
   const missing = inWindow.filter(([id]) => !listed.has(String(id)));
   if (missing.length >= 5 && missing.length * 4 > inWindow.length) {
-    throw new Error(`News feed is missing ${missing.length} of the ${inWindow.length} saved posts that are still current; kept the previous files`);
+    throw new Error(`News feed is missing ${missing.length} of the ${inWindow.length} saved posts that are still current; kept the previous files. If Nexon's feed really is like this now, add "acceptFeed": true to site/data/news.json by hand; the next run then takes the list as it is, once.`);
   }
 }
 

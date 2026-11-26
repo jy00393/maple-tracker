@@ -215,7 +215,7 @@ function Outlook({ outlook, entry, target }) {
     </div>` : null}
     ${capNote ? html`<div class="small">${capNote}</div>` : null}
     ${outlook.cube ? html`<div>
-      <div class="big">${Math.round(outlook.cube.bright.expected)} Bright cubes</div>
+      <div class="big">${Math.round(outlook.cube.bright.expected)} Bright ${plural(Math.round(outlook.cube.bright.expected), 'cube')}</div>
       <div class="small">${POT[Math.max(1, outlook.cube.from)]} → ${POT[outlook.cube.to]}: ≈ ${fmtBig(outlook.cube.bright.cost)}, or ${outlook.cube.bright.n90} ${plural(outlook.cube.bright.n90, 'cube')} (${fmtBig(outlook.cube.bright.cost90)}) to be 90% sure. Glowing: ≈ ${fmtBig(outlook.cube.glowing.cost)}.</div>
     </div>` : null}
   </div>`;

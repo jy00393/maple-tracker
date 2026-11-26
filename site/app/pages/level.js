@@ -49,9 +49,12 @@ export function levelAfterLog(logAfter, reading, current) {
 //  - else the higher of the latest reading left and `was`, the level the deleted reading replaced.
 export function levelAfterDelete(logBefore, r, left, current) {
   if (current !== r.level) return current;
-  if ((logBefore || []).some((x) => x && x.t > r.t)) return current;
+  // A later reading of yours keeps the level only while a reading that is left still reaches it; otherwise the
+  // level came from rows that are now gone (two wrong rows deleted after a correction).
+  const rest = (logBefore || []).filter((x) => x && x.t !== r.t);
+  if (rest.some((x) => x.t > r.t) && (rest.some((x) => x.level >= current) || left.some((x) => x.level >= current))) return current;
   const latest = left.length ? left[left.length - 1] : null;
-  if (latest && latest.t > r.t) return latest.level;
+  if (latest && latest.t > r.t && latest.source !== 'you') return latest.level;
   const prior = [latest ? latest.level : null, r.was].filter((n) => Number.isFinite(n) && n > 0);
   if (prior.length) return Math.max(...prior);
   return r.was === null ? null : current;

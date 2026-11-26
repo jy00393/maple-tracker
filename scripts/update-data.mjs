@@ -79,11 +79,13 @@ async function updateNewsAndEvents(errors) {
   // A list that is empty, malformed, far shorter than the last good feed, or missing many of the posts read
   // before is a failed fetch: nothing below is written.
   const lastNews = await readJson('news.json', { items: [] });
-  const baseline = feedBaseline(lastNews);
+  // "acceptFeed": true, typed into news.json by hand, takes the next list as it is, once (the flag is not written back).
+  const accept = lastNews.acceptFeed === true;
+  const baseline = accept ? 0 : feedBaseline(lastNews);
   const list = checkNewsList(await getJson(LIST_URL), baseline);
   const cache = await readJson('posts.json', { posts: {} });
   const posts = cache.posts && typeof cache.posts === 'object' ? cache.posts : {};
-  checkCacheLoss(posts, list, now);
+  if (!accept) checkCacheLoss(posts, list, now);
 
   const news = list
     .slice()

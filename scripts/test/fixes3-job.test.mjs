@@ -32,10 +32,15 @@ test('9: a list under half of the last good feed is refused, and an accepted lis
   assert.equal(feedBaseline({ feedCount: 480, items: new Array(150).fill(0) }), 480);
   assert.equal(feedBaseline({ feedCount: 'many', items: [] }), 0);
   assert.equal(feedBaseline(null), 0);
-  assert.equal(feedBaseline({ feedCount: 38, items: new Array(150).fill(0) }), 150);
+  assert.equal(feedBaseline({ feedCount: 38, items: new Array(150).fill(0) }), 38, 'a saved feedCount is used as it is');
 
-  // It follows the feed up at once and down slowly.
-  assert.equal(nextFeedCount(150, 480), 480);
+  // It follows the feed up by at most double per run, and down slowly.
+  assert.equal(nextFeedCount(150, 480), 300);
+  assert.equal(nextFeedCount(300, 480), 480);
+  // One over-long list does not lock out the normal feed: 480, a 1,080 spike, then 480 again is accepted.
+  const spiked = nextFeedCount(480, 1080);
+  assert.equal(spiked, 960);
+  assert.equal(checkNewsList(full, spiked).length, 480);
   assert.equal(nextFeedCount(0, 60), 60);
   assert.equal(nextFeedCount(480, 240), 432);
   // 480, then the shortest list that is accepted each time: after three such runs a 38-post list is still refused.
@@ -377,4 +382,47 @@ test('11: a shop found under the same name in a newer post, with dates that touc
   const kept = mergeShops(hand, notes, now).shops;
   assert.deepEqual(kept.map((s) => s.id).sort(), ['my-shop', 'other']);
   assert.equal(kept.find((s) => s.id === 'my-shop').scope, 'Mine.');
+});
+
+// ---- final check: the hand switch for a feed that really changed, and a swap with a date fix in one edit
+
+test('final: "acceptFeed": true in news.json takes a much shorter list once, and is not written back', () => {
+  const job = scratchJob();
+  try {
+    const feed = bigFeed(Date.now());
+    assert.equal(job.run(feed).meta.ok, true);
+    const short = { ...feed, list: feed.list.slice(0, 60) };
+    const refused = job.run(short);
+    assert.equal(refused.meta.ok, false);
+    assert.match(refused.meta.errors.join(' '), /"acceptFeed": true/, 'the message names the hand switch');
+    const news = JSON.parse(job.read('news.json'));
+    writeFileSync(join(job.data, 'news.json'), JSON.stringify({ ...news, acceptFeed: true }, null, 1) + '\n');
+    const taken = job.run(short);
+    assert.equal(taken.meta.ok, true, taken.meta.errors.join(' '));
+    const after = JSON.parse(job.read('news.json'));
+    assert.equal(after.feedCount, 60);
+    assert.equal('acceptFeed' in after, false, 'it applies once');
+    assert.equal(job.run({ ...feed, list: feed.list.slice(0, 20) }).meta.ok, false, 'the guard is back on the next run');
+  } finally { job.done(); }
+});
+
+test('final: two same-heading shops stay two shops when the sections swap and a date is corrected in one edit', () => {
+  const nov = 'November 11, 2026 12:00 AM UTC - December 8, 2026 11:59 PM UTC';
+  const fixed = 'November 11, 2026 12:00 AM UTC - December 15, 2026 11:59 PM UTC';
+  const part = (ev, range, coin, x) => `<h1>Event ${ev}</h1>${shopHtml('Coin Shop', range, coin, [row(`Chair ${x}`, 10, 1), row(`Hat ${x}`, 20, 1)])}`;
+  const p = post(60001, '2026-11-10T00:00:00Z');
+  const now = Date.parse('2026-11-24T00:00:00Z');
+  const has = (s, name) => s.items.some((it) => it.name === name);
+  for (const both of [false, true]) {
+    const first = mergeShops({ shops: [] }, findShops(part('A', nov, 'A Coin', 'A') + part('B', nov, 'B Coin', 'B'), p), now);
+    const typed = { ...first, shops: first.shops.map((s) => ({ ...s, earn: { ...EARN, name: has(s, 'Chair A') ? 'A mission' : 'B mission' } })) };
+    const idA = typed.shops.find((s) => has(s, 'Chair A')).id;
+    const idB = typed.shops.find((s) => has(s, 'Chair B')).id;
+    const next = mergeShops(typed, findShops(part('B', both ? fixed : nov, 'B Coin', 'B') + part('A', fixed, 'A Coin', 'A'), p), now + 6 * HOUR);
+    assert.equal(next.shops.length, 2, 'two shops, not three or four');
+    const a = next.shops.find((s) => has(s, 'Chair A'));
+    const b = next.shops.find((s) => has(s, 'Chair B'));
+    assert.deepEqual([a.id, a.earn.name, b.id, b.earn.name], [idA, 'A mission', idB, 'B mission']);
+    assert.equal(a.end, '2026-12-15T23:59:00.000Z');
+  }
 });

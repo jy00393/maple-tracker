@@ -131,7 +131,10 @@ export function moveResetDay(items, item, from, to, now) {
   for (const [k, r] of Object.entries(items)) {
     if (!r || typeof r !== 'object' || !tails.some((tail) => k === tail || k.endsWith(`|${tail}`))) continue;
     // The time is only trusted when it agrees with the week the tick is filed under.
-    if (Number.isFinite(r.t) && r.p === periodKey(from, r.t)) r.p = periodKey(to, Math.min(r.t, now));
+    // A timed tick is only re-filed when the new day still counts it in the running week. One from a week that
+    // is over stays as it is (its key names another day or week, so it reads as not done), which also leaves
+    // its sync stamp alone: re-filing it would make this device's old tick beat a newer one from another device.
+    if (Number.isFinite(r.t) && r.t <= now && RESET_CYCLE.some((d) => r.p === periodKey(d, r.t))) { if (periodKey(to, r.t) === newP) r.p = newP; }
     else if (r.p === oldP) r.p = newP;
   }
 }

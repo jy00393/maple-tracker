@@ -87,6 +87,9 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
     onInput=${(e) => {
       const raw = e.currentTarget.value;
       typed.current = { text: raw };
+      // Redraw even when the owner ignores the number, so the saved text is noted now and a later change from
+      // outside (another device) is seen as one.
+      redraw((n) => n + 1);
       if (raw === '') return onChange(null);
       let n = Number(raw);
       if (!Number.isFinite(n)) return;
