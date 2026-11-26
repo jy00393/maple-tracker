@@ -68,7 +68,10 @@ export function Seg({ options, value, onChange, label }) {
 // the nearest limit (250 typed for 25 must not become 100).
 export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label, className = 'input num sm', clamp = true, rev }) {
   const box = useRef(null);
-  // { text: what the box held after the last keystroke, after: the saved text on the first redraw that followed }
+  // While typing: { text: what the box held after the last keystroke, ok: every saved text this typing can explain
+  // (the one from before it began, and each number sent since), blank: an emptied box was sent and the owner's
+  // answer to that (often 0) has not been seen yet }. A saved text outside `ok` came from somewhere else. None of
+  // this depends on which redraw arrives first, the box's own or the one after the save.
   const typed = useRef(null);
   const [, redraw] = useState(0);
   const saved = value === null || value === undefined ? '' : String(value);
@@ -76,21 +79,18 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
   const seenRev = useRef(rev);
   if (seenRev.current !== rev) { seenRev.current = rev; typed.current = null; }
   const t = typed.current;
-  if (t && box.current && box.current.value === t.text) {
-    if (!('after' in t)) t.after = saved;
-    if (t.after === saved) shown = t.text;
-    else typed.current = null;
-  } else typed.current = null;
+  if (t && !t.ok.has(saved) && t.blank) { t.blank = false; t.ok.add(saved); }
+  if (t && box.current && box.current.value === t.text && t.ok.has(saved)) shown = t.text;
+  else typed.current = null;
   return html`<input ref=${box} id=${id} class=${className} type="number" inputmode=${Number.isInteger(step) ? 'numeric' : 'decimal'} min=${min} max=${max} step=${step}
     aria-label=${label} value=${shown}
     onBlur=${() => { if (typed.current) { typed.current = null; redraw((n) => n + 1); } }}
     onInput=${(e) => {
       const raw = e.currentTarget.value;
-      typed.current = { text: raw };
-      // Redraw even when the owner ignores the number, so the saved text is noted now and a later change from
-      // outside (another device) is seen as one.
-      redraw((n) => n + 1);
-      if (raw === '') return onChange(null);
+      const was = typed.current;
+      const ok = was ? was.ok : new Set([saved]);
+      typed.current = { text: raw, ok, blank: Boolean(was && was.blank) };
+      if (raw === '') { ok.add(''); typed.current.blank = true; return onChange(null); }
       let n = Number(raw);
       if (!Number.isFinite(n)) return;
       if (clamp) {
@@ -98,6 +98,7 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
         n = Math.max(min, n);
       }
       if (Number.isInteger(step)) n = Math.round(n);
+      ok.add(String(n));
       onChange(n);
     }} />`;
 }
