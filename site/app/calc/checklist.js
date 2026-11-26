@@ -5,7 +5,7 @@
 // - An item with "scope": "account" is ticked once for the whole account.
 // - An item with "only": "challenger" is hidden for characters that are not in Challenger World.
 // - An item with "minLevel" stays locked until the character reaches it.
-import { periodKey } from '../time.js';
+import { periodKey, weekStart } from '../time.js';
 
 export const RESET_CYCLE = ['mon', 'wed', 'thu'];
 
@@ -70,7 +70,8 @@ export function itemStatus(item, group, checklistState, now, who) {
   const expired = Boolean((item.until && Date.parse(item.until) < now) || notForChar);
   if (item.type === 'count') {
     const r = record(checklistState, item, '', kind, now, w);
-    const count = r ? r.c || 0 : 0;
+    // A whole number from 0 to the target, whatever was saved.
+    const count = r && typeof r.c === 'number' && Number.isFinite(r.c) ? Math.max(0, Math.min(item.target, Math.floor(r.c))) : 0;
     return { kind, locked, tooLow, gated, expired, count, done: count >= item.target };
   }
   if (item.type === 'chips') {
@@ -92,4 +93,43 @@ export function streakEntry(existing, done, total, by) {
   if (existing.done === done && existing.total === total && (existing.by || null) === (by || null)) return null;
   if (!existing.by || !by || existing.by === by) return existing.done === done && existing.total === total ? null : next;
   return done / total > existing.done / existing.total ? next : null;
+}
+
+const ratio = (e) => (e && e.total > 0 ? e.done / e.total : 0);
+
+// What today's streak entry should be, worked out from every character's ticks: `list` holds one
+// { by, done, total } per character. The ticks are what sync carries between devices, so every device that has
+// them arrives at the same entry, whichever character it shows. The furthest-along character is recorded; on a
+// tie the one already recorded stays, then the one on screen (`activeId`). Returns null for "leave it".
+export function streakToday(existing, list, activeId) {
+  const rank = (p) => (existing && existing.by && p.by === existing.by ? 2 : p.by === activeId ? 1 : 0);
+  let best = null;
+  for (const p of list) {
+    if (!p || !(p.total > 0)) continue;
+    if (!best || ratio(p) > ratio(best) || (ratio(p) === ratio(best) && rank(p) > rank(best))) best = p;
+  }
+  if (!best) return null;
+  // An entry made by a character that is no longer in the list cannot be re-counted: it only gives way to a better one.
+  if (existing && existing.total && existing.by && !list.some((p) => p && p.by === existing.by)) return streakEntry(existing, best.done, best.total, best.by);
+  if (existing && existing.done === best.done && existing.total === best.total && (existing.by || null) === (best.by || null)) return null;
+  return { done: best.done, total: best.total, ...(best.by ? { by: best.by } : {}) };
+}
+
+const WEEKDAY = { mon: 1, wed: 3, thu: 4 };
+
+// Moves an item's ticks of the current week from reset day `from` to reset day `to` (the reset day is one setting
+// for everyone, so every character's tick moves). A tick made before the new day's latest reset is cleared: with
+// the new day, that reset has wiped it. Ticks saved before they carried a time (`t`) are kept, since nothing
+// says when they were made. Changes `items` in place.
+export function moveResetDay(items, item, from, to, now) {
+  const oldP = periodKey(from, now);
+  const newP = periodKey(to, now);
+  const oldStart = weekStart(now, WEEKDAY[from]);
+  const newStart = weekStart(now, WEEKDAY[to]);
+  const tails = ['', ...(item.chips || []).map(([cid]) => `_${cid}`)].map((s) => item.id + s);
+  for (const [k, r] of Object.entries(items)) {
+    if (!r || r.p !== oldP || !tails.some((tail) => k === tail || k.endsWith(`|${tail}`))) continue;
+    if (newStart > oldStart && Number.isFinite(r.t) && r.t < newStart) delete items[k];
+    else r.p = newP;
+  }
 }

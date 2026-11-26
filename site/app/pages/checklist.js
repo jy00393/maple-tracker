@@ -3,14 +3,18 @@ import { update, activeCharacter } from '../store.js';
 import { Card, Counter, PageHead, useNow, Bar } from '../ui.js';
 import { periodKey } from '../time.js';
 import { StreakRecorder, StreakCard } from './session.js';
-import { itemStatus, resetOf, recordKey, flagKey, RESET_CYCLE } from '../calc/checklist.js';
+import { itemStatus, resetOf, recordKey, flagKey, moveResetDay, RESET_CYCLE } from '../calc/checklist.js';
 import { knownLevel } from './level.js';
 
 export { itemStatus, resetOf, recordKey };
 
 // The character the checklist is shown for: ticks, level locks and Challenger-only items follow it.
 export function whoOf(data, state) {
-  const c = activeCharacter(state);
+  return whoFor(data, state, activeCharacter(state));
+}
+
+// The same for any one character.
+export function whoFor(data, state, c) {
   return c ? { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger) } : {};
 }
 
@@ -32,7 +36,21 @@ export function dailyProgress(checklistData, checklistState, now, who) {
 
 export function setRecord(id, kind, rec) {
   update((s) => {
-    s.checklist.items[id] = { p: periodKey(kind, Date.now()), ...rec };
+    // `t` is when the tick was made: changing an item's reset day needs it to tell which ticks still stand.
+    const now = Date.now();
+    s.checklist.items[id] = { p: periodKey(kind, now), t: now, ...rec };
+  });
+}
+
+// One step on a counter, applied to the count that is current at the click. The page can be a few seconds
+// behind a reset, so the count it drew may belong to the period that has just ended.
+export function bumpCount(item, group, who, step) {
+  update((s) => {
+    const now = Date.now();
+    const cur = itemStatus(item, group, s.checklist, now, who);
+    const c = Math.max(0, Math.min(item.target, cur.count + step));
+    if (c === cur.count) return;
+    s.checklist.items[recordKey(item, who)] = { p: periodKey(cur.kind, now), t: now, c, d: c >= item.target ? 1 : 0 };
   });
 }
 
@@ -49,7 +67,7 @@ export function Item({ item, group, cs, now, who }) {
   if (item.type === 'count') {
     left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
     right.push(html`<${Counter} value=${st.count} target=${item.target} label=${item.label}
-      onChange=${(v) => setRecord(key, st.kind, { c: v, d: v >= item.target ? 1 : 0 })} />`);
+      onStep=${(d) => bumpCount(item, group, who, d)} />`);
   } else if (item.type === 'chips') {
     left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
     right.push(html`<span class="min">${st.on.filter(Boolean).length} / ${item.chips.length}</span>`);
@@ -66,11 +84,10 @@ export function Item({ item, group, cs, now, who }) {
     const names = DAY_NAMES[st.kind];
     right.unshift(html`<button type="button" class="pill" aria-label=${`Resets on ${names[1]}. Tap to change the reset day.`}
       onClick=${() => update((s) => {
-        const next = RESET_CYCLE[(RESET_CYCLE.indexOf(st.kind) + 1) % RESET_CYCLE.length];
-        // The reset day is one setting for everyone, so every character's tick for this item moves with it.
-        for (const [k, r] of Object.entries(s.checklist.items)) {
-          if ((k === item.id || k.endsWith(`|${item.id}`)) && r && r.p === periodKey(st.kind, Date.now())) r.p = periodKey(next, Date.now());
-        }
+        // Worked out from the saved setting at the click, not from the draw.
+        const from = resetOf(item, group, s.checklist);
+        const next = RESET_CYCLE[(RESET_CYCLE.indexOf(from) + 1) % RESET_CYCLE.length];
+        moveResetDay(s.checklist.items, item, from, next, Date.now());
         s.checklist.resets[item.id] = next;
       })}>${names[0]} reset</button>`);
   }
