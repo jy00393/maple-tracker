@@ -21,7 +21,11 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      # Always the newest main, not the commit that started the run: a run that waited behind another one then
+      # starts from that run's data commit.
       - uses: actions/checkout@v7
+        with:
+          ref: main
 
       - uses: actions/setup-node@v7
         with:
@@ -42,7 +46,19 @@ jobs:
             echo "No data changes."
           else
             git commit -m "Update Nexon data"
-            git push
+            # main can move while this run works (a push from the computer). Then the data commit is put on top of
+            # the new main and pushed once more. Where the push and this run changed the same lines of a data file,
+            # nothing is overwritten (shops.json holds fields typed by hand): this run's commit is not saved, and
+            # the run started by that push works from the new main and saves the data. No merge strategy option
+            # (-X ours/theirs) belongs here. The site is deployed from this run's files either way.
+            if ! git push origin HEAD:main; then
+              if git pull --rebase --autostash origin main && git push origin HEAD:main; then
+                echo "Saved after catching up with main."
+              else
+                git rebase --abort 2>/dev/null || true
+                echo "::warning::main moved during this run and its data could not be put on top; nothing was overwritten. The next run will save the data."
+              fi
+            fi
           fi
 
       - uses: actions/configure-pages@v6

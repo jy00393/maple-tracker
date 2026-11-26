@@ -1,5 +1,7 @@
 import { usefulLines } from './upgrades.js';
 import { DAY } from '../time.js';
+import { plural } from './plural.js';
+import { shareKey } from './income.js';
 
 const sum = (arr) => arr.reduce((a, b) => a + b, 0);
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
@@ -36,7 +38,24 @@ export function symbolPlan(kindData, area, entry = {}) {
 }
 
 // ---------- liberation ----------
-export function liberationPlan(def, entry = {}, now = Date.now()) {
+// The ticked sources that count: difficulties of one boss with the same reset share one clear (bosses.json
+// `sharedClear`), so of several ticked ones only the best counts. Without `bossById` every tick counts by itself.
+export function liberationCounted(def, picks = {}, bossById = null) {
+  const best = new Map();
+  for (const [bossId, on] of Object.entries(picks || {})) {
+    const amount = def.sources[bossId];
+    if (!on || !amount) continue;
+    const boss = bossById ? bossById[bossId] : null;
+    const key = boss ? shareKey(boss) : bossId;
+    const cur = best.get(key);
+    if (!cur || amount > cur.amount || (amount === cur.amount && bossId < cur.bossId)) {
+      best.set(key, { bossId, amount, monthly: boss ? boss.reset === 'monthly' : bossId.startsWith('black-mage') });
+    }
+  }
+  return [...best.values()];
+}
+
+export function liberationPlan(def, entry = {}, now = Date.now(), bossById = null) {
   const stages = def.stages;
   const stage = clamp(Math.floor(entry.stage || 0), 0, stages.length);
   if (stage >= stages.length) return { done: true, remaining: 0, perWeek: 0, weeks: 0, eta: now, stage, total: sum(stages.map((s) => s.need)) };
@@ -46,10 +65,9 @@ export function liberationPlan(def, entry = {}, now = Date.now()) {
   const mult = entry.pass ? def.passMultiplier || 1 : 1;
   let weekly = 0;
   let monthly = 0;
-  for (const [bossId, on] of Object.entries(picks)) {
-    if (!on || !def.sources[bossId]) continue;
-    if (bossId.startsWith('black-mage')) monthly += def.sources[bossId];
-    else weekly += def.sources[bossId];
+  for (const c of liberationCounted(def, picks, bossById)) {
+    if (c.monthly) monthly += c.amount;
+    else weekly += c.amount;
   }
   const perWeek = (weekly + monthly / 4.345) * mult;
   const weeks = perWeek > 0 ? Math.ceil(remaining / perWeek) : Infinity;
@@ -120,38 +138,58 @@ export function slotProgress(entry = {}, target, tierNames = []) {
   const pct = Math.min(1, Math.round(raw * 10000) / 10000);
   const gaps = [];
   if (parts.tier < 1) gaps.push(entry.tier ? `tier: ${tierNames[entry.tier - 1] || 'none'} → ${tierNames[target.tier - 1] || 'tier ' + target.tier}` : `empty: get ${tierNames[target.tier - 1] || 'tier ' + target.tier}`);
-  if (parts.stars < 1) gaps.push(`+${target.stars - (entry.stars || 0)} stars`);
+  if (parts.stars < 1) gaps.push(`+${target.stars - (entry.stars || 0)} ${plural(target.stars - (entry.stars || 0), 'star')}`);
   if (parts.pot < 1) gaps.push(`potential up to ${['None', 'Rare', 'Epic', 'Unique', 'Legendary'][target.pot]}`);
-  if (parts.lines < 1) gaps.push(`${target.lines - (entry.lines || 0)} more useful line${target.lines - (entry.lines || 0) === 1 ? '' : 's'}`);
+  if (parts.lines < 1) gaps.push(`${target.lines - (entry.lines || 0)} more useful ${plural(target.lines - (entry.lines || 0), 'line')}`);
   if (parts.bpot < 1) gaps.push(`bonus potential up to ${['None', 'Rare', 'Epic', 'Unique', 'Legendary'][target.bpot]}`);
   return { pct, parts, gaps };
 }
 
+// True when the Top slot holds an overall, which fills Bottom too (gear.json "overall" names the two slots).
+export function wearsOverall(gearData, gearState) {
+  const rule = gearData && gearData.overall;
+  const top = rule && gearState && gearState.slots && gearState.slots[rule.slot];
+  return Boolean(top && top.tier && top.overall);
+}
+
 export function gearSummary(gearData, gearState = {}, mainStat = 'STR') {
   const preset = gearData.presets[gearState.preset || 'mid'] || gearData.presets.mid;
-  const slots = gearData.slots.map((slot) => {
+  const coveredId = wearsOverall(gearData, gearState) ? gearData.overall.hides : null;
+  const all = gearData.slots.map((slot) => {
     const stored = (gearState.slots || {})[slot.id] || {};
     const entry = Array.isArray(stored.potLines) ? { ...stored, lines: usefulLines(slot, stored, mainStat) } : stored;
     const tierNames = gearData.slotTypes[slot.type].filter(Boolean);
     const target = slotTargets(slot, preset, entry.target || {});
     target.tier = Math.min(target.tier, tierNames.length);
     const progress = slotProgress(entry, target, tierNames);
-    return { slot, entry, target, ...progress, weightedGap: slot.weight * (1 - progress.pct) };
+    // covered: the Bottom under an overall. It stays in `slots` so pages can draw it, but it is not scored.
+    return { slot, entry, target, ...progress, weightedGap: slot.weight * (1 - progress.pct), ...(slot.id === coveredId ? { covered: true } : {}) };
   });
+  const slots = all.filter((s) => !s.covered);
   const totalWeight = sum(slots.map((s) => s.slot.weight));
   const overall = sum(slots.map((s) => s.slot.weight * s.pct)) / totalWeight;
   const gaps = slots.filter((s) => s.pct < 1).sort((a, b) => b.weightedGap - a.weightedGap);
   const temporary = slots.filter((s) => s.entry.temporary);
-  return { preset, overall, slots, gaps, temporary };
+  return { preset, overall, slots: all, gaps, temporary, totalWeight };
 }
 
-// Pace from saved daily snapshots: percentage points per week and the date 100% would arrive.
-export function gearProjection(history = [], current, now = Date.now()) {
+// The saved points that were scored against `preset`. Points carry the target they were scored against (p);
+// ones saved before that (no p) count for every target.
+export function historyFor(history, preset) {
+  return (Array.isArray(history) ? history : []).filter((h) => h && (!preset || !h.p || h.p === preset));
+}
+
+// Pace from saved daily snapshots: percentage points per week and the date 100% would arrive. Only points scored
+// against the current target are compared. Saved points are rounded to 0.1%, so the live score is rounded the
+// same way and a gain smaller than that is no progress.
+export function gearProjection(history = [], current, now = Date.now(), preset = null) {
+  history = historyFor(history, preset);
   if (history.length < 2) return null;
   const first = history[0];
   const spanDays = (now - Date.parse(first.d + 'T00:00:00Z')) / DAY;
   if (spanDays < 3) return null;
-  const gained = current - first.pct;
+  const gained = Math.round((Math.round(current * 1000) / 1000 - first.pct) * 1000) / 1000;
+  if (gained === 0) return { perWeek: 0, eta: null };
   const perWeek = (gained / spanDays) * 7;
   if (perWeek <= 0) return { perWeek, eta: null };
   const weeks = (1 - current) / perWeek;

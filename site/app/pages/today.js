@@ -1,7 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
-import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left } from '../ui.js';
-import { DAY, fmtDate, fmtKst, fmtLeft } from '../time.js';
+import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left, plural } from '../ui.js';
+import { DAY, fmtDate, fmtKst, fmtLeft, kstDays, dayWord } from '../time.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
@@ -39,8 +39,10 @@ function nextSymbolLevels(data, state, charId) {
 function SeasonCard({ season, state, now }) {
   const o = seasonOutlook(season, state.ui.seasonDone, now);
   if (!o || o.over) return null;
+  // Korean calendar days, the same count the coin shop uses for the same deadline.
+  const d = kstDays(now, o.ends);
   const toggle = (id, on) => update((s) => { s.ui.seasonDone = { ...(s.ui.seasonDone || {}), [id]: on }; if (!on) delete s.ui.seasonDone[id]; });
-  return html`<${Card} title=${`${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : `${o.daysLeft} day${o.daysLeft === 1 ? '' : 's'} left`} className="span2">
+  return html`<${Card} title=${`${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : d <= 1 ? `ends ${dayWord(d)}` : `${d} days left`} className="span2">
     <div class="insight"><span class="k">Season ends</span><span class="big accent">${fmtKst(o.ends)}</span>
       <span class="small muted">${o.open} of ${o.total} end-of-season steps still open. Challenger gear stops working then, so spend nothing on it.</span></div>
     ${o.groups.map((g) => html`<details open=${o.daysLeft <= 14 && !g.passed && g.items.some((i) => !i.done) && g === o.groups.find((x) => !x.passed && x.items.some((i) => !i.done))}>
@@ -70,14 +72,14 @@ function TodoCard({ data, state, now, who, char, lines, prog }) {
   });
   // A boss cleared on another difficulty is done too: the difficulties share one clear.
   const cleared = lines.filter((l) => l.clearedNow || l.doneAs).length;
-  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} bosses` : ''}`} bodyClass="card-b tight todo">
+  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} ${plural(lines.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
     <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
     ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
     ${char ? html`<div class="group-h"><h4>Bosses <span class="hint">weekly reset Thu 09:00 KST</span></h4><a class="small" href="#bosses">Pick bosses</a></div>
       ${lines.length ? lines.map((l) => {
         const id = `today-boss-${l.bossId}`;
         return html`<div class=${'row' + (l.clearedNow || l.doneAs ? ' done' : '')}>
-          <input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${() => toggleClear(char.id, l.boss, l)} />
+          <input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${(e) => toggleClear(char.id, l.boss, l, e.currentTarget.checked)} />
           <label class="lbl" for=${id}>${l.boss.difficulty} ${l.boss.boss}${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}</span>` : null}</label>
           <div class="right"><span class="min">${l.kind === 'daily' ? 'daily' : l.kind === 'monthly' ? 'monthly' : 'weekly'}${l.value ? ` · ${fmtMesos(l.value)}` : ''}</span></div>
         </div>`;
@@ -119,7 +121,7 @@ export function TodayPage({ data, state }) {
   const maint = upcomingMaintenance(data, now)[0];
   const income = char ? computeIncome(state.characters, state, data.bosses, data.bossById, now).perChar[char.id] : null;
   const gear = char ? gearSummary(data.gear, state.gear[char.id], char.mainStat || 'STR') : null;
-  const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now) : null;
+  const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now, data.bossById) : null;
   const erdaState = char ? state.erda[char.id] : null;
   const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
   const symbols = char ? nextSymbolLevels(data, state, char.id) : [];
@@ -129,7 +131,7 @@ export function TodayPage({ data, state }) {
   const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], withCubeRates(data.upgrades, state.mesos.cubeRates), data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
-  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who });
+  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who, weeklyCap: data.bosses.limits.weeklyPerCharacter, weeklyEarned: income ? income.unpicked.filter((u) => u.kind === 'weekly').flatMap((u) => u.earned) : [] });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
   const coming = comingUp(data.upcoming, now, char, 5, data.events.events);
@@ -141,8 +143,8 @@ export function TodayPage({ data, state }) {
     <div class="tiles">
       <div class=${'tile' + (prog.total && prog.done >= prog.total ? ' ok' : '')}><span class="k">Core dailies</span><span class="v">${prog.done} / ${prog.total}</span><${Bar} pct=${prog.total ? prog.done / prog.total : 0} />
         <span class="s">${streak ? `${streak}-day streak` : 'start a streak today'} · <a href="#checklist">checklist</a></span></div>
-      ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.planned)} planned · resets Thu 09:00 KST`} accent />` : null}
-      ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? (fmtDate(gate.at) === fmtDate(now) ? 'today' : `${Math.ceil(gate.days)} day${Math.ceil(gate.days) === 1 ? '' : 's'}`) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
+      ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.target)} planned · resets Thu 09:00 KST`} accent />` : null}
+      ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? dayWord(kstDays(now, gate.at)) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
       <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? html`next: ${ending[0].title} in <${Left} until=${Date.parse(ending[0].end)} />` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
       ${maint ? html`<${Tile} k="Next maintenance" v=${fmtKst(Date.parse(maint.start), false)} s=${`${fmtKst(Date.parse(maint.start))} → ${fmtKst(Date.parse(maint.end))}`} />` : null}
     </div>
@@ -173,14 +175,14 @@ export function TodayPage({ data, state }) {
         <//>` : null}
         ${coming.length ? html`<${Card} title="Coming to GMS" meta="announced by Nexon" bodyClass="card-b tight">
           ${coming.map((c) => html`<div class="goal"><div><b>${c.title}</b><div class="small muted">${c.note}</div></div>
-            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.days < 1 ? 'today' : c.days <= 1 ? 'within a day' : `in ${c.days} days`}</span></div>`)}
-          <p class="note" style=${{ padding: '6px 8px' }}>Event start dates are read from Nexon's posts every 6 hours. The rest: ${(data.upcoming && data.upcoming.source) || 'typed in by hand.'}</p>
+            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.when}</span></div>`)}
+          <p class="note" style=${{ padding: '6px 8px' }}>A date without a time is Nexon's server day: it can arrive up to 09:00 KST the next morning, usually after maintenance. Event start dates are read from Nexon's posts every 6 hours. The rest: ${(data.upcoming && data.upcoming.source) || 'typed in by hand.'}</p>
         <//>` : null}
         ${char ? html`<${Card} title="Next up">
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}
           ${erdaNext.length ? html`<div><b>6th job</b>${erdaNext.map((s) => html`<div class="small">${s.label}</div>`)}</div>` : null}
           ${gearGap && !best ? html`<div><b>Gear</b><div class="small">${gearGap.slot.name}: ${gearGap.gaps.slice(0, 2).join(', ')}</div></div>` : null}
-          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} traces left · about ${genesis.weeks} weeks</div></div>` : null}
+          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} ${plural(genesis.remaining, 'trace')} left · about ${genesis.weeks} ${plural(genesis.weeks, 'week')}</div></div>` : null}
         <//>` : null}
       </div>
     </div>

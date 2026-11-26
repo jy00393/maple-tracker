@@ -3,6 +3,7 @@ import { gearSummary, slotProgress } from './progress.js';
 import { starPlan, maxStarsFor } from './starforce.js';
 import { cubePlan, hasPotential } from './upgrades.js';
 import { DAY } from '../time.js';
+import { plural } from './plural.js';
 import { starDelta, damageGain, cleanFlame } from './gearstats.js';
 import { scoreDist, flameScore, flameWeights, flamesSupported } from './flames.js';
 
@@ -22,7 +23,8 @@ export function withCubeRates(up, rates) {
   return { ...up, cubes: { ...up.cubes, types } };
 }
 
-// Expected cost to bring a slot to its target: Star Force (normal day and Sunny Sunday) and Bright Cube tier-ups.
+// Expected cost to bring a slot to its target: Star Force (normal day and Sunny Sunday) and cube tier-ups (Bright
+// and Glowing). capped = the item's star limit is below the target, so stars alone can never meet it.
 export function slotOutlook(slot, entry, target, up) {
   const out = { temporary: Boolean(entry.temporary) };
   if (!entry.tier || out.temporary) return out;
@@ -38,6 +40,7 @@ export function slotOutlook(slot, entry, target, up) {
     if (to > from) {
       out.sf = { from, to, max, plain: starPlan(up.starforce, lvl, from, to, {}), sunny: starPlan(up.starforce, lvl, from, to, { discount: true, lessBoom: true }) };
     }
+    if ((target.stars || 0) > max) out.capped = { max, target: target.stars };
   }
   if (hasPotential(slot) && (target.pot || 0) > (entry.pot || 0)) {
     out.cube = { from: entry.pot || 0, to: target.pot, bright: cubePlan(up.cubes.types.bright, entry.pot || 1, target.pot), glowing: cubePlan(up.cubes.types.glowing, entry.pot || 1, target.pot) };
@@ -51,8 +54,11 @@ export function slotOutlook(slot, entry, target, up) {
 // dmg: the estimated damage gain as a fraction, and dmgPartial when part of the gain is unknown.
 export function upgradeOptions(gearData, gearState, up, gearStats, stats, flameCtx) {
   const sum = gearSummary(gearData, gearState, (flameCtx && flameCtx.mainStat) || 'STR');
-  const totalWeight = sum.slots.reduce((a, s) => a + s.slot.weight, 0) || 1;
-  const out = flameCtx && flameCtx.fl ? flameOptions(gearData, gearState, flameCtx.fl, flameCtx.mainStat, stats, flameCtx.weights) : [];
+  const totalWeight = sum.totalWeight || 1;
+  // An item below its slot's target tier is one to replace: no mesos go into it, flames included (the same rule
+  // as slotOutlook's "replace"). A Bottom covered by an overall is not worn at all.
+  const skip = new Set(sum.slots.filter((r) => r.covered || (r.entry.tier && r.entry.tier < (r.target.tier || 0))).map((r) => r.slot.id));
+  const out = (flameCtx && flameCtx.fl ? flameOptions(gearData, gearState, flameCtx.fl, flameCtx.mainStat, stats, flameCtx.weights) : []).filter((o) => !skip.has(o.slotId));
   for (const r of sum.gaps) {
     if (r.entry.temporary || !r.entry.tier) continue;
     const o = slotOutlook(r.slot, r.entry, r.target, up);
@@ -60,7 +66,7 @@ export function upgradeOptions(gearData, gearState, up, gearStats, stats, flameC
     const tierNames = gearData.slotTypes[r.slot.type].filter(Boolean);
     const gainOf = (patch) => (r.slot.weight * (slotProgress({ ...r.entry, ...patch }, r.target, tierNames).pct - r.pct)) / totalWeight;
     if (o.sf) {
-      const opt = { slotId: r.slot.id, kind: 'sf', label: `${r.slot.name}: ${o.sf.from} → ${o.sf.to} stars`, cost: o.sf.plain.cost, sunnyCost: o.sf.sunny.cost, booms: o.sf.plain.booms, gain: gainOf({ stars: o.sf.to }) };
+      const opt = { slotId: r.slot.id, kind: 'sf', label: `${r.slot.name}: ${o.sf.from} → ${o.sf.to} ${plural(o.sf.to, 'star')}`, cost: o.sf.plain.cost, sunnyCost: o.sf.sunny.cost, booms: o.sf.plain.booms, gain: gainOf({ stars: o.sf.to }) };
       if (gearStats && gearStats.starforce) {
         const d = starDelta(gearStats.starforce, r.slot, itemLevel(r.slot, r.entry), o.sf.from, o.sf.to);
         const dmg = damageGain(stats, d);
@@ -70,7 +76,11 @@ export function upgradeOptions(gearData, gearState, up, gearStats, stats, flameC
       out.push(opt);
     }
     if (o.cube) {
-      out.push({ slotId: r.slot.id, kind: 'cube', label: `${r.slot.name}: potential ${POT[o.cube.from]} → ${POT[o.cube.to]}`, cost: o.cube.bright.cost, cost90: o.cube.bright.cost90, gain: gainOf({ pot: o.cube.to }) });
+      // A pure tier-up is priced with whichever cube gets there for less, as Mesos > Cubes recommends. The plan
+      // starts at Rare (an item with no potential needs a potential scroll first), so the label does too.
+      const cube = o.cube.glowing.cost < o.cube.bright.cost ? 'glowing' : 'bright';
+      const plan = o.cube[cube];
+      out.push({ slotId: r.slot.id, kind: 'cube', cube, cubeName: up.cubes.types[cube].name, needsScroll: !o.cube.from, label: `${r.slot.name}: potential ${POT[Math.max(1, o.cube.from)]} → ${POT[o.cube.to]} with ${up.cubes.types[cube].name}s`, cost: plan.cost, cost90: plan.cost90, gain: gainOf({ pot: o.cube.to }) });
     }
   }
   return out

@@ -1,11 +1,11 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
-import { searchItems, itemSlotKey, iconUrl, tierFromName } from '../calc/items.js';
+import { searchItems, itemSlotKey, iconUrl, tierFromName, exactItem, isOverall } from '../calc/items.js';
 import { lineChoices, makeLine, refreshLines } from '../calc/potential.js';
 import { FLAME_FIELDS, cleanFlame, flameLabel, flameTotals, starStats, detectSets, setBonusLabel, STAT_FIELDS } from '../calc/gearstats.js';
 import { upgradeOptions } from '../calc/advice.js';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
-import { gearSummary, gearProjection } from '../calc/progress.js';
+import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig, plural } from '../ui.js';
+import { gearSummary, gearProjection, historyFor } from '../calc/progress.js';
 import { maxStarsFor } from '../calc/starforce.js';
 import { itemLevel, slotOutlook, withCubeRates } from '../calc/advice.js';
 import { cubePlan, lineOptions, defaultValue, lineTotals, lineLabel, lineKind, hasPotential, MAIN_STATS, LINE_TYPES, mainStatLabel, damageEstimateSupported } from '../calc/upgrades.js';
@@ -39,7 +39,8 @@ function snapshot(g, gearData, mainStat) {
   const sum = gearSummary(gearData, g, mainStat);
   const today = dayKey(Date.now());
   g.history = (g.history || []).filter((h) => h.d !== today);
-  g.history.push({ d: today, pct: Math.round(sum.overall * 1000) / 1000 });
+  // p: the target the point was scored against, so Pace never compares scores for two different targets.
+  g.history.push({ d: today, pct: Math.round(sum.overall * 1000) / 1000, p: g.preset || 'mid' });
   g.history.sort((a, b) => (a.d < b.d ? -1 : 1));
   if (g.history.length > 120) g.history = g.history.slice(-120);
 }
@@ -103,25 +104,43 @@ function ItemIcon({ entry, size = 36, fallback = null }) {
 }
 
 // Name box with suggestions from the item list for this slot. Picking one fills the name, level and picture.
-function ItemPicker({ slot, entry, tiers, hints, set, pot, mainStat }) {
+function ItemPicker({ slot, entry, tiers, hints, set, pot, mainStat, overallRule }) {
   const doc = useItems();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // True after picking an item whose name gave no tier, so the page can ask for a look at the tier.
+  const [unsure, setUnsure] = useState(false);
   const text = entry.note || '';
   const hits = open && doc ? searchItems(doc.items, itemSlotKey(slot.id), text, 8) : [];
+  const isTop = Boolean(overallRule && slot.id === overallRule.slot);
+  // A new item level, with the potential lines re-read for it (never deleted: keepMissing).
+  const levelPatch = (ilvl) => ({ ilvl, ...(entry.pot && Array.isArray(entry.potLines) && entry.potLines.length
+    ? { potLines: refreshLines(pot, slot.id, entry.pot, itemLevel(slot, { ...entry, ilvl }), entry.potLines, { mainStat, keepMissing: true }) } : {}) });
+  // What the item list knows about an item: level, picture and, on Top, whether it is an overall.
+  const fromList = (h) => ({ ...levelPatch(h.level), itemId: h.id, iconVer: doc.version, ...(isTop ? { overall: isOverall(overallRule, h.id) } : {}) });
   const pick = (h) => {
-    const patch = { note: h.name, ilvl: h.level, itemId: h.id, iconVer: doc.version };
-    if (entry.pot && Array.isArray(entry.potLines) && entry.potLines.length) patch.potLines = refreshLines(pot, slot.id, entry.pot, h.level, entry.potLines, { mainStat, keepMissing: true });
+    const patch = { note: h.name, ...fromList(h) };
     const tier = tierFromName(h.name, tiers, hints);
     if (tier) patch.tier = tier;
     else if (!entry.tier) patch.tier = 1;
     set(patch);
+    setUnsure(!tier);
     setOpen(false);
+  };
+  // Typing by hand: a name that is exactly a list item is taken as that item. Otherwise the level and picture
+  // that came from the list go, so a stale level never breaks set detection or the star limit. A level typed by
+  // hand (no list item behind it) is left alone, and so is the tier.
+  const typed = (note) => {
+    const hit = doc ? exactItem(doc.items, itemSlotKey(slot.id), note) : null;
+    if (hit) set({ note, ...fromList(hit) });
+    else if (entry.itemId) set({ note, itemId: null, iconVer: null, ...levelPatch(null), ...(isTop ? { overall: false } : {}) });
+    else set({ note, itemId: null, iconVer: null });
+    setUnsure(false);
   };
   return html`<div class="field picker"><span>Item name${doc && doc.items.length ? ' · type to search' : ''}</span>
     <input class="input" role="combobox" aria-label="Item name" aria-expanded=${String(hits.length > 0)} aria-controls="item-suggest" aria-autocomplete="list" autocomplete="off"
       value=${text} placeholder=${`e.g. ${slot.type === 'ring' ? 'Superior Gollux Ring' : 'Arcane Umbra'}`}
-      onInput=${(e) => { set({ note: e.currentTarget.value, itemId: null, iconVer: null }); setOpen(true); setActive(0); }}
+      onInput=${(e) => { typed(e.currentTarget.value); setOpen(true); setActive(0); }}
       onFocus=${() => setOpen(true)} onBlur=${() => setTimeout(() => setOpen(false), 150)}
       onKeyDown=${(e) => {
         if (!hits.length) return;
@@ -133,6 +152,7 @@ function ItemPicker({ slot, entry, tiers, hints, set, pot, mainStat }) {
     ${hits.length ? html`<ul class="suggest" id="item-suggest" role="listbox">${hits.map((h, i) => html`<li role="option" aria-selected=${String(i === active)}
       onMouseDown=${(e) => { e.preventDefault(); pick(h); }}><${ItemIcon} entry=${{ itemId: h.id, iconVer: doc.version }} size=${28} /><span>${h.name}</span><span class="muted small">Lv. ${h.level}</span></li>`)}</ul>` : null}
     ${open && doc && doc.items.length && text.trim().length >= 3 && !hits.length && !entry.itemId ? html`<span class="small muted">Not in the item list (GMS v.${doc.version} data). Your typed name is kept.</span>` : null}
+    ${unsure && entry.itemId ? html`<span class="small muted">Could not tell the tier from this name. Check the item tier below.</span>` : null}
   </div>`;
 }
 
@@ -182,6 +202,9 @@ function Outlook({ outlook, entry, target }) {
   if (!entry.tier) return null;
   if (outlook.temporary) return html`<div class="insight"><span class="k">Upgrade outlook</span><div class="small">This item expires, so put no mesos or cubes into it.</div></div>`;
   if (outlook.replace) return html`<div class="insight"><span class="k">Upgrade outlook</span><div class="small">The target for this slot is a better item, so replace this one rather than spending on it. To upgrade it anyway, lower the slot's target tier below.</div></div>`;
+  // At its star limit, with the limit below the target: stars can never meet the target on this item.
+  const capNote = outlook.capped && !outlook.sf ? `This item caps at ${outlook.capped.max}★, below the ${outlook.capped.target}★ target. Replace it, or lower the slot's target stars below.` : null;
+  if (capNote && !outlook.cube) return html`<div class="insight"><span class="k">Upgrade outlook</span><div class="small">${capNote}</div></div>`;
   if (!outlook.sf && !outlook.cube) return html`<div class="insight"><span class="k">Upgrade outlook</span><div class="small" style=${{ color: 'var(--ok)' }}>Stars and potential tier meet the target${target.lines > (entry.lines || 0) ? '; only lines are missing (GMS line odds aren’t published)' : ''}.</div></div>`;
   return html`<div class="insight">
     <span class="k">Upgrade outlook</span>
@@ -190,9 +213,10 @@ function Outlook({ outlook, entry, target }) {
       <div class="small">${outlook.sf.from}★ → ${outlook.sf.to}★ on average${outlook.sf.to < target.stars ? ` (this item caps at ${outlook.sf.max}★)` : ''}. ${outlook.sf.plain.booms < 0.005 ? 'No boom risk below 15★.' : `${Math.round(outlook.sf.plain.noBoom * 100)}% chance of no boom; about ${outlook.sf.plain.booms.toFixed(1)} booms expected.`}</div>
       <div class="small">Sunny Sunday (30% off, less boom): ≈ ${fmtBig(outlook.sf.sunny.cost)}</div>
     </div>` : null}
+    ${capNote ? html`<div class="small">${capNote}</div>` : null}
     ${outlook.cube ? html`<div>
-      <div class="big">${Math.round(outlook.cube.bright.expected)} Bright cubes</div>
-      <div class="small">${POT[Math.max(1, outlook.cube.from)]} → ${POT[outlook.cube.to]}: ≈ ${fmtBig(outlook.cube.bright.cost)}, or ${outlook.cube.bright.n90} cubes (${fmtBig(outlook.cube.bright.cost90)}) to be 90% sure. Glowing: ≈ ${fmtBig(outlook.cube.glowing.cost)}.</div>
+      <div class="big">${Math.round(outlook.cube.bright.expected)} Bright ${plural(Math.round(outlook.cube.bright.expected), 'cube')}</div>
+      <div class="small">${POT[Math.max(1, outlook.cube.from)]} → ${POT[outlook.cube.to]}: ≈ ${fmtBig(outlook.cube.bright.cost)}, or ${outlook.cube.bright.n90} ${plural(outlook.cube.bright.n90, 'cube')} (${fmtBig(outlook.cube.bright.cost90)}) to be 90% sure. Glowing: ≈ ${fmtBig(outlook.cube.glowing.cost)}.</div>
     </div>` : null}
   </div>`;
 }
@@ -231,7 +255,8 @@ function SlotModal({ row, data, char, onClose, cubeRates }) {
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
       <div class="grid" style=${{ gap: '14px' }}>
-        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} pot=${data.potential} mainStat=${mainStat} />
+        ${row.covered ? html`<p class="warnbox">Your Top is marked as an overall, which fills this slot too. ${slot.name} is not scored while that is on, and its potential lines, flame and set piece are left out of the totals.</p>` : null}
+        <${ItemPicker} slot=${slot} entry=${entry} tiers=${tiers} hints=${data.gear.tierHints} set=${set} pot=${data.potential} mainStat=${mainStat} overallRule=${data.gear.overall} />
         <div class="form-grid">
           <label class="field"><span>Item tier</span>
             <select class="select" value=${String(entry.tier || 0)} onChange=${(e) => set({ tier: Number(e.currentTarget.value) })}>
@@ -262,8 +287,9 @@ function SlotModal({ row, data, char, onClose, cubeRates }) {
           <label class="toggle"><input type="checkbox" checked=${entry.flameAdv !== false} onChange=${(e) => set({ flameAdv: e.currentTarget.checked })} /> Boss item (flame advantage: always 4 lines, higher tiers)</label>
         </details>
         <label class="toggle"><input type="checkbox" checked=${Boolean(entry.temporary)} onChange=${(e) => set({ temporary: e.currentTarget.checked })} /> Temporary item (Item Burning, event or rental)</label>
+        ${data.gear.overall && slot.id === data.gear.overall.slot ? html`<label class="toggle"><input type="checkbox" checked=${Boolean(entry.overall)} onChange=${(e) => set({ overall: e.currentTarget.checked })} /> Overall (fills the Bottom slot too, so Bottom is not scored)</label>` : null}
         <details>
-          <summary class="small muted">Target for this slot: ${tiers[target.tier - 1] || 'tier ' + target.tier}${target.stars ? `, ${target.stars}★` : ''}${hasPotential(slot) ? `, ${POT[target.pot]} with ${target.lines} useful lines` : ''}. Change</summary>
+          <summary class="small muted">Target for this slot: ${tiers[target.tier - 1] || 'tier ' + target.tier}${target.stars ? `, ${target.stars}★` : ''}${hasPotential(slot) ? `, ${POT[target.pot]} with ${target.lines} useful ${plural(target.lines, 'line')}` : ''}. Change</summary>
           <div class="form-grid" style=${{ marginTop: '10px' }}>
             <label class="field"><span>Target tier</span><select class="select" value=${String(target.tier)} onChange=${(e) => setTarget({ tier: Number(e.currentTarget.value) })}>${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}</select></label>
             ${slot.sf ? html`<div class="field"><span>Target stars</span><${Stepper} label="Target stars" value=${target.stars} max=${30} onChange=${(v) => setTarget({ stars: v || 0 })} /></div>` : null}
@@ -284,12 +310,12 @@ function EquipTile({ row, data, mainStat, onOpen }) {
   const empty = !entry.tier;
   return html`<button type="button" class=${'equip' + (empty ? ' empty' : '') + (entry.pot ? ' pot-' + entry.pot : '')} onClick=${onOpen} aria-label=${`${slot.name}: edit`}>
     <span class="nm"><span>${slot.name}</span><${PotBadge} tier=${entry.pot} /></span>
-    <span class="it">${empty ? null : html`<${ItemIcon} entry=${entry} size=${28} />`}${empty ? 'Empty' : entry.note || tiers[entry.tier - 1]}</span>
-    ${empty ? html`<span class="ln">Tap to add</span>` : lines.length
+    <span class="it">${empty ? null : html`<${ItemIcon} entry=${entry} size=${28} />`}${empty ? (row.covered ? 'Covered by the overall' : 'Empty') : entry.note || tiers[entry.tier - 1]}</span>
+    ${empty ? html`<span class="ln">${row.covered ? 'Not scored' : 'Tap to add'}</span>` : lines.length
       ? html`<span class="ln">${lines.slice(0, 3).map((l, i) => html`${i ? html`<br />` : ''}<span class=${lineKind(slot, l, mainStat) === 'farm' ? 'pot-4' : ''}>${lineLabel(l, mainStat)}</span>`)}</span>`
       : html`<span class="ln muted">${entry.pot ? `${POT[entry.pot]}, lines not entered` : hasPotential(slot) ? 'No potential' : ''}</span>`}
     <span class="foot">${slot.sf && !empty ? html`<span class="stars">★${entry.stars || 0}</span>` : html`<span></span>`}
-      ${entry.temporary ? html`<span class="flag">expires</span>` : html`<span class="muted">${Math.round(row.pct * 100)}%</span>`}</span>
+      ${entry.temporary ? html`<span class="flag">expires</span>` : row.covered ? html`<span class="muted">not scored</span>` : html`<span class="muted">${Math.round(row.pct * 100)}%</span>`}</span>
   </button>`;
 }
 
@@ -299,13 +325,13 @@ function WindowSlot({ row, data, onOpen }) {
   const tiers = data.gear.slotTypes[slot.type].filter(Boolean);
   const empty = !entry.tier;
   const name = empty ? 'empty' : entry.note || tiers[entry.tier - 1];
-  const tip = empty ? `${slot.name}: empty` : `${slot.name}: ${name}${slot.sf ? ` · ★${entry.stars || 0}` : ''}${entry.pot ? ` · ${POT[entry.pot]}` : ''} · ${Math.round(row.pct * 100)}% of target${entry.temporary ? ' · expires' : ''}`;
+  const tip = row.covered ? `${slot.name}: covered by the overall on Top, not scored` : empty ? `${slot.name}: empty` : `${slot.name}: ${name}${slot.sf ? ` · ★${entry.stars || 0}` : ''}${entry.pot ? ` · ${POT[entry.pot]}` : ''} · ${Math.round(row.pct * 100)}% of target${entry.temporary ? ' · expires' : ''}`;
   return html`<button type="button" class=${'wslot' + (empty ? ' empty' : '') + (entry.pot ? ' pot-' + entry.pot : '')} onClick=${onOpen} aria-label=${`${slot.name}: edit`} title=${tip}>
-    <span class="pic">${empty ? html`<span class="plus" aria-hidden="true">+</span>` : html`<${ItemIcon} entry=${entry} size=${32} fallback=${html`<span class="txt">${name}</span>`} />`}</span>
+    <span class="pic">${empty ? (row.covered ? html`<span class="txt">Overall</span>` : html`<span class="plus" aria-hidden="true">+</span>`) : html`<${ItemIcon} entry=${entry} size=${32} fallback=${html`<span class="txt">${name}</span>`} />`}</span>
     <span class="nm">${slot.name}</span>
     ${slot.sf && !empty ? html`<span class="st stars">★${entry.stars || 0}</span>` : null}
     ${entry.temporary ? html`<span class="fl" aria-hidden="true">!</span>` : null}
-    ${empty ? null : html`<i class=${'pg' + (row.pct >= 1 ? ' full' : '')} style=${{ width: Math.round(Math.min(1, row.pct) * 100) + '%' }}></i>`}
+    ${empty || row.covered ? null : html`<i class=${'pg' + (row.pct >= 1 ? ' full' : '')} style=${{ width: Math.round(Math.min(1, row.pct) * 100) + '%' }}></i>`}
   </button>`;
 }
 
@@ -317,12 +343,14 @@ export function GearPage({ data, state }) {
   const g = state.gear[char.id] || blankGear();
   const mainStat = char.mainStat || 'STR';
   const sum = gearSummary(data.gear, g, mainStat);
-  const proj = gearProjection(g.history, sum.overall);
+  const proj = gearProjection(g.history, sum.overall, Date.now(), g.preset || 'mid');
   const up = withCubeRates(data.upgrades, state.mesos.cubeRates);
   const msLabel = mainStatLabel(mainStat);
-  const totals = lineTotals(data.gear.slots, g, mainStat);
-  const flames = flameTotals(data.gear.slots, g);
-  const sets = detectSets(data.gearStats.sets, data.gear.slots, g);
+  // Totals count what is worn: a Bottom left under an overall is not.
+  const worn = sum.slots.filter((r) => !r.covered).map((r) => r.slot);
+  const totals = lineTotals(worn, g, mainStat);
+  const flames = flameTotals(worn, g);
+  const sets = detectSets(data.gearStats.sets, worn, g);
   const stats = g.stats || {};
   const dmgOk = damageEstimateSupported(mainStat);
   const dmgOpts = upgradeOptions(data.gear, g, up, data.gearStats, dmgOk ? stats : null, { fl: data.flames, mainStat, weights: (state.ui.flameCalc || {}).weights }).filter((o) => o.dmg > 0).sort((a, b) => b.dmg / b.cost - a.dmg / a.cost).slice(0, 8);
@@ -334,16 +362,23 @@ export function GearPage({ data, state }) {
     <${PageHead} title="Gear">${char.name}: tap a slot to edit it. Each slot is scored against the target, with the expected mesos to get there.<//>
     <div class="toolbar">
       <span class="small muted">Target</span>
-      <${Seg} label="Gear target" value=${g.preset || 'mid'} onChange=${(v) => update((s) => { const x = charSlice(s, 'gear', char.id, blankGear); x.preset = v; snapshot(x, data.gear); })}
+      <${Seg} label="Gear target" value=${g.preset || 'mid'} onChange=${(v) => update((s) => {
+        const x = charSlice(s, 'gear', char.id, blankGear);
+        const old = x.preset || 'mid';
+        // Points saved before they carried their target were scored against the target that is being left.
+        if (v !== old) for (const h of x.history || []) if (h && !h.p) h.p = old;
+        x.preset = v;
+        snapshot(x, data.gear, mainStatOf(s, char.id));
+      })}
         options=${Object.entries(data.gear.presets).map(([id, p]) => [id, p.name])} />
     </div>
     <div class="tiles">
       <div class="tile"><span class="k">Overall vs ${sum.preset.name}</span><span class="v">${Math.round(sum.overall * 100)}%</span><${Bar} pct=${sum.overall} big /></div>
-      <div class="tile"><span class="k">${msLabel} % from potential</span><span class="v">${totals.main}%</span><span class="s">${totals.damageLines} damage lines${totals.boss ? ` · Boss +${totals.boss}%` : ''}${totals.ied ? ` · IED ${totals.ied}%` : ''}</span></div>
+      <div class="tile"><span class="k">${msLabel} % from potential</span><span class="v">${totals.main}%</span><span class="s">${totals.damageLines} damage ${plural(totals.damageLines, 'line')}${totals.boss ? ` · Boss +${totals.boss}%` : ''}${totals.ied ? ` · IED ${totals.ied}%` : ''}</span></div>
       ${flames.items ? html`<div class="tile"><span class="k">Flames · ${flames.items} item${flames.items === 1 ? '' : 's'}</span><span class="v">${msLabel} +${flames.main}</span><span class="s">ATT +${flames.att} · All Stats +${flames.allstat}%${flames.boss ? ` · Boss +${flames.boss}%` : ''}${flames.dmg ? ` · Damage +${flames.dmg}%` : ''}</span></div>` : null}
       <div class="tile ok"><span class="k">Farming lines</span><span class="v">${totals.meso}% · ${totals.drop}%</span><span class="s">Meso obtained · Item drop rate</span></div>
       <div class="tile"><span class="k">Pace</span><span class="v">${proj ? `${(proj.perWeek * 100).toFixed(1)} pts/wk` : '—'}</span>
-        <span class="s">${proj ? (proj.eta ? `100% around ${fmtDate(proj.eta)}` : 'no progress in the saved history yet') : 'shows after a few days of edits'}</span><${Spark} history=${g.history} /></div>
+        <span class="s">${proj ? (proj.eta ? `100% around ${fmtDate(proj.eta)}` : 'no progress in the saved history yet') : 'shows after a few days of edits'}</span><${Spark} history=${historyFor(g.history, g.preset || 'mid')} /></div>
     </div>
     <div class="grid wide-left">
       <${Card} title="Equipment" meta=${html`<${Seg} label="Equipment view" value=${view} onChange=${setView} options=${[['window', 'Window'], ['list', 'List']]} />`}>
@@ -365,6 +400,7 @@ export function GearPage({ data, state }) {
           <div style=${{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}><b>${row.slot.name}</b><span class="muted small">${Math.round(row.pct * 100)}%</span></div>
           <div class="small">${row.gaps.join(', ')}</div>
           ${outlook.replace ? html`<div class="small">Replace with a better item rather than upgrading this one.</div>` : null}
+          ${outlook.capped && !outlook.sf ? html`<div class="small">This item caps at ${outlook.capped.max}★: replace it, or lower the slot's target stars.</div>` : null}
           ${outlook.sf ? html`<div class="small">Star Force ${outlook.sf.from}→${outlook.sf.to}★: <b>≈ ${fmtBig(outlook.sf.plain.cost)}</b> (Sunny Sunday ≈ ${fmtBig(outlook.sf.sunny.cost)})</div>` : null}
           ${outlook.cube ? html`<div class="small">Cubes to ${POT[outlook.cube.to]}: <b>≈ ${fmtBig(outlook.cube.bright.cost)}</b> (${Math.round(outlook.cube.bright.expected)} Bright)</div>` : null}
         </div>`) : html`<${Empty}>Every permanent slot meets the target. Raise the target to keep going.<//>`}

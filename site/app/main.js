@@ -14,6 +14,7 @@ import { CharactersPage } from './pages/characters.js';
 import { SettingsPage } from './pages/settings.js';
 import { startSync, setPendingPair, tokenFromHash, syncConfig, syncStatus, onSyncStatus } from './sync.js';
 import { appStatus } from './calc/status.js';
+import { setUpWorker } from './offline.js';
 
 // [route, tab label, page, hidden from the tab row]
 const ROUTES = [
@@ -74,7 +75,8 @@ function Clocks() {
 function StatusPill({ data }) {
   const now = useNow(60000);
   const [sync, setSync] = useState(syncStatus());
-  useEffect(() => onSyncStatus(setSync), []);
+  // The pill starts listening a moment after it first draws; the status is read again so nothing in that gap is missed.
+  useEffect(() => { const off = onSyncStatus(setSync); setSync(syncStatus()); return off; }, []);
   const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires });
   const detail = st.parts.map((p) => p.text).join(' ');
   return html`<a class=${'status-pill ' + st.level} href="#settings" title=${detail} aria-label=${`Status: ${st.label}. ${detail}`}><i aria-hidden="true"></i>${st.label}</a>`;
@@ -168,9 +170,8 @@ async function boot() {
     p.textContent = `The tracker couldn't load its data files (${err.message}). If you opened index.html straight from disk, serve the folder instead, or use the GitHub Pages link.`;
     root.appendChild(p);
   }
-  if ('serviceWorker' in navigator && window.isSecureContext && !/[?&]nosw/.test(location.search)) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
+  // With ?nosw this removes a worker left by an earlier visit, instead of only not registering one.
+  if ('serviceWorker' in navigator && window.isSecureContext) setUpWorker(navigator, location.search, window.caches);
 }
 
 boot();

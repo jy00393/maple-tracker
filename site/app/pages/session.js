@@ -1,8 +1,8 @@
-import { html, useEffect } from '../../vendor/htm-preact.mjs';
+import { html, useEffect, useRef } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
 import { Card, Fold, Seg } from '../ui.js';
-import { itemStatus, setRecord, dailyProgress, whoOf, recordKey } from './checklist.js';
-import { streakEntry } from '../calc/checklist.js';
+import { itemStatus, setRecord, dailyProgress, whoOf, whoFor, recordKey } from './checklist.js';
+import { streakToday } from '../calc/checklist.js';
 import { DAY, dayKey, nextReset } from '../time.js';
 import { knownLevel } from './level.js';
 
@@ -61,20 +61,39 @@ export function SessionPlanner({ data, state, now }) {
 }
 
 // Saves today's core-daily progress for the streak calendar (one entry per UTC day, the game's day).
+//
+// The entry is worked out from every character's ticks, not only the one on screen: a second device that shows
+// an alt and has not synced yet writes "0 done" on opening, and that newer write replaces the main's finished
+// day when the copies merge. The ticks arrive in the same merge, so the entry is put right from them here.
 export function StreakRecorder({ data, state, now }) {
   const who = whoOf(data, state);
-  const prog = dailyProgress(data.checklist, state.checklist, now, who);
+  const list = state.characters.length
+    ? state.characters.map((c) => ({ by: c.id, ...dailyProgress(data.checklist, state.checklist, now, whoFor(data, state, c)) }))
+    : [{ ...dailyProgress(data.checklist, state.checklist, now, who) }];
   const key = dayKey(now);
+  const existing = (state.checklist.history || {})[key];
+  const entry = streakToday(existing, list, who.id);
+  // What this device counts, and what is saved: the effect runs again when either changes.
+  const counted = `${key}|${list.map((p) => `${p.by || ''}:${p.done}/${p.total}`).join(',')}|${who.id || ''}`;
+  const saved = existing ? `${existing.done}/${existing.total}/${existing.by || ''}` : '';
+  const last = useRef(null);
   useEffect(() => {
-    const entry = streakEntry((state.checklist.history || {})[key], prog.done, prog.total, who.id);
+    const fresh = last.current !== counted;
+    last.current = counted;
     if (!entry) return;
+    // Nothing done and nothing saved: there is nothing to record yet (a missing day reads as an unfinished one),
+    // so only opening the tracker never writes over what another device has saved.
+    if (!existing && entry.done === 0) return;
+    // When only the saved entry changed (it came from another device), it is replaced only by a better one. Two
+    // devices that count differently (one has newer level data, say) would otherwise overwrite each other for ever.
+    if (!fresh && existing && existing.total > 0 && entry.done / entry.total <= existing.done / existing.total) return;
     update((s) => {
       s.checklist.history = s.checklist.history || {};
       s.checklist.history[key] = entry;
       const keys = Object.keys(s.checklist.history).sort();
       for (const k of keys.slice(0, Math.max(0, keys.length - 400))) delete s.checklist.history[k];
     });
-  }, [key, prog.done, prog.total, who.id]);
+  }, [counted, saved]);
   return null;
 }
 
@@ -91,7 +110,10 @@ export function streakInfo(history, now) {
   let run = 0;
   for (const k of Object.keys(history).sort()) {
     if (full(k)) {
-      const prev = dayKey(Date.parse(k + 'T00:00:00Z') - DAY);
+      // A key that is not a date is skipped (the loader drops them; this keeps one from ever stopping the page).
+      const t = Date.parse(k + 'T00:00:00Z');
+      if (!Number.isFinite(t)) continue;
+      const prev = dayKey(t - DAY);
       run = full(prev) ? run + 1 : 1;
       best = Math.max(best, run);
     }

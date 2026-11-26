@@ -144,9 +144,20 @@ const DAMAGE = new Set(['main', 'allstat', 'boss', 'ied', 'critdmg', 'cdr']);
 export function attackLine(mainStat) {
   return mainStat === 'INT' ? 'matt' : 'att';
 }
+// Does a stat line raise this character's main stat? One rule for the gear score and the stat totals:
+// a main-stat line counts when it is for the character's stat (a line saved without a stat was entered for it),
+// Max HP % counts only for a Max HP character, and All Stats % for everyone else (it does not raise HP).
+export function countsAsMain(line, mainStat = 'STR') {
+  if (!line) return false;
+  if (line.type === 'main') return !line.stat || isMainStat(line.stat, mainStat);
+  if (line.type === 'hp') return mainStat === 'HP';
+  if (line.type === 'allstat') return mainStat !== 'HP';
+  return false;
+}
 export function lineKind(slot, line, mainStat = 'STR') {
   if (!line || !line.type) return 'none';
   if (line.type === 'meso' || line.type === 'drop') return 'farm';
+  if (line.type === 'main' || line.type === 'allstat' || line.type === 'hp') return countsAsMain(line, mainStat) ? 'damage' : 'other';
   if (DAMAGE.has(line.type)) return 'damage';
   if ((line.type === 'dmg' || line.type === attackLine(mainStat)) && ['weapon', 'secondary', 'emblem'].includes(slot.type)) return 'damage';
   return 'other';
@@ -167,9 +178,7 @@ export function lineTotals(slots, gearState, mainStat = 'STR') {
     if (!e || !Array.isArray(e.potLines) || !e.tier) continue;
     for (const l of e.potLines) {
       const v = Number(l.value) || 0;
-      if (l.type === 'main' && isMainStat(l.stat || 'STR', mainStat)) out.main += v;
-      else if (l.type === 'hp' && mainStat === 'HP') out.main += v;
-      else if (l.type === 'allstat' && mainStat !== 'HP') out.main += v; // All Stats does not raise HP
+      if (countsAsMain(l, mainStat)) out.main += v;
       else if (l.type === 'boss') out.boss += v;
       else if (l.type === 'meso') out.meso += v;
       else if (l.type === 'drop') out.drop += v;
@@ -261,7 +270,8 @@ export function expRate(exp, readings, beyond, days = 14, now = Date.now()) {
 export function erdaCost(perLevel, from, to) {
   let sol = 0;
   let frag = 0;
-  for (let l = Math.max(1, from); l < to && l - 1 < perLevel.length; l++) {
+  // Levels are whole numbers; a decimal is rounded down so it can never point between two rows of the table.
+  for (let l = Math.max(1, Math.floor(Number(from) || 0)); l < to && l - 1 < perLevel.length; l++) {
     sol += perLevel[l - 1][0];
     frag += perLevel[l - 1][1];
   }

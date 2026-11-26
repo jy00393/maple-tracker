@@ -78,7 +78,7 @@ test('merge: a fresh phone never wipes the copy in the gist', () => {
 test('merge: a copy saved before stamps existed is dated by its updatedAt', () => {
   const old = { ...blank(), updatedAt: 500, characters: [{ id: 'c1', name: 'A' }], mesos: { held: 42, goals: [] }, gear: { c1: { slots: {} } } };
   delete old.stamps;
-  assert.equal(seedStamps(old)['gear/c1'], 500);
+  assert.equal(seedStamps(old)['gear/c1/@'], 500);
   const phone = edit(blank(), 900, (s) => { s.checklist.history['2026-11-23'] = { done: 1, total: 9 }; });
   const merged = mergeStates(phone, old);
   assert.equal(merged.mesos.held, 42);
@@ -91,7 +91,7 @@ test('units split the checklist per item and per-character data per character', 
   const s = edit(blank(), 1, (x) => { x.checklist.items.a = { d: 1 }; x.bosses.c1 = { picks: {} }; });
   const paths = [...units(s).keys()];
   assert.ok(paths.includes('checklist/items/a'));
-  assert.ok(paths.includes('bosses/c1'));
+  assert.ok(paths.includes('bosses/c1/@'));
   assert.ok(paths.includes('mesos/held') && paths.includes('mesos/goalOrder'));
   assert.ok(!paths.includes('stamps') && !paths.includes('updatedAt') && !paths.includes('activeId'));
 });
@@ -472,7 +472,7 @@ test('merge: removal markers count as a difference, so they are passed on', asyn
   const merged = mergeStates(neverHad, removed, 1000);
   assert.ok(sameEntries(merged, neverHad), 'no entry changes for the device that never had it');
   assert.ok(!sameStamps(merged, neverHad), 'but the removal marker is new to it and must be saved');
-  assert.equal(merged.stamps['gear/c1'], 200);
+  assert.equal(merged.stamps['gear/c1/@'], 200);
   // With the marker carried along, the old copy cannot bring the part back.
   assert.ok(!('c1' in mergeStates(merged, base, 1000).gear));
   assert.ok(sameStamps(merged, structuredClone(merged)));
@@ -812,7 +812,7 @@ test('main stat: Demon Avenger counts Max HP lines, Xenon counts STR, DEX and LU
   const str = pick('STR +13%', 'HP');
   const all = pick('All Stats +10%', 'HP');
   assert.deepEqual([hp.type, hp.stat, str.type, all.type], ['main', 'HP', 'offstat', 'offstat']);
-  assert.equal(U.usefulLines(hat, { potLines: [hp, str, all] }), 1);
+  assert.equal(U.usefulLines(hat, { potLines: [hp, str, all] }, 'HP'), 1);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: [hp, str, all] } } }, 'HP').main, 12);
   const daOrder = P.lineChoices(pot, 'hat', 4, 160, 'HP').filter((c) => c.prime);
   assert.ok(daOrder.find((c) => c.text === 'MaxHP +12%').useful);
@@ -822,7 +822,7 @@ test('main stat: Demon Avenger counts Max HP lines, Xenon counts STR, DEX and LU
   const xs = ['STR +13%', 'DEX +13%', 'LUK +13%', 'INT +13%'].map((t) => pick(t, 'XENON'));
   assert.deepEqual(xs.map((l) => l.type), ['main', 'main', 'main', 'offstat']);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: xs.slice(0, 3) } } }, 'XENON').main, 39);
-  assert.equal(U.usefulLines(hat, { potLines: xs }), 3);
+  assert.equal(U.usefulLines(hat, { potLines: xs }, 'XENON'), 3);
 
   // An ordinary class is unchanged.
   assert.deepEqual([pick('STR +13%', 'STR').type, pick('DEX +13%', 'STR').type, pick('MaxHP +12%', 'STR').type], ['main', 'offstat', 'hp']);
@@ -870,7 +870,7 @@ test('main stat: class changes and main-stat changes keep saved lines consistent
   P.reclassifyLines(data, g, 'HP');
   assert.deepEqual(g.slots.hat.potLines.map((l) => l.type), ['main', 'offstat', 'offstat']);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: g.slots.hat } }, 'HP').main, 12);
-  assert.equal(U.usefulLines(gear.slots.find((s) => s.id === 'hat'), g.slots.hat), 1);
+  assert.equal(U.usefulLines(gear.slots.find((s) => s.id === 'hat'), g.slots.hat, 'HP'), 1);
   // A line entered by hand before the tables follows its stat too: STR is not the main stat of an HP character.
   assert.deepEqual(g.slots.top.potLines, [{ type: 'offstat', stat: 'STR', value: 13 }]);
   P.reclassifyLines(data, g, 'STR', 'HP');

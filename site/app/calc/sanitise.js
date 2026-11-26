@@ -1,7 +1,7 @@
 // Makes any saved state safe to use: every part has the shape the pages expect, whatever was in storage, in an
 // imported backup file or in a synced copy. Valid data passes through unchanged; only values of the wrong kind
 // are dropped or reset. Unknown extra fields are kept, so a newer version's data survives an older one.
-import { cleanDrops } from './pitched.js';
+import { cleanDrops, isDay } from './pitched.js';
 import { cleanChampions } from './champions.js';
 
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
@@ -11,9 +11,12 @@ const bool = (v) => v === true;
 // A finite number inside [min, max], otherwise the fallback.
 const num = (v, fallback = null, min = -Infinity, max = Infinity) => (typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max ? v : fallback);
 // Keeps only entries whose value is an object, each passed through `fix`.
+// Keys such as "__proto__", "constructor" or "toString" would read or change what every object inherits, so
+// they are never kept as ids. (The app's own ids never look like that; only a hand-made file can hold one.)
+const safeKey = (k) => !(k in Object.prototype);
 function mapOf(v, fix = (x) => x) {
   const out = {};
-  for (const [k, x] of Object.entries(obj(v))) if (isObj(x)) out[k] = fix(x);
+  for (const [k, x] of Object.entries(obj(v))) if (isObj(x) && safeKey(k)) out[k] = fix(x);
   return out;
 }
 // Removes a numeric field that holds something unusable (so pages fall back to their own default).
@@ -31,6 +34,8 @@ function character(c) {
   if ('cp' in out) { const cp = num(c.cp, null, 1, 1e15); if (cp === null) delete out.cp; else out.cp = Math.floor(cp); }
   return out;
 }
+
+const TARGET_MAX = { tier: 9, stars: 30, pot: 4, bpot: 4, lines: 3 };
 
 function gearSlot(e) {
   const out = { ...e };
@@ -63,7 +68,8 @@ function gearSlot(e) {
   }
   if ('target' in out) {
     const t = {};
-    for (const [k, v] of Object.entries(obj(out.target))) if (num(v, null, 0, 30) !== null) t[k] = Math.floor(v);
+    // Each target has the same ceiling as the slot's own field; a target above it is brought down to it.
+    for (const [k, v] of Object.entries(obj(out.target))) if (num(v, null, 0, 30) !== null) t[k] = Math.min(Math.floor(v), Object.hasOwn(TARGET_MAX, k) ? TARGET_MAX[k] : 30);
     out.target = t;
   }
   if ('temporary' in out) out.temporary = bool(out.temporary);
@@ -72,7 +78,7 @@ function gearSlot(e) {
 
 function gearOf(g) {
   const out = { ...g, preset: str(g.preset, 'mid'), slots: mapOf(g.slots, gearSlot) };
-  out.history = Array.from(Array.isArray(g.history) ? g.history : []).filter((h) => isObj(h) && /^\d{4}-\d{2}-\d{2}$/.test(str(h.d)) && num(h.pct, null, 0, 1) !== null);
+  out.history = Array.from(Array.isArray(g.history) ? g.history : []).filter((h) => isObj(h) && isDay(h.d) && num(h.pct, null, 0, 1) !== null);
   if ('stats' in out) {
     const s = {};
     for (const [k, v] of Object.entries(obj(out.stats))) if (num(v, null, 0, 1e9) !== null) s[k] = v;
@@ -109,15 +115,19 @@ function symbolsOf(s) {
 
 function erdaOf(e) {
   const levels = {};
-  for (const [k, v] of Object.entries(obj(e.levels))) if (num(v, null, 0, 99) !== null) levels[k] = v;
+  // Node levels are whole numbers in the game; a decimal is rounded down.
+  for (const [k, v] of Object.entries(obj(e.levels))) if (num(v, null, 0, 99) !== null) levels[k] = Math.floor(v);
   const out = { ...e, levels, steps: obj(e.steps) };
   if ('template' in out && typeof out.template !== 'string') delete out.template;
   if ('costs' in out && !isObj(out.costs)) delete out.costs;
   return out;
 }
 
+// The latest time that can still be shown as a date (a day inside what a Date can hold).
+const TIME_MAX = 8.64e15 - 86400000;
+
 function levelOf(l) {
-  const log = Array.from(Array.isArray(l.log) ? l.log : []).filter((r) => isObj(r) && num(r.t, null, 0) !== null && num(r.level, null, 1, 300) !== null)
+  const log = Array.from(Array.isArray(l.log) ? l.log : []).filter((r) => isObj(r) && num(r.t, null, 0, TIME_MAX) !== null && num(r.level, null, 1, 300) !== null)
     .map((r) => ({ ...r, pct: num(r.pct, 0, 0, 100) }));
   return { ...l, log };
 }
@@ -154,13 +164,33 @@ function shopOf(s) {
   return { ...s, have: num(s.have, 0, 0, 1e9), claims: num(s.claims, 0, 0, 1e4), want: counts(s.want, 1e5) };
 }
 
+// One tick record: { p: period, c: count, d: 1 when done, t: when it was ticked }. A count is a whole number
+// from 0 up (the page caps it at the item's target); a count or a mark of the wrong kind is dropped.
+function tickOf(r) {
+  const out = { ...r, p: str(r.p) };
+  if ('c' in out) { if (num(out.c, null) === null) delete out.c; else out.c = Math.min(1e6, Math.max(0, Math.floor(out.c))); }
+  if ('d' in out && typeof out.d !== 'number' && typeof out.d !== 'boolean') delete out.d;
+  numField(out, 't', 0, TIME_MAX);
+  return out;
+}
+
+// The streak calendar: one entry per real calendar day.
+function historyOf(v) {
+  const out = {};
+  for (const [k, h] of Object.entries(obj(v))) if (isDay(k) && isObj(h)) out[k] = { ...h, done: num(h.done, 0, 0, 999), total: num(h.total, 0, 0, 999) };
+  return out;
+}
+
+// A goal above the most the tracker holds stays at that limit: it must never turn into a free one.
+const goalCost = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 1e15 ? 1e15 : num(v, 0, 0, 1e15));
+
 export function sanitiseState(raw, base) {
   if (!isObj(raw)) return base;
   const out = { ...base, ...raw, v: 1 };
 
   const seen = new Set();
   out.characters = Array.from(Array.isArray(raw.characters) ? raw.characters : [])
-    .filter((c) => isObj(c) && typeof c.id === 'string' && c.id && !seen.has(c.id) && seen.add(c.id))
+    .filter((c) => isObj(c) && typeof c.id === 'string' && c.id && safeKey(c.id) && !seen.has(c.id) && seen.add(c.id))
     .map(character);
   out.activeId = out.characters.some((c) => c.id === raw.activeId) ? raw.activeId : out.characters[0]?.id ?? null;
 
@@ -169,10 +199,10 @@ export function sanitiseState(raw, base) {
   for (const [k, v] of Object.entries(obj(cl.resets))) if (typeof v === 'string') resets[k] = v;
   out.checklist = {
     ...base.checklist, ...cl,
-    items: mapOf(cl.items, (r) => ({ ...r, p: str(r.p) })),
+    items: mapOf(cl.items, tickOf),
     resets,
     flags: obj(cl.flags),
-    history: mapOf(cl.history, (h) => ({ ...h, done: num(h.done, 0, 0, 999), total: num(h.total, 0, 0, 999) })),
+    history: historyOf(cl.history),
     owner: typeof cl.owner === 'string' ? cl.owner : null,
     ownerSet: cl.ownerSet === true
   };
@@ -196,7 +226,7 @@ export function sanitiseState(raw, base) {
     for (const [k, v] of Object.entries(obj(out.mesos.cubeRates))) if (Array.isArray(v) && v.length === 3 && v.every((p) => num(p, null, 0.001, 1) !== null)) rates[k] = v;
     if (Object.keys(rates).length) out.mesos.cubeRates = rates; else delete out.mesos.cubeRates;
   }
-  out.mesos.goals = Array.from(Array.isArray(m.goals) ? m.goals : []).filter(isObj).map((g, i) => ({ ...g, id: str(g.id) || `goal${i}`, name: str(g.name, 'Goal'), cost: num(g.cost, 0, 0, 1e15) }));
+  out.mesos.goals = Array.from(Array.isArray(m.goals) ? m.goals : []).filter(isObj).map((g, i) => ({ ...g, id: str(g.id) || `goal${i}`, name: str(g.name, 'Goal'), cost: goalCost(g.cost) }));
 
   out.bosses = mapOf(raw.bosses, bossesOf);
   out.symbols = mapOf(raw.symbols, symbolsOf);

@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter } from '../store.js';
-import { Card, Fold, Seg, NumberInput, fmtBig } from '../ui.js';
+import { Card, Fold, Seg, NumberInput, fmtBig, plural } from '../ui.js';
 import { scoreDist, chanceAtLeast, flamesNeeded, chanceWithin, flameScore, flameWeights, flamesSupported, bestScore, bandValue, SECONDARY_DEFAULT } from '../calc/flames.js';
 import { itemLevel } from '../calc/advice.js';
 import { mainStatLabel } from '../calc/upgrades.js';
@@ -8,6 +8,8 @@ import { mainStatLabel } from '../calc/upgrades.js';
 // Very small chances read as "1 in N" rather than in exponent form (2.1e-11%).
 const pct = (p) => (p >= 0.1 ? (p * 100).toFixed(1) + '%' : p >= 0.001 ? (p * 100).toFixed(2) + '%' : p >= 1e-6 ? (p * 100).toPrecision(2) + '%' : p > 0 ? `1 in ${count(1 / p)}` : '0%');
 const count = (n) => Math.round(n).toLocaleString('en-US');
+// "1 flame", "2 flames": the noun follows the rounded number that is shown.
+const flames = (n) => `${count(n)} ${plural(Math.round(n), 'flame')}`;
 
 // Mesos > Flames: flames and mesos to reach a flame score on one armour or accessory item.
 export function Flames({ data, state }) {
@@ -26,12 +28,14 @@ export function Flames({ data, state }) {
   const gear = (char && state.gear[char.id] && state.gear[char.id].slots) || {};
   const mine = slots.find((s) => s.id === o.slot);
   const current = mine && gear[mine.id] && gear[mine.id].flame ? flameScore(gear[mine.id].flame, weights) : null;
+  // An item that expires gets no spending advice anywhere in the tracker: warn, and set no "beat this" target.
+  const temp = Boolean(mine && gear[mine.id] && gear[mine.id].temporary);
   const pickSlot = (id) => {
     const slot = slots.find((s) => s.id === id);
     const entry = slot && gear[slot.id];
     if (!slot || !entry) return set({ slot: id });
     const patch = { slot: id, level: itemLevel(slot, entry) || o.level, adv: entry.flameAdv !== false };
-    if (entry.flame) patch.target = Math.floor(flameScore(entry.flame, weights)) + 1;
+    if (entry.flame && !entry.temporary) patch.target = Math.floor(flameScore(entry.flame, weights)) + 1;
     set(patch);
   };
   const dist = scoreDist(fl, { level: o.level, mainStat, secondary, type: type.id, advantaged: o.adv, weights });
@@ -47,7 +51,7 @@ export function Flames({ data, state }) {
       <div class="form-grid">
         <label class="field"><span>Item</span><select id="flame-slot" class="select" value=${o.slot} onChange=${(e) => pickSlot(e.currentTarget.value)}>
           <option value="">Any item</option>
-          ${slots.map((s) => html`<option value=${s.id}>${s.name}${gear[s.id] && gear[s.id].note ? ': ' + gear[s.id].note : ''}</option>`)}
+          ${slots.map((s) => html`<option value=${s.id}>${s.name}${gear[s.id] && gear[s.id].note ? ': ' + gear[s.id].note : ''}${gear[s.id] && gear[s.id].temporary ? ' (expires)' : ''}</option>`)}
         </select></label>
         <label class="field"><span>Item level</span><${NumberInput} id="flame-level" className="input" label="Item level" value=${o.level} max=${300} onChange=${(v) => set({ level: v || 0 })} /></label>
         <label class="field"><span>Target flame score</span><${NumberInput} id="flame-target" className="input" label="Target flame score" value=${o.target} max=${9999} onChange=${(v) => set({ target: v || 0 })} /></label>
@@ -57,12 +61,13 @@ export function Flames({ data, state }) {
         <${Seg} label="Flame type" value=${type.id} onChange=${(v) => set({ type: v })} options=${fl.types.map((t) => [t.id, t.name])} />
         <label class="toggle"><input id="flame-adv" type="checkbox" checked=${o.adv} onChange=${(e) => set({ adv: e.currentTarget.checked })} /> Boss item (flame advantage)</label>
       </div>
-      ${current !== null ? html`<p class="note">Your ${mine.name.toLowerCase()} flame scores ${current} now. Picking an item sets the target one point above its flame.</p>` : null}
+      ${temp ? html`<p class="warnbox">This item expires, so put no mesos or flames into it. The figures below are for a permanent item of this level.</p>` : null}
+      ${current !== null ? html`<p class="note">Your ${mine.name.toLowerCase()} flame scores ${current} now.${temp ? '' : ' Picking an item sets the target one point above its flame.'}</p>` : null}
       ${!need ? html`<p class="warnbox">No flame can reach ${o.target} on this item. The best possible score is ${best}.</p>` : html`
         <div class="tiles">
-          <div class="tile accent"><span class="k">Typical</span><span class="v">${mesos(need.p50) || count(need.p50) + ' flames'}</span><span class="s">${count(need.p50)} flames: half of all tries are done by then</span></div>
-          <div class="tile"><span class="k">Bad luck</span><span class="v">${mesos(need.p90) || count(need.p90) + ' flames'}</span><span class="s">1 in 10 tries needs more than ${count(need.p90)} flames</span></div>
-          <div class="tile"><span class="k">Chance per flame</span><span class="v">${pct(need.chance)}</span><span class="s">${within !== null ? `${pct(within)} with your ${count(o.have)} flames` : `${count(need.expected)} flames on average`}</span></div>
+          <div class="tile accent"><span class="k">Typical</span><span class="v">${mesos(need.p50) || flames(need.p50)}</span><span class="s">${flames(need.p50)}: half of all tries are done by then</span></div>
+          <div class="tile"><span class="k">Bad luck</span><span class="v">${mesos(need.p90) || flames(need.p90)}</span><span class="s">1 in 10 tries needs more than ${flames(need.p90)}</span></div>
+          <div class="tile"><span class="k">Chance per flame</span><span class="v">${pct(need.chance)}</span><span class="s">${within !== null ? `${pct(within)} with your ${flames(o.have)}` : `${flames(need.expected)} on average`}</span></div>
         </div>
         <div class="tbl-wrap"><table class="tbl">
           <thead><tr><th>To be this sure</th><th class="num">Flames</th>${type.price ? html`<th class="num">Mesos</th>` : null}</tr></thead>

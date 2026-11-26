@@ -258,7 +258,9 @@ test('day-only announcements follow the Korean calendar day', () => {
   assert.equal(at('2026-12-15T16:00:00Z')[0].days, 0, '01:00 KST on 16 Dec: today');
   assert.equal(at('2026-12-15T14:00:00Z')[0].days, 1, '23:00 KST on 15 Dec: tomorrow');
   assert.equal(at('2026-12-16T14:59:00Z')[0].days, 0, '23:59 KST on 16 Dec: still today');
-  assert.deepEqual(at('2026-12-16T15:01:00Z'), [], '00:01 KST on 17 Dec: gone');
+  // Nexon's day runs to 09:00 KST the next morning (maintenance ends then), so the entry stays until that.
+  assert.equal(at('2026-12-16T15:01:00Z')[0].late, true, '00:01 KST on 17 Dec: still listed, the patch has not landed');
+  assert.deepEqual(at('2026-12-17T00:00:00Z'), [], '09:00 KST on 17 Dec: gone');
 });
 
 test('the job parser: maintenance titles, year-less end dates, "(End of Maintenance)", zone labels, Sunny Sunday, long headings', () => {
@@ -383,7 +385,9 @@ test('third round: section windows, event merging, Beyond Burning runs, tier hin
   assert.equal(tierFromName('Lionheart Painful Destiny', gear.slotTypes.weapon.filter(Boolean), gear.tierHints), 0);
   assert.ok(tierFromName('Destiny Hero Two-handed Sword', gear.slotTypes.weapon.filter(Boolean), gear.tierHints) > 0);
   // Kept picks that fill every crystal: the suggestion is empty, but bosses are within reach.
-  const priciest = bosses.bosses.filter((x) => x.reset === 'weekly' && !x.noCrystal).sort((x, y) => y.price - x.price).slice(0, 14).map((x) => ({ ...x, party: 1 }));
+  // (One difficulty per boss: two kept difficulties of one boss share a clear and take one place.)
+  const priciest = bosses.bosses.filter((x) => x.reset === 'weekly' && !x.noCrystal).sort((x, y) => y.price - x.price)
+    .filter((x, i, all) => all.findIndex((o) => o.boss === x.boss) === i).slice(0, 14).map((x) => ({ ...x, party: 1 }));
   const s = suggestBosses(bosses, cpData, 5e6, 1, { world: 'heroic' }, priciest);
   assert.equal(s.ids.length, 0);
   assert.ok(s.reachable > 0);

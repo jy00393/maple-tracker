@@ -1,18 +1,29 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, Fold, NumberInput, Stepper, Empty } from '../ui.js';
+import { Card, Fold, NumberInput, Stepper, Empty, plural } from '../ui.js';
 import { shopPlan, itemCap, limitText } from '../calc/shops.js';
-import { fmtKst } from '../time.js';
+import { fmtKst, kstDays } from '../time.js';
+import { resetOf } from '../calc/checklist.js';
 
 const num = (v) => Math.round(v).toLocaleString('en-US');
-// The closing day in Korea compared with today in Korea: 0 = today, 1 = tomorrow.
-const kstDays = (a, b) => Math.round((Date.parse(new Date(b + 9 * 3600000).toISOString().slice(0, 10)) - Date.parse(new Date(a + 9 * 3600000).toISOString().slice(0, 10))) / 86400000);
+const RESET_DAY = { mon: 'Monday', wed: 'Wednesday', thu: 'Thursday' };
+// The reset day of the mission that pays this shop's coins: the one set for it on Checklist (earn.checklistItem).
+export function earnReset(shop, checklist, checklistState) {
+  const id = shop.earn && shop.earn.checklistItem;
+  if (!id || !checklist || !Array.isArray(checklist.groups)) return null;
+  for (const g of checklist.groups) {
+    const item = (g.items || []).find((i) => i.id === id);
+    if (item) return resetOf(item, g, checklistState);
+  }
+  return null;
+}
 const blankShop = () => ({ have: 0, claims: 0, want: {} });
 
-function Shop({ shop, state, char, now }) {
+function Shop({ shop, state, char, now, resetKind }) {
   const [onlyPicked, setOnlyPicked] = useState(false);
   const saved = state.shops[shop.id] || blankShop();
-  const plan = shopPlan(shop, saved, char, now);
+  const plan = shopPlan(shop, saved, char, now, resetKind);
+  // The closing day in Korea compared with today in Korea: 0 = today, 1 = tomorrow. Used for every wording.
   const closesIn = kstDays(now, Date.parse(shop.end));
   const set = (fn) => update((s) => { fn(charSlice(s, 'shops', shop.id, blankShop)); });
   const earn = shop.earn;
@@ -20,7 +31,7 @@ function Shop({ shop, state, char, now }) {
   const coin = shop.currency;
   if (!plan.open) return html`<${Card} title=${shop.name} meta="closed"><${Empty}>This shop closed on ${fmtKst(Date.parse(shop.end))}.<//><//>`;
   return html`<div class="grid wide-left">
-    <${Card} title=${shop.name} meta=${`${shop.event ? shop.event + ' · ' : ''}${closesIn === 0 ? 'closes today' : closesIn === 1 ? 'closes tomorrow' : `${plan.daysLeft} days left`}`}>
+    <${Card} title=${shop.name} meta=${`${shop.event ? shop.event + ' · ' : ''}${closesIn === 0 ? 'closes today' : closesIn === 1 ? 'closes tomorrow' : `${closesIn} days left`}`}>
       <div class="tiles">
         <div class=${'tile ' + (plan.short ? 'accent' : 'ok')}>
           <span class="k">${plan.short ? 'Short by' : 'Left over'}</span>
@@ -28,7 +39,7 @@ function Shop({ shop, state, char, now }) {
           <span class="s">${plan.picked ? `your picks cost ${num(plan.need)} ${coin}` : 'pick what you want below'}</span>
         </div>
         <div class="tile"><span class="k">You can reach</span><span class="v">${num(plan.total)}</span><span class="s">${earn ? `${num(plan.have)} held + up to ${num(plan.toCome)} still to earn` : 'the amount you hold now'}</span></div>
-        <div class="tile"><span class="k">Closes</span><span class="v">${closesIn === 0 ? 'Today' : closesIn === 1 ? 'Tomorrow' : `${plan.daysLeft} days`}</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
+        <div class="tile"><span class="k">Closes</span><span class="v">${closesIn === 0 ? 'Today' : closesIn === 1 ? 'Tomorrow' : `${closesIn} days`}</span><span class="s">${fmtKst(Date.parse(shop.end))}</span></div>
       </div>
       <div class="form-grid">
         <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = Math.floor(v || 0); })} /></label>
@@ -56,8 +67,8 @@ function Shop({ shop, state, char, now }) {
       <${Card} title="How it adds up">
         ${shop.scope ? html`<p class="note">${shop.scope}</p>` : null}
         ${earn ? null : html`<p class="note">How ${coin} is earned is not listed here, so only the amount you hold is counted. Keep it up to date.</p>`}
-        ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} claims a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
-          <p class="note">"Still to earn" assumes ${earn.perWeek} claims in every week that is left, up to the ${earn.max} total.</p>` : null}
+        ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} ${plural(earn.perWeek, 'claim')} a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
+          <p class="note">"Still to earn" assumes ${earn.perWeek} ${plural(earn.perWeek, 'claim')} in every week that is left, up to the ${earn.max} total.${RESET_DAY[resetKind] ? ` Weeks start on ${RESET_DAY[resetKind]} at 09:00 KST, the reset set for this mission on Checklist.` : ''}</p>` : null}
         <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold up to date.</p>
         ${shop.useBy ? html`<p class="warnbox">Most items from this shop expire on ${fmtKst(Date.parse(shop.useBy))}. Use them before then.</p>` : null}
       <//>
@@ -78,5 +89,5 @@ export function ShopsView({ data, state, now }) {
   if (list.length === 0) return html`<${Card} title="Coin shop"><${Empty}>No event shop is listed right now.<//><//>`;
   const shop = list.find((s) => s.id === state.ui.shopId) || list[0];
   return html`${list.length > 1 ? html`<div class="toolbar"><label class="field"><span>Shop (${list.length} open)</span><select id="shop-pick" class="select" value=${shop.id} onChange=${(e) => { const v = e.currentTarget.value; update((s) => { s.ui.shopId = v; }); }}>${list.map((s) => html`<option value=${s.id}>${s.name}</option>`)}</select></label></div>` : null}
-    <${Shop} key=${shop.id} shop=${{ ...shop, sourceNote: data.shops.source }} state=${state} char=${char} now=${now} />`;
+    <${Shop} key=${shop.id} shop=${{ ...shop, sourceNote: data.shops.source }} state=${state} char=${char} now=${now} resetKind=${earnReset(shop, data.checklist, state.checklist)} />`;
 }

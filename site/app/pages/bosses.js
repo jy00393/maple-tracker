@@ -7,7 +7,8 @@ import { PitchedCard } from './pitched.js';
 import { CombatPowerCard } from './bosscp.js';
 import { reach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
 
-// Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart. Mounted
+// Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart: what was
+// earned, and as `planned` the week's target on the same basis (earned plus what was still open). Mounted
 // once for the whole app (main.js), so a clear ticked on any page is saved.
 export function IncomeKeeper({ data, state }) {
   const now = useNow(60000);
@@ -18,7 +19,7 @@ export function IncomeKeeper({ data, state }) {
 function IncomeRecorder({ income, state, now }) {
   const key = dayKey(crystalWeekStart(now));
   const earned = income.worlds.reduce((a, w) => a + (w.earnedTotal || 0), 0);
-  const planned = income.worlds.reduce((a, w) => a + (w.plannedTotal || 0), 0);
+  const planned = income.worlds.reduce((a, w) => a + (w.targetTotal || 0), 0);
   useEffect(() => {
     const h = (state.incomeHistory || {})[key];
     if (h && h.earned === earned && h.planned === planned) return;
@@ -48,16 +49,19 @@ function blankBosses() {
 // `line` is the boss's line from characterLines: its `shared` lists the other difficulties with the same clear.
 // Ticking one difficulty moves the tick from any other; unticking a boss that is done on another difficulty
 // takes that tick away.
-export function toggleClear(charId, boss, line) {
+// `want` is what the box was moved to (true = ticked). An untick never adds a mark: a box drawn ticked before a
+// reset and clicked just after it leaves the new period empty. Without `want` the current period is toggled.
+export function toggleClear(charId, boss, line, want) {
   update((s) => {
     const t = Date.now();
     const b = charSlice(s, 'bosses', charId, blankBosses);
     const key = clearKey(boss, t);
     const marks = (b.clears[boss.id] = b.clears[boss.id] || {});
     const others = ((line && line.shared) || []).filter((id) => b.clears[id] && b.clears[id][key]);
+    const tick = typeof want === 'boolean' ? want : !(marks[key] || others.length);
     for (const id of others) delete b.clears[id][key];
-    if (marks[key]) delete marks[key];
-    else if (!others.length) marks[key] = boss.reset === 'monthly' ? t : true;
+    if (!tick) delete marks[key];
+    else if (!marks[key]) marks[key] = boss.reset === 'monthly' ? t : true;
     // keep only recent marks
     const keys = Object.keys(marks).sort();
     while (keys.length > 12) delete marks[keys.shift()];
@@ -74,7 +78,7 @@ function setPick(charId, bossId, pick) {
 
 function ThisWeek({ char, income, data, now }) {
   const mine = income.perChar[char.id];
-  if (!mine || mine.lines.length === 0) return html`<${Empty}>Pick the bosses you run in the list below, then tick them off here as you clear them.<//>`;
+  if (!mine || (mine.lines.length === 0 && mine.unpicked.length === 0)) return html`<${Empty}>Pick the bosses you run in the list below, then tick them off here as you clear them.<//>`;
   const cap = data.bosses.limits.weeklyPerCharacter;
   let weeklyRank = 0;
   return html`<div class="tbl-wrap"><table class="tbl">
@@ -86,7 +90,7 @@ function ThisWeek({ char, income, data, now }) {
         const over = counts && weeklyRank > cap;
         const id = `clear-${l.bossId}`;
         return html`<tr class=${over || l.doneAs ? 'off' : ''}>
-          <td><input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${() => toggleClear(char.id, l.boss, l)}
+          <td><input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${(e) => toggleClear(char.id, l.boss, l, e.currentTarget.checked)}
             aria-label=${`${l.boss.difficulty} ${l.boss.boss} cleared ${l.kind === 'daily' ? 'today' : l.kind === 'monthly' ? 'this month' : 'this week'}`} /></td>
           <td><label for=${id}>${l.boss.difficulty} ${l.boss.boss}</label>
             ${l.party > 1 ? html` <span class="small muted">party of ${l.party}</span>` : null}
@@ -94,9 +98,15 @@ function ThisWeek({ char, income, data, now }) {
             ${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}: one clear for all difficulties</span>` : l.spare ? html` <span class="small muted">shares one clear with ${l.spare}: not counted as planned</span>` : null}
             ${over ? html` <span class="small muted">over the ${cap}-crystal cap</span>` : null}</td>
           <td class="num">${l.value ? fmtMesos(l.value) : '—'}</td>
-          <td class="num">${l.doneAs && !l.cleared ? '—' : l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared ? 'Cleared' : l.clearedNow ? 'Earlier this month' : '—'}</td>
+          <td class="num">${l.doneAs && !l.cleared ? '—' : l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared > 1 ? `Cleared ${l.cleared} times` : l.cleared ? 'Cleared' : l.clearedNow ? 'Earlier this month' : '—'}</td>
         </tr>`;
       })}
+      ${mine.unpicked.map((u) => html`<tr class="off">
+        <td></td>
+        <td>${u.boss.difficulty} ${u.boss.boss} <span class="small muted">cleared this week, no longer picked. Still counted as earned, as a solo clear.</span></td>
+        <td class="num">${fmtMesos(u.earned[0])}</td>
+        <td class="num">${u.kind === 'daily' ? `${u.earned.length} / 7 days` : u.earned.length > 1 ? `Cleared ${u.earned.length} times` : 'Cleared'}</td>
+      </tr>`)}
     </tbody>
   </table></div>`;
 }
@@ -153,8 +163,8 @@ export function BossesPage({ data, state }) {
     <${PageHead} title="Bosses">${char.name}: tick clears as you go. The crystal week resets Thursday 09:00 KST; only your ${cap} best weekly crystals sell.<//>
     ${char.quanah ? html`<p class="warnbox">Quanah World Leap characters can't sell boss crystals, so income shows zero.</p>` : null}
     <div class="tiles">
-      <${Tile} k="Earned this week" v=${fmtMesos(mine.earned)} s=${`of ${fmtMesos(mine.planned)} planned`} accent />
-      <${Tile} k="Weekly crystals" v=${`${Math.min(mine.weeklyCleared, cap)} / ${Math.min(mine.weeklyPicked, cap)}`} s=${mine.overCap ? `${mine.overCap} picked bosses fall outside the cap` : `cap ${cap} per character`} />
+      <${Tile} k="Earned this week" v=${fmtMesos(mine.earned)} s=${`of ${fmtMesos(mine.target)} planned`} accent />
+      <${Tile} k="Weekly crystals" v=${`${Math.min(mine.weeklyCleared, cap)} / ${Math.min(mine.weeklyPicked + mine.weeklyUnpicked, cap)}`} s=${mine.overCap ? `${mine.overCap} picked boss${mine.overCap === 1 ? ' falls' : 'es fall'} outside the cap` : `cap ${cap} per character`} />
       <${Tile} k=${world ? world.label + ' world' : 'World'} v=${world ? fmtMesos(world.earnedTotal) : '—'} s=${world ? `${world.earnedCount} of ${data.bosses.limits.perWorldPerWeek} crystals sold` : ''} />
       <${Tile} k="Price basis" v=${char.world === 'interactive' ? 'Interactive' : 'Heroic ×5'} s="from the GMS v.272 crystal table" />
     </div>

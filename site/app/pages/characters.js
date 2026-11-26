@@ -6,6 +6,7 @@ import { MAIN_STAT_CHOICES, mainStatForClass, mainStatLabel } from '../calc/upgr
 import { reclassifyLines } from '../calc/potential.js';
 import { mainStatOnClassChange } from '../calc/upgrades.js';
 import { fmtKst } from '../time.js';
+import { hasSharedTicks } from '../calc/checklist.js';
 
 export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
   'Night Lord', 'Shadower', 'Dual Blade', 'Buccaneer', 'Corsair', 'Cannoneer', 'Dawn Warrior', 'Blaze Wizard', 'Wind Archer', 'Night Walker',
@@ -55,14 +56,17 @@ export function CharactersPage({ data, state }) {
         ${state.characters.length === 0 ? html`<${Empty}>None yet. Add one on the right.<//>` : state.characters.map((c) => {
           const n = nexonFor(c);
           if (editing === c.id) {
-            return html`<${CharacterForm} initial=${c} classStats=${classStats} saveLabel="Save" onCancel=${() => setEditing(null)}
+            // Keyed by character: without a key, pressing Edit on another character reused this form with the
+            // first character's fields (id included) and saved them over the second.
+            return html`<${CharacterForm} key=${'edit-' + c.id} initial=${c} classStats=${classStats} saveLabel="Save" onCancel=${() => setEditing(null)}
               onSave=${(f) => { update((s) => {
                 const i = s.characters.findIndex((x) => x.id === c.id);
-                s.characters[i] = { ...c, ...f };
+                if (i < 0) return; // deleted on another device while the form was open
+                s.characters[i] = { ...s.characters[i], ...f, id: c.id };
                 if ((c.mainStat || 'STR') !== (f.mainStat || 'STR')) reclassifyLines(data, s.gear[c.id], f.mainStat || 'STR', c.mainStat || 'STR');
               }); setEditing(null); }} />`;
           }
-          return html`<div class="row">
+          return html`<div class="row" key=${c.id}>
             <input type="radio" name="active-char" id=${'act-' + c.id} checked=${state.activeId === c.id} aria-label=${'Show ' + c.name}
               onChange=${() => update((s) => { s.activeId = c.id; })} />
             <label class="lbl" for=${'act-' + c.id}>${c.name} <span class="small muted">${c.cls || ''}${c.level ? ' · Lv. ' + c.level : ''}</span></label>
@@ -90,14 +94,14 @@ export function CharactersPage({ data, state }) {
             </div>
             ${(() => { const want = mainStatForClass(c.cls, classStats); return want && want !== (c.mainStat || 'STR') ? html`<p class="warnbox">${c.cls} uses ${mainStatLabel(want)}, but this character is set to ${mainStatLabel(c.mainStat || 'STR')}. Press Edit and pick the class again (or the main stat) to fix potential lines and flame scores.</p>` : null; })()}
             <p class="note">${worldLabel(c)}${c.quanah ? ' · Quanah' : ''}
-              ${n ? html` · Nexon: Lv. ${n.level}${n.jobName ? ' ' + n.jobName : ''}, checked ${fmtKst(Date.parse(n.checkedAt), false)}
+              ${n ? html` · Nexon: Lv. ${n.level}${n.jobName ? ' ' + n.jobName : ''}, last change seen ${fmtKst(Date.parse(n.checkedAt), false)}
                 ${n.level !== c.level ? html` <button type="button" class="btn" onClick=${() => update((s) => { const x = s.characters.find((y) => y.id === c.id); x.level = n.level; })}>Use Lv. ${n.level}</button>` : null}` : null}</p>
           </div>`;
         })}
       <//>
       <${Card} title="Add a character" bodyClass="">
         <${CharacterForm} key=${state.characters.length} initial=${blankForm()} classStats=${classStats} saveLabel="Add character"
-          onSave=${(f) => update((s) => { const id = newId(); if (s.characters.length === 0) { s.checklist.owner = id; s.checklist.ownerSet = true; } s.characters.push({ id, ...f }); s.activeId = id; })} />
+          onSave=${(f) => update((s) => { const id = newId(); if (s.characters.length === 0) { if (hasSharedTicks(s.checklist)) s.checklist.owner = id; s.checklist.ownerSet = true; } s.characters.push({ id, ...f }); s.activeId = id; })} />
       <//>
       <${Fold} title="Automatic level updates" meta="optional · tap to open" className="span2">
         <p class="note">To have your level and class refreshed from Nexon's rankings every 6 hours, list the character in <code>config/characters.json</code> in your GitHub repo, like <code>[{"name": "YourName", "region": "na"}]</code>. The next run adds it here with a button to copy the level across. Names you list there are visible to anyone who can see the repo; Nexon's own rankings already show them publicly.</p>

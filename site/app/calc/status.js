@@ -10,7 +10,7 @@ export function latestPatchNotes(news) {
     .sort((a, b) => Date.parse(b.liveDate) - Date.parse(a.liveDate))[0] || null;
 }
 
-// sync: { state: 'off' | 'busy' | 'ok' | 'error', message } from sync.js; syncOn: a token is saved on this device.
+// sync: { state: 'off' | 'busy' | 'ok' | 'warn' | 'error', message } from sync.js; syncOn: a token is saved on this device.
 // meta: data/meta.json written by the refresh job (or null); tablesChecked: ISO date the game tables were last checked.
 // tokenExpires: 'YYYY-MM-DD' typed in by the user, or null.
 export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenExpires }) {
@@ -18,6 +18,9 @@ export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenE
   if (!syncOn) parts.push({ key: 'sync', level: 'off', short: 'Sync off', text: 'Device sync is off. Your entries stay in this browser only.' });
   else if (sync && sync.state === 'error') parts.push({ key: 'sync', level: 'error', short: 'Sync error', text: `Device sync failed: ${sync.message || 'unknown error'}` });
   else if (sync && sync.state === 'busy') parts.push({ key: 'sync', level: 'busy', short: 'Syncing…', text: 'Syncing your entries…' });
+  else if (sync && sync.state === 'warn') parts.push({ key: 'sync', level: 'warn', short: 'Check device clocks', text: sync.message || 'The clock on one of your devices is wrong.' });
+  // A token is saved but no sync has finished in this tab yet: not "in sync" until one has.
+  else if (!sync || sync.state !== 'ok') parts.push({ key: 'sync', level: 'busy', short: 'Not synced yet', text: 'Device sync is set up but has not run in this tab yet.' });
   else parts.push({ key: 'sync', level: 'ok', short: 'Synced', text: `Devices in sync${sync && sync.message ? ` (${sync.message.toLowerCase()})` : ''}.` });
 
   // The token can stop working at any time on its expiry date, so the countdown runs to the start of that date (UTC).

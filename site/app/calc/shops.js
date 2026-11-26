@@ -1,6 +1,6 @@
 // Event coin shop planner: what your picks cost against the coins you hold and can still earn.
 // Saved per shop as { have, claims, want: { itemId: qty } }. "want" is what you still plan to buy.
-const DAY = 86400000;
+import { DAY, nextReset } from '../time.js';
 const n = (v) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Math.floor(Number(v)) : 0);
 
 // Items this character can buy: world-only items for the other world type are left out.
@@ -22,18 +22,31 @@ export function limitText(item) {
   return String(item.limit);
 }
 
+const WEEKLY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+// Mission weeks still open before `end`, counting the one running now. With a weekly reset day ('mon', 'wed',
+// 'thu', as on Checklist) that is 1 + the resets that fall before the end: a week with only a day left still
+// counts, so an "up to" figure is never lower than what can be earned. Without a reset day it is 7-day blocks
+// counted back from the end.
+export function weeksLeft(end, now, resetKind) {
+  if (!(end > now)) return 0;
+  if (!WEEKLY.includes(resetKind)) return Math.ceil((end - now) / (7 * DAY));
+  const first = nextReset(resetKind, now);
+  return 1 + (first < end ? Math.floor((end - 1 - first) / (7 * DAY)) + 1 : 0);
+}
+
 // Coins still earnable before the shop closes: missions left, at most perWeek for each week that remains.
-export function coinsToCome(shop, claims, now) {
+export function coinsToCome(shop, claims, now, resetKind) {
   const earn = shop.earn;
   if (!earn) return 0;
   const end = Date.parse(shop.end);
   if (!(end > now)) return 0;
-  const weeks = Math.ceil((end - now) / (7 * DAY));
+  const weeks = weeksLeft(end, now, resetKind);
   const left = Math.max(0, earn.max - n(claims));
   return Math.min(left, weeks * earn.perWeek) * earn.perClaim;
 }
 
-export function shopPlan(shop, saved, char, now) {
+export function shopPlan(shop, saved, char, now, resetKind) {
   const s = saved || {};
   const want = s.want || {};
   const rows = shopItems(shop, char).map((item) => {
@@ -43,7 +56,7 @@ export function shopPlan(shop, saved, char, now) {
   });
   const need = rows.reduce((a, r) => a + r.cost, 0);
   const have = n(s.have);
-  const toCome = coinsToCome(shop, s.claims, now);
+  const toCome = coinsToCome(shop, s.claims, now, resetKind);
   const open = Date.parse(shop.end) > now;
   return {
     rows, need, have, toCome, open,

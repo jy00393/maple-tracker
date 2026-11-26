@@ -37,99 +37,220 @@ export function shareKey(boss) {
 const MONTH_SHARE = (7 * 12) / 365.25;
 
 // One line per picked boss with this week's planned and cleared crystal counts.
+// `earned` lists the crystals the line earned this crystal week, one value per clear. A clear ticked on a
+// difficulty that is not picked (the pick moved to another difficulty after the clear) is credited to the picked
+// line of that boss, at the crystal of the difficulty that was cleared.
 export function characterLines(char, bossState, bossData, bossById, now) {
   const picks = (bossState && bossState.picks) || {};
   const clears = (bossState && bossState.clears) || {};
   const start = crystalWeekStart(now);
   const lines = [];
-  const valueOf = (b) => crystalValue(b, char, bossData, (picks[b.id] || {}).party);
-  // Of two difficulties, the one that counts: the better crystal, then the id so every device agrees.
-  const beats = (a, b) => valueOf(a) - valueOf(b) || (a.id < b.id ? 1 : -1);
+  // The better crystal, then the id so every device agrees.
+  const better = (va, a, vb, b) => va - vb || (a.id < b.id ? 1 : -1);
   for (const [bossId, pick] of Object.entries(picks)) {
     const boss = bossById[bossId];
     if (!boss) continue;
-    const value = crystalValue(boss, char, bossData, pick.party);
-    const own = clears[bossId] || {};
     const others = (bossData.bosses || []).filter((o) => o.id !== bossId && shareKey(o) === shareKey(boss));
-    // The other difficulty ticked for a period, if any (the best one when several are).
-    const otherAt = (key) => others.filter((o) => clears[o.id] && clears[o.id][key]).sort((a, b) => beats(b, a))[0] || null;
-    // This boss's own tick counts unless a better difficulty is ticked for the same period (two devices, or
+    const pickedValue = (b) => crystalValue(b, char, bossData, picks[b.id].party);
+    // Of the picked difficulties of this boss, the one that is planned.
+    const top = [boss, ...others.filter((o) => picks[o.id])].sort((x, y) => better(pickedValue(y), y, pickedValue(x), x))[0];
+    // A difficulty that is not picked has no party size of its own: it is valued at the planned pick's.
+    const valueOf = (b) => crystalValue(b, char, bossData, (picks[b.id] || picks[top.id]).party);
+    const value = valueOf(boss);
+    const group = [boss, ...others];
+    // The difficulty whose tick counts for a period: the best crystal when several are ticked (two devices, or
     // ticks from before the difficulties were tied together).
-    const wins = (key) => { const o = otherAt(key); return !o || beats(boss, o) > 0; };
-    const marks = new Proxy(own, { get: (t, k) => (t[k] && wins(k) ? t[k] : undefined) });
+    const winner = (key) => group.filter((o) => clears[o.id] && clears[o.id][key]).sort((x, y) => better(valueOf(y), y, valueOf(x), x))[0] || null;
+    // What this line earns from a period's tick: its own winning tick, or, on the planned line, the tick of a
+    // difficulty that is not picked. null when the period's clear (if any) belongs to another line.
+    const claim = (key) => {
+      const w = winner(key);
+      if (!w) return null;
+      if (w.id === bossId) return { value, mark: clears[bossId][key] };
+      if (!picks[w.id] && top.id === bossId) return { value: valueOf(w), mark: clears[w.id][key] };
+      return null;
+    };
     const nowKey = clearKey(boss, now);
-    const other = marks[nowKey] ? null : otherAt(nowKey);
-    const top = [boss, ...others.filter((o) => picks[o.id])].sort((a, b) => beats(b, a))[0];
-    const extra = { shared: others.map((o) => o.id), doneAs: other ? other.difficulty : null, spare: top.id === bossId ? null : top.difficulty };
+    const wNow = winner(nowKey);
+    const ownNow = Boolean(wNow && wNow.id === bossId);
+    const extra = { shared: others.map((o) => o.id), doneAs: wNow && !ownNow ? wNow.difficulty : null, spare: top.id === bossId ? null : top.difficulty };
+    const earned = [];
+    const base = { bossId, boss, value, party: pick.party || 1 };
     if (boss.reset === 'daily') {
-      let cleared = 0;
-      for (let i = 0; i < 7; i++) if (marks[periodKey('daily', start + i * DAY)]) cleared++;
-      const today = Boolean(marks[periodKey('daily', now)]);
-      lines.push({ bossId, boss, kind: 'daily', value, planned: extra.spare ? 0 : 7, cleared, clearedNow: today, party: pick.party || 1, ...extra });
+      for (let i = 0; i < 7; i++) {
+        const c = claim(periodKey('daily', start + i * DAY));
+        if (c) earned.push(c.value);
+      }
+      lines.push({ ...base, kind: 'daily', planned: extra.spare ? 0 : 7, cleared: earned.length, clearedNow: ownNow, earned, ...extra });
     } else if (boss.reset === 'monthly') {
       // The month's mark holds the time it was ticked; it is earned in that crystal week only. Marks saved before
       // that (true) carry no time and are counted in the current week.
-      const mark = marks[clearKey(boss, now)];
-      // A crystal week can start in the previous month (Thu 26 Nov to Wed 2 Dec): that month's clear counts too.
-      const prev = marks[periodKey('monthly', start)];
-      const inWeek = (Boolean(mark) && (typeof mark !== 'number' || crystalWeekStart(mark) === start))
-        || (typeof prev === 'number' && crystalWeekStart(prev) === start);
-      lines.push({ bossId, boss, kind: 'monthly', value, planned: 1, plannedShare: MONTH_SHARE, cleared: inWeek ? 1 : 0, clearedNow: Boolean(mark), party: pick.party || 1, ...extra });
-      if (extra.spare) lines[lines.length - 1].planned = 0;
+      const cur = claim(nowKey);
+      if (cur && (typeof cur.mark !== 'number' || crystalWeekStart(cur.mark) === start)) earned.push(cur.value);
+      // A crystal week can start in the previous month (Thu 26 Nov to Wed 2 Dec): that month's clear counts too,
+      // as a crystal of its own (the monthly limit resets on the 1st).
+      const prevKey = periodKey('monthly', start);
+      const prev = prevKey !== nowKey ? claim(prevKey) : null;
+      if (prev && typeof prev.mark === 'number' && crystalWeekStart(prev.mark) === start) earned.push(prev.value);
+      lines.push({ ...base, kind: 'monthly', planned: extra.spare ? 0 : 1, plannedShare: MONTH_SHARE, cleared: earned.length, clearedNow: ownNow, earned, ...extra });
     } else {
-      const key = clearKey(boss, now);
-      const done = Boolean(marks[key]);
-      lines.push({ bossId, boss, kind: boss.reset, value, planned: 1, cleared: done ? 1 : 0, clearedNow: done, party: pick.party || 1, ...extra });
+      const c = claim(nowKey);
+      if (c) earned.push(c.value);
+      lines.push({ ...base, kind: boss.reset, planned: 1, cleared: earned.length, clearedNow: ownNow, earned, ...extra });
     }
   }
   return lines.sort((a, b) => b.value - a.value);
 }
 
+// Crystals cleared this crystal week on a boss that has no difficulty picked any more (the pick was removed after
+// the clear, by hand or by "Use this list"). The crystal was earned, so it stays in this week's totals until the
+// reset. One entry per boss: { boss, kind, earned: [value per clear] }. With the pick gone the party size is not
+// known, so each is valued as a solo clear. When several difficulties are ticked for one period the best counts.
+export function unpickedClears(char, bossState, bossData, bossById, now) {
+  const picks = (bossState && bossState.picks) || {};
+  const clears = (bossState && bossState.clears) || {};
+  const start = crystalWeekStart(now);
+  const picked = new Set(Object.keys(picks).filter((id) => bossById[id]).map((id) => shareKey(bossById[id])));
+  const groups = new Map();
+  for (const id of Object.keys(clears)) {
+    const boss = bossById[id];
+    if (!boss || !clears[id] || typeof clears[id] !== 'object' || picked.has(shareKey(boss))) continue;
+    if (!groups.has(shareKey(boss))) groups.set(shareKey(boss), []);
+    groups.get(shareKey(boss)).push(boss);
+  }
+  const valueOf = (b) => crystalValue(b, char, bossData, 1);
+  // The same order as a picked boss: the better crystal, then the id so every device agrees.
+  const best = (list) => [...list].sort((x, y) => valueOf(y) - valueOf(x) || (x.id < y.id ? 1 : -1))[0] || null;
+  const out = [];
+  for (const group of groups.values()) {
+    const reset = group[0].reset;
+    const winner = (key) => best(group.filter((o) => clears[o.id][key]));
+    const won = [];
+    if (reset === 'daily') {
+      for (let i = 0; i < 7; i++) won.push(winner(periodKey('daily', start + i * DAY)));
+    } else if (reset === 'monthly') {
+      // The same rule as a picked monthly boss: the mark's time decides the week; an old mark (true) counts now.
+      const nowKey = periodKey('monthly', now);
+      const prevKey = periodKey('monthly', start);
+      const cur = winner(nowKey);
+      const curMark = cur && clears[cur.id][nowKey];
+      if (cur && (typeof curMark !== 'number' || crystalWeekStart(curMark) === start)) won.push(cur);
+      const prev = prevKey !== nowKey ? winner(prevKey) : null;
+      const prevMark = prev && clears[prev.id][prevKey];
+      if (prev && typeof prevMark === 'number' && crystalWeekStart(prevMark) === start) won.push(prev);
+    } else {
+      won.push(winner(periodKey('thu', now)));
+    }
+    const hits = won.filter((b) => b && valueOf(b) > 0);
+    if (!hits.length) continue;
+    // Listed under the best difficulty that was cleared.
+    out.push({ boss: best(hits), kind: reset, earned: hits.map(valueOf) });
+  }
+  return out.sort((a, b) => valueOf(b.boss) - valueOf(a.boss) || (a.boss.id < b.boss.id ? -1 : 1));
+}
+
+// What the weekly bosses still open would add before the Thursday reset, by the rule the totals use: only the
+// `cap` best weekly crystals sell, so an open boss counts when it would be one of them, at what it adds (its
+// crystal less the cheaper cleared one it pushes out). `extraEarned`: crystals earned outside the lines
+// (unpickedClears). The value equals this week's target less earned for weekly bosses.
+export function weeklyOpen(lines, cap = Infinity, extraEarned = []) {
+  const limit = cap > 0 ? cap : Infinity;
+  const weekly = (lines || []).filter((l) => l.kind === 'weekly' && l.value > 0);
+  const earnedOf = (l) => (Array.isArray(l.earned) ? l.earned : l.cleared ? [l.value] : []);
+  const earned = [...weekly.flatMap(earnedOf), ...(extraEarned || [])].filter((v) => v > 0).sort((a, b) => b - a).slice(0, limit);
+  const open = weekly.filter((l) => !l.cleared && !l.clearedNow && !l.doneAs && !l.spare);
+  // An earned crystal goes before an open one of the same value: swapping them adds nothing.
+  const best = [...earned.map((value) => ({ value, open: 0 })), ...open.map((l) => ({ value: l.value, open: 1 }))]
+    .sort((a, b) => b.value - a.value || a.open - b.open).slice(0, limit);
+  const sum = (list) => list.reduce((a, v) => a + v, 0);
+  return { count: best.filter((u) => u.open).length, value: sum(best.map((u) => u.value)) - sum(earned) };
+}
+
+// How many more crystals a line can add this crystal week, on the same basis as `earned`. A monthly crystal
+// counts in full while it can still be cleared this month, and not at all once it was cleared in an earlier week
+// (the weekly plan, `planned`, spreads it over the month instead).
+function openUnits(l) {
+  if (l.spare) return 0;
+  if (l.kind === 'daily') return Math.max(0, l.planned - l.cleared);
+  return l.clearedNow || l.doneAs ? 0 : 1;
+}
+
 // Applies the 14-per-character weekly cap and the per-world weekly cap.
+// planned: the plan for an average week (a monthly crystal at its weekly share): income a week, goal dates.
+// earned: crystals cleared this crystal week. target: earned plus what is still open this week, so "earned of
+// target" compares like with like. Crystals cleared on a boss that is no longer picked (unpickedClears) are in
+// earned and target, never in planned or in `lines`; perChar.unpicked lists them.
+// A character's target is never below what it earned: when a world is over its cap, the crystals a character has
+// already earned keep their places in the target before anyone's open ones.
 export function computeIncome(characters, state, bossData, bossById, now) {
   const perChar = {};
   const worlds = {};
   const capChar = bossData.limits.weeklyPerCharacter;
   const capWorld = bossData.limits.perWorldPerWeek;
+  const KINDS = ['planned', 'earned', 'target'];
+  const desc = (a, b) => b - a;
   for (const char of characters) {
     const lines = characterLines(char, state.bosses[char.id], bossData, bossById, now);
     const weekly = lines.filter((l) => l.kind === 'weekly' && l.value > 0);
     // A second difficulty picked for the same clear is not planned income.
     const wanted = weekly.filter((l) => !l.spare);
     const plannedWeekly = wanted.slice(0, capChar);
-    const clearedWeekly = weekly.filter((l) => l.cleared).slice(0, capChar);
-    const units = { planned: [], earned: [] };
-    for (const l of plannedWeekly) units.planned.push({ value: l.value, char: char.id });
-    for (const l of clearedWeekly) units.earned.push({ value: l.value, char: char.id });
+    const unpicked = unpickedClears(char, state.bosses[char.id], bossData, bossById, now);
+    const loose = unpicked.filter((u) => u.kind === 'weekly').flatMap((u) => u.earned);
+    const earnedWeekly = [...weekly.flatMap((l) => l.earned), ...loose].sort(desc).slice(0, capChar);
+    const targetWeekly = [...weekly.flatMap((l) => [...l.earned, ...Array(openUnits(l)).fill(l.value)]), ...loose].sort(desc).slice(0, capChar);
+    const units = { planned: [], earned: [], target: [] };
+    const add = (kind, value) => { if (value > 0) units[kind].push({ value, char: char.id }); };
+    for (const l of plannedWeekly) add('planned', l.value);
+    for (const v of earnedWeekly) add('earned', v);
+    for (const v of targetWeekly) add('target', v);
     for (const l of lines) {
       if (l.value <= 0 || l.kind === 'weekly') continue;
-      for (let i = 0; i < l.planned; i++) units.planned.push({ value: l.value * (l.plannedShare || 1), char: char.id });
-      for (let i = 0; i < l.cleared; i++) units.earned.push({ value: l.value, char: char.id });
+      for (let i = 0; i < l.planned; i++) add('planned', l.value * (l.plannedShare || 1));
+      for (const v of l.earned) { add('earned', v); add('target', v); }
+      for (let i = 0; i < openUnits(l); i++) add('target', l.value);
+    }
+    for (const u of unpicked) {
+      if (u.kind === 'weekly') continue;
+      for (const v of u.earned) { add('earned', v); add('target', v); }
     }
     perChar[char.id] = {
       lines,
       weeklyPicked: wanted.length,
-      weeklyCleared: weekly.filter((l) => l.cleared).length,
+      weeklyCleared: weekly.filter((l) => l.cleared).length + loose.length,
+      // Bosses cleared this week that are no longer picked. The weekly ones still take a place under the cap.
+      unpicked,
+      weeklyUnpicked: loose.length,
       overCap: Math.max(0, wanted.length - capChar),
       units,
       earned: 0,
-      planned: 0
+      planned: 0,
+      target: 0
     };
     const wk = worldKey(char);
-    worlds[wk] = worlds[wk] || { key: wk, label: worldLabel(char), planned: [], earned: [] };
-    worlds[wk].planned.push(...units.planned);
-    worlds[wk].earned.push(...units.earned);
+    worlds[wk] = worlds[wk] || { key: wk, label: worldLabel(char), planned: [], earned: [], target: [] };
+    for (const kind of KINDS) worlds[wk][kind].push(...units[kind]);
   }
+  const byValue = (a, b) => b.value - a.value;
   for (const w of Object.values(worlds)) {
-    for (const kind of ['planned', 'earned']) {
-      const kept = w[kind].sort((a, b) => b.value - a.value).slice(0, capWorld);
+    // How many of each character's earned crystals fit under the world cap.
+    const held = {};
+    for (const u of [...w.earned].sort(byValue).slice(0, capWorld)) held[u.char] = (held[u.char] || 0) + 1;
+    // In the target, that many of the character's best crystals go first. They are worth at least the earned
+    // ones (the target holds every earned crystal or a better one), so target >= earned for every character.
+    const seen = {};
+    for (const u of [...w.target].sort(byValue)) {
+      seen[u.char] = (seen[u.char] || 0) + 1;
+      u.held = seen[u.char] <= (held[u.char] || 0) ? 1 : 0;
+    }
+    for (const kind of KINDS) {
+      const kept = w[kind].sort(kind === 'target' ? (a, b) => b.held - a.held || byValue(a, b) : byValue).slice(0, capWorld);
       w[kind + 'Count'] = kept.length;
       w[kind + 'Total'] = kept.reduce((sum, u) => sum + u.value, 0);
       w[kind + 'Dropped'] = Math.max(0, w[kind].length - capWorld);
       for (const u of kept) perChar[u.char][kind] += u.value;
     }
-    delete w.planned;
-    delete w.earned;
+    for (const kind of KINDS) delete w[kind];
   }
   return { perChar, worlds: Object.values(worlds) };
 }

@@ -25,6 +25,13 @@ export function flagKey(name, who) {
   return w.id ? `${w.id}|${name}` : name;
 }
 
+// True when the checklist holds ticks or unlock flags that are not tied to a character (saved before they were
+// per character, or before any character existed). Only then does the list need an owner.
+export function hasSharedTicks(checklistState) {
+  const shared = (m) => Object.keys(m || {}).some((k) => !k.includes('|'));
+  return shared(checklistState.items) || shared(checklistState.flags);
+}
+
 // Ticks and flags saved before they were per character belong to checklist.owner (the character that was
 // active when the tracker was updated), so nothing that was ticked that day is lost.
 function isOwner(checklistState, w) {
@@ -63,7 +70,8 @@ export function itemStatus(item, group, checklistState, now, who) {
   const expired = Boolean((item.until && Date.parse(item.until) < now) || notForChar);
   if (item.type === 'count') {
     const r = record(checklistState, item, '', kind, now, w);
-    const count = r ? r.c || 0 : 0;
+    // A whole number from 0 to the target, whatever was saved.
+    const count = r && typeof r.c === 'number' && Number.isFinite(r.c) ? Math.max(0, Math.min(item.target, Math.floor(r.c))) : 0;
     return { kind, locked, tooLow, gated, expired, count, done: count >= item.target };
   }
   if (item.type === 'chips') {
@@ -85,4 +93,48 @@ export function streakEntry(existing, done, total, by) {
   if (existing.done === done && existing.total === total && (existing.by || null) === (by || null)) return null;
   if (!existing.by || !by || existing.by === by) return existing.done === done && existing.total === total ? null : next;
   return done / total > existing.done / existing.total ? next : null;
+}
+
+const ratio = (e) => (e && e.total > 0 ? e.done / e.total : 0);
+
+// What today's streak entry should be, worked out from every character's ticks: `list` holds one
+// { by, done, total } per character. The ticks are what sync carries between devices, so every device that has
+// them arrives at the same entry, whichever character it shows. The furthest-along character is recorded; on a
+// tie the one already recorded stays, then the one on screen (`activeId`). Returns null for "leave it".
+export function streakToday(existing, list, activeId) {
+  const rank = (p) => (existing && existing.by && p.by === existing.by ? 2 : p.by === activeId ? 1 : 0);
+  let best = null;
+  for (const p of list) {
+    if (!p || !(p.total > 0)) continue;
+    if (!best || ratio(p) > ratio(best) || (ratio(p) === ratio(best) && rank(p) > rank(best))) best = p;
+  }
+  if (!best) return null;
+  // An entry made by a character that is no longer in the list cannot be re-counted: it only gives way to a better one.
+  if (existing && existing.total && existing.by && !list.some((p) => p && p.by === existing.by)) return streakEntry(existing, best.done, best.total, best.by);
+  if (existing && existing.done === best.done && existing.total === best.total && (existing.by || null) === (best.by || null)) return null;
+  return { done: best.done, total: best.total, ...(best.by ? { by: best.by } : {}) };
+}
+
+// Files an item's ticks under reset day `to` instead of `from` (the reset day is one setting for everyone, so
+// every character's tick moves). Nothing is ever deleted here: the pill steps through the days one tap at a time,
+// so a day passed on the way must not cost a tick that the day finally chosen still counts.
+// - A tick that carries its time (`t`) is filed under the week that time falls in with the new day. If the new
+//   day has reset since, that is a past week and the item shows as not done; if a later tap lands on a day that
+//   has not reset it, it shows again. A tick from the old day's last week that the new day has not reset yet
+//   comes back the same way.
+// - A tick saved before ticks carried a time stays in the running week, since nothing says when it was made.
+// A counter's time is its last change. Changes `items` in place.
+export function moveResetDay(items, item, from, to, now) {
+  const oldP = periodKey(from, now);
+  const newP = periodKey(to, now);
+  const tails = ['', ...(item.chips || []).map(([cid]) => `_${cid}`)].map((s) => item.id + s);
+  for (const [k, r] of Object.entries(items)) {
+    if (!r || typeof r !== 'object' || !tails.some((tail) => k === tail || k.endsWith(`|${tail}`))) continue;
+    // The time is only trusted when it agrees with the week the tick is filed under.
+    // A timed tick is only re-filed when the new day still counts it in the running week. One from a week that
+    // is over stays as it is (its key names another day or week, so it reads as not done), which also leaves
+    // its sync stamp alone: re-filing it would make this device's old tick beat a newer one from another device.
+    if (Number.isFinite(r.t) && r.t <= now && RESET_CYCLE.some((d) => r.p === periodKey(d, r.t))) { if (periodKey(to, r.t) === newP) r.p = newP; }
+    else if (r.p === oldP) r.p = newP;
+  }
 }

@@ -1,8 +1,8 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty } from '../ui.js';
-import { symbolPlan, liberationPlan, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
-import { fmtMesos } from '../calc/income.js';
+import { symbolPlan, liberationPlan, liberationCounted, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
+import { fmtMesos, shareKey } from '../calc/income.js';
 import { fmtDate, nextReset, DAY } from '../time.js';
 import { LevelView, ErdaCosts } from './level.js';
 import { ChampionsView } from './champions.js';
@@ -43,13 +43,22 @@ function SymbolTable({ kind, kindData, char, entries }) {
 }
 
 function Liberation({ which, def, char, entry, bossById }) {
-  const plan = liberationPlan(def, entry);
+  const plan = liberationPlan(def, entry, Date.now(), bossById);
   const set = (patch) => update((s) => {
     const lib = charSlice(s, 'liberation', char.id, () => ({}));
     lib[which] = { ...(lib[which] || {}), ...patch };
   });
   const picks = entry.picks || {};
   const sources = Object.entries(def.sources).sort((a, b) => a[1] - b[1]);
+  // Difficulties of one boss share one clear: ticking one un-ticks the others. Lists saved with several ticked
+  // still count only the best one (liberationPlan).
+  const toggle = (bossId) => {
+    const next = { ...picks, [bossId]: !picks[bossId] };
+    const b = bossById[bossId];
+    if (next[bossId] && b) for (const id of Object.keys(def.sources)) if (id !== bossId && next[id] && bossById[id] && shareKey(bossById[id]) === shareKey(b)) next[id] = false;
+    set({ picks: next });
+  };
+  const doubled = liberationCounted(def, picks, bossById).length < Object.keys(picks).filter((id) => picks[id] && def.sources[id] && bossById[id]).length;
   return html`<${Card} title=${def.name} meta=${plan.done ? 'Done' : `${plan.remaining.toLocaleString()} left`}>
     <${Bar} pct=${plan.done ? 1 : plan.pct} big />
     <div class="form-grid">
@@ -62,16 +71,17 @@ function Liberation({ which, def, char, entry, bossById }) {
       ${def.passMultiplier > 1 ? html`<label class="field"><span>Pass (×${def.passMultiplier})</span><label class="small"><input type="checkbox" checked=${Boolean(entry.pass)} onChange=${(e) => set({ pass: e.currentTarget.checked })} /> I have the pass</label></label>` : null}
     </div>
     ${!plan.done ? html`<p class=${Number.isFinite(plan.weeks) ? 'okbox' : 'note'}>${Number.isFinite(plan.weeks)
-      ? `About ${plan.weeks} weeks at ${Math.round(plan.perWeek)} a week: around ${fmtDate(plan.eta)}.`
+      ? `About ${plan.weeks} ${plan.weeks === 1 ? 'week' : 'weeks'} at ${Math.round(plan.perWeek)} a week: around ${fmtDate(plan.eta)}.`
       : 'Tick the bosses you clear each week to see a finish date.'}</p>` : null}
     <div class="chips" style=${{ gridColumn: 'auto' }}>
       ${sources.map(([bossId, amount]) => {
         const b = bossById[bossId];
         if (!b) return null;
         return html`<button type="button" class="chip" aria-pressed=${String(Boolean(picks[bossId]))}
-          onClick=${() => set({ picks: { ...picks, [bossId]: !picks[bossId] } })}>${b.difficulty} ${b.boss} · ${amount}${b.reset === 'monthly' ? '/mo' : ''}</button>`;
+          onClick=${() => toggle(bossId)}>${b.difficulty} ${b.boss} · ${amount}${b.reset === 'monthly' ? '/mo' : ''}</button>`;
       })}
     </div>
+    ${doubled ? html`<p class="note">Difficulties of one boss share one clear, so only the best ticked one counts.</p>` : null}
     <p class="note">Each stage also needs its quest kill (shown in the stage list). ${def.passMultiplier > 1 ? 'The Genesis Pass triples traces.' : ''}</p>
   <//>`;
 }
