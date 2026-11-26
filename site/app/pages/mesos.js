@@ -60,6 +60,8 @@ function Planner({ data, state, now }) {
   // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
   const addGoal = (name, cost) => { if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
   const move = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
+  // One suggestion of each kind: the first one a goal can hold. One above the limit is passed over, not the end of the search.
+  const offerable = (cost) => cost > 0 && cost <= MESO_MAX;
   const quick = [];
   quick.push(['200 Bright Cubes', 200 * data.upgrades.cubes.types.bright.price]);
   quick.push(['100 Glowing Cubes', 100 * data.upgrades.cubes.types.glowing.price]);
@@ -67,13 +69,13 @@ function Planner({ data, state, now }) {
     const entries = state.symbols[char.id] || {};
     for (const area of data.symbols.sacred.areas) {
       const p = symbolPlan(data.symbols.sacred, area, entries[area.id]);
-      if (!p.locked && !p.maxed && p.nextMesos) { quick.push([`${area.name} symbol Lv. ${p.level + 1}`, p.nextMesos]); break; }
+      if (!p.locked && !p.maxed && offerable(p.nextMesos)) { quick.push([`${area.name} symbol Lv. ${p.level + 1}`, p.nextMesos]); break; }
     }
     const gear = gearSummary(data.gear, state.gear[char.id], char.mainStat || 'STR');
     for (const r of gear.gaps) {
       if (r.entry.temporary) continue;
       const o = slotOutlook(r.slot, r.entry, r.target, withCubeRates(data.upgrades, state.mesos.cubeRates));
-      if (o.sf) { quick.push([`${r.slot.name} ${o.sf.from}→${o.sf.to}★ (expected)`, o.sf.plain.cost]); break; }
+      if (o.sf && offerable(o.sf.plain.cost)) { quick.push([`${r.slot.name} ${o.sf.from}→${o.sf.to}★ (expected)`, o.sf.plain.cost]); break; }
     }
   }
   return html`<div class="grid wide-left">
@@ -88,7 +90,7 @@ function Planner({ data, state, now }) {
           <button type="button" class="iconbtn" aria-label=${'Remove: ' + g.name} onClick=${() => setM((x) => { x.goals.splice(i, 1); })}>×</button>
         </span>
       </div>`) : html`<${Empty}>No goals yet. Add one below, or tap a suggestion.<//>`}
-      <div class="toolbar">${quick.filter(([, cost]) => cost > 0 && cost <= MESO_MAX).map(([name, cost]) => html`<button type="button" class="chip" onClick=${() => addGoal(name, cost)}>+ ${name} · ${fmtBig(cost)}</button>`)}</div>
+      <div class="toolbar">${quick.filter(([, cost]) => offerable(cost)).map(([name, cost]) => html`<button type="button" class="chip" onClick=${() => addGoal(name, cost)}>+ ${name} · ${fmtBig(cost)}</button>`)}</div>
       <form class="form-grid" onSubmit=${(e) => {
         e.preventDefault();
         const f = new FormData(e.currentTarget);

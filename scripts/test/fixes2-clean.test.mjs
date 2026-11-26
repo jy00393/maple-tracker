@@ -261,7 +261,7 @@ test("a PC that has the main's page open repairs the day when another device's e
   close(el);
 });
 
-test('changing a reset day clears a tick the new day has already reset, and keeps one made since', () => {
+test('changing a reset day files a tick the new day has already reset under a past week, and keeps one made since', () => {
   const item = { id: 'w-ultima' };
   const now = Date.parse('2026-11-25T03:00:00Z'); // a Wednesday
   const fri = Date.parse('2026-11-20T10:00:00Z');
@@ -269,7 +269,7 @@ test('changing a reset day clears a tick the new day has already reset, and keep
   const run = (items, from, to) => { moveResetDay(items, item, from, to, now); return items; };
   // Thursday -> Monday: Monday 23 Nov has reset since the Friday tick, not since the Tuesday one.
   assert.deepEqual(run({ 'main|w-ultima': { p: 'thu:2026-11-19', c: 5, d: 1, t: fri }, 'alt|w-ultima': { p: 'thu:2026-11-19', c: 2, t: tue } }, 'thu', 'mon'),
-    { 'alt|w-ultima': { p: 'mon:2026-11-23', c: 2, t: tue } });
+    { 'main|w-ultima': { p: 'mon:2026-11-16', c: 5, d: 1, t: fri }, 'alt|w-ultima': { p: 'mon:2026-11-23', c: 2, t: tue } });
   assert.deepEqual(run({ 'main|w-ultima': { p: 'thu:2026-11-19', c: 5, d: 1 } }, 'thu', 'mon'), { 'main|w-ultima': { p: 'mon:2026-11-23', c: 5, d: 1 } }, 'a tick saved without a time is kept');
   // Wednesday -> Thursday: the Thursday week began earlier, so nothing has been reset in between.
   assert.deepEqual(run({ 'w-ultima': { p: 'wed:2026-11-25', d: 1, t: now } }, 'wed', 'thu'), { 'w-ultima': { p: 'thu:2026-11-19', d: 1, t: now } });
@@ -279,7 +279,7 @@ test('changing a reset day clears a tick the new day has already reset, and keep
   // An item with chips moves its chip records too.
   const chips = { 'main|w-x_a': { p: 'thu:2026-11-19', d: 1, t: tue }, 'main|w-x_b': { p: 'thu:2026-11-19', d: 1, t: fri } };
   moveResetDay(chips, { id: 'w-x', chips: [['a', 'A'], ['b', 'B']] }, 'thu', 'mon', now);
-  assert.deepEqual(chips, { 'main|w-x_a': { p: 'mon:2026-11-23', d: 1, t: tue } });
+  assert.deepEqual(chips, { 'main|w-x_a': { p: 'mon:2026-11-23', d: 1, t: tue }, 'main|w-x_b': { p: 'mon:2026-11-16', d: 1, t: fri } });
 });
 
 test('the reset pill uses the tick time that every new tick now carries', async () => {
@@ -297,7 +297,9 @@ test('the reset pill uses the tick time that every new tick now carries', async 
     pill.fire('click');
     await tick(5);
     assert.equal(store.getState().checklist.resets['w-ultima'], 'mon');
-    assert.equal(store.getState().checklist.items['main|w-ultima'], undefined, 'the Friday tick was reset on Monday');
+    assert.equal(store.getState().checklist.items['main|w-ultima'].p, 'mon:2026-11-16', 'the Friday tick was reset on Monday: it is kept, under the week before');
+    const ultima = DATA.checklist.groups.flatMap((g) => g.items.map((it) => [it, g])).find(([it]) => it.id === 'w-ultima');
+    assert.equal(itemStatus(ultima[0], ultima[1], store.getState().checklist, fake, { id: 'main', level: 300 }).count, 0, 'and it counts as not done');
     close(el);
   } finally { Date.now = realNow; }
 });
