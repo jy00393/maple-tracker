@@ -94,7 +94,7 @@ export function CharactersPage({ data, state }) {
             </div>
             ${(() => { const want = mainStatForClass(c.cls, classStats); return want && want !== (c.mainStat || 'STR') ? html`<p class="warnbox">${c.cls} uses ${mainStatLabel(want)}, but this character is set to ${mainStatLabel(c.mainStat || 'STR')}. Press Edit and pick the class again (or the main stat) to fix potential lines and flame scores.</p>` : null; })()}
             <p class="note">${worldLabel(c)}${c.quanah ? ' · Quanah' : ''}
-              ${n ? html` · Nexon: Lv. ${n.level}${n.jobName ? ' ' + n.jobName : ''}, checked ${fmtKst(Date.parse(n.checkedAt), false)}
+              ${n ? html` · Nexon: Lv. ${n.level}${n.jobName ? ' ' + n.jobName : ''}, last change seen ${fmtKst(Date.parse(n.checkedAt), false)}
                 ${n.level !== c.level ? html` <button type="button" class="btn" onClick=${() => update((s) => { const x = s.characters.find((y) => y.id === c.id); x.level = n.level; })}>Use Lv. ${n.level}</button>` : null}` : null}</p>
           </div>`;
         })}

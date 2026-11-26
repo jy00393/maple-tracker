@@ -5,9 +5,11 @@
 // On any network error it keeps the previous files and records the error in meta.json.
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { parsePost, postUrl, findRanked, findSunnySchedule, wantsDetail } from './lib/nexon-parse.mjs';
+import { pathToFileURL } from 'node:url';
+import { postUrl, findRanked, wantsDetail } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
-import { findShops, mergeShops } from './lib/shops.mjs';
+import { mergeShops } from './lib/shops.mjs';
+import { checkNewsList, refreshPosts } from './lib/job.mjs';
 import { WZ_URL, ITEMS_URL, MIN_LEVEL, ITEMS_SCHEMA, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
 
 const LIST_URL = 'https://g.nexonstatic.com/maplestory/cms/v1/news';
@@ -15,8 +17,9 @@ const POST_URL = (id) => `https://g.nexonstatic.com/maplestory/cms/v1/news/${id}
 const RANK_URL = (region, name) =>
   `https://www.nexon.com/api/maplestory/ranking/v1/no-auth/${region}/overall?id=weekly&reboot_index=0&page_index=1&character_name=${encodeURIComponent(name)}`;
 
-const DATA_DIR = new URL('../site/data/', import.meta.url);
-const CONFIG_FILE = new URL('../config/characters.json', import.meta.url);
+// The two paths can be pointed elsewhere (tests run the whole job against a scratch folder).
+const DATA_DIR = process.env.MAPLE_DATA_DIR ? pathToFileURL(process.env.MAPLE_DATA_DIR.replace(/[\\/]*$/, '/')) : new URL('../site/data/', import.meta.url);
+const CONFIG_FILE = process.env.MAPLE_CONFIG_FILE ? pathToFileURL(process.env.MAPLE_CONFIG_FILE) : new URL('../config/characters.json', import.meta.url);
 const HEADERS = {
   Accept: 'application/json',
   'User-Agent': 'personal-maple-tracker/1.0 (single-user tracker; runs every 6 hours)'
@@ -26,7 +29,7 @@ const DAY = 86400000;
 const MAX_DETAIL_FETCHES = 30;
 const NEWS_KEEP = 150;
 // Raise this when the parser learns something new, so cached posts are read again (a few per run).
-const PARSER_VERSION = 4;
+const PARSER_VERSION = 5;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -73,8 +76,9 @@ async function writeJsonIfChanged(name, value) {
 
 async function updateNewsAndEvents(errors) {
   const now = Date.now();
-  const list = await getJson(LIST_URL);
-  if (!Array.isArray(list) || list.length === 0) throw new Error('News feed returned no posts');
+  // A list that is empty, malformed or far shorter than last time is a failed fetch: nothing below is written.
+  const lastNews = await readJson('news.json', { items: [] });
+  const list = checkNewsList(await getJson(LIST_URL), Array.isArray(lastNews.items) ? lastNews.items.length : 0);
 
   const news = list
     .slice()
@@ -94,39 +98,11 @@ async function updateNewsAndEvents(errors) {
   const cache = await readJson('posts.json', { posts: {} });
   const posts = cache.posts || {};
   const candidates = list.filter((p) => wantsDetail(p, now));
-  // Every request counts toward the cap and is spaced out, failed ones included, so a blocked run backs off
-  // instead of firing one request per post; three failures in a row stop the loop.
-  let fetched = 0;
-  let attempts = 0;
-  let failedInRow = 0;
-  for (const post of candidates) {
-    const cached = posts[post.id];
-    const recent = now - Date.parse(post.liveDate) < 10 * DAY;
-    const stale = !cached || cached.pv !== PARSER_VERSION || cached.name !== post.name || (recent && now - Date.parse(cached.fetchedAt || 0) > 5 * 3600000);
-    if (!stale) continue;
-    if (attempts >= MAX_DETAIL_FETCHES || failedInRow >= 3) break;
-    try {
-      if (attempts > 0) await sleep(500);
-      attempts++;
-      const detail = await getJson(POST_URL(post.id));
-      fetched++;
-      failedInRow = 0;
-      posts[post.id] = {
-        name: post.name,
-        category: post.category,
-        liveDate: post.liveDate,
-        fetchedAt: new Date(now).toISOString(),
-        pv: PARSER_VERSION,
-        events: parsePost(post, detail.body || ''),
-        sunny: post.category === 'maintenance' ? [] : findSunnySchedule(detail.body || ''),
-        // Event coin shops (item, price, limit) from patch notes and event posts.
-        shops: post.category === 'update' || post.category === 'events' ? findShops(detail.body || '', post) : []
-      };
-    } catch (err) {
-      failedInRow++;
-      errors.push(`post ${post.id}: ${err.message}`);
-    }
-  }
+  // Which posts are read, in which order, and what counts as a usable answer: lib/job.mjs.
+  const { fetched } = await refreshPosts({
+    candidates, posts, pv: PARSER_VERSION, now, max: MAX_DETAIL_FETCHES, errors, wait: sleep,
+    fetchDetail: (post) => getJson(POST_URL(post.id))
+  });
   // Drop posts that fell out of the window so the cache stays small.
   const keepIds = new Set(candidates.map((p) => String(p.id)));
   for (const id of Object.keys(posts)) if (!keepIds.has(String(id))) delete posts[id];
