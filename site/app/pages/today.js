@@ -1,7 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
 import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left } from '../ui.js';
-import { DAY, fmtDate, fmtKst, fmtLeft } from '../time.js';
+import { DAY, fmtDate, fmtKst, fmtLeft, kstDays, dayWord } from '../time.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
@@ -39,8 +39,10 @@ function nextSymbolLevels(data, state, charId) {
 function SeasonCard({ season, state, now }) {
   const o = seasonOutlook(season, state.ui.seasonDone, now);
   if (!o || o.over) return null;
+  // Korean calendar days, the same count the coin shop uses for the same deadline.
+  const d = kstDays(now, o.ends);
   const toggle = (id, on) => update((s) => { s.ui.seasonDone = { ...(s.ui.seasonDone || {}), [id]: on }; if (!on) delete s.ui.seasonDone[id]; });
-  return html`<${Card} title=${`${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : `${o.daysLeft} day${o.daysLeft === 1 ? '' : 's'} left`} className="span2">
+  return html`<${Card} title=${`${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : d <= 1 ? `ends ${dayWord(d)}` : `${d} days left`} className="span2">
     <div class="insight"><span class="k">Season ends</span><span class="big accent">${fmtKst(o.ends)}</span>
       <span class="small muted">${o.open} of ${o.total} end-of-season steps still open. Challenger gear stops working then, so spend nothing on it.</span></div>
     ${o.groups.map((g) => html`<details open=${o.daysLeft <= 14 && !g.passed && g.items.some((i) => !i.done) && g === o.groups.find((x) => !x.passed && x.items.some((i) => !i.done))}>
@@ -173,8 +175,8 @@ export function TodayPage({ data, state }) {
         <//>` : null}
         ${coming.length ? html`<${Card} title="Coming to GMS" meta="announced by Nexon" bodyClass="card-b tight">
           ${coming.map((c) => html`<div class="goal"><div><b>${c.title}</b><div class="small muted">${c.note}</div></div>
-            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.days < 1 ? 'today' : c.days <= 1 ? 'within a day' : `in ${c.days} days`}</span></div>`)}
-          <p class="note" style=${{ padding: '6px 8px' }}>Event start dates are read from Nexon's posts every 6 hours. The rest: ${(data.upcoming && data.upcoming.source) || 'typed in by hand.'}</p>
+            <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.when}</span></div>`)}
+          <p class="note" style=${{ padding: '6px 8px' }}>A date without a time is Nexon's server day: it can arrive up to 09:00 KST the next morning, usually after maintenance. Event start dates are read from Nexon's posts every 6 hours. The rest: ${(data.upcoming && data.upcoming.source) || 'typed in by hand.'}</p>
         <//>` : null}
         ${char ? html`<${Card} title="Next up">
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}

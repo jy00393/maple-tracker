@@ -258,7 +258,9 @@ test('day-only announcements follow the Korean calendar day', () => {
   assert.equal(at('2026-12-15T16:00:00Z')[0].days, 0, '01:00 KST on 16 Dec: today');
   assert.equal(at('2026-12-15T14:00:00Z')[0].days, 1, '23:00 KST on 15 Dec: tomorrow');
   assert.equal(at('2026-12-16T14:59:00Z')[0].days, 0, '23:59 KST on 16 Dec: still today');
-  assert.deepEqual(at('2026-12-16T15:01:00Z'), [], '00:01 KST on 17 Dec: gone');
+  // Nexon's day runs to 09:00 KST the next morning (maintenance ends then), so the entry stays until that.
+  assert.equal(at('2026-12-16T15:01:00Z')[0].late, true, '00:01 KST on 17 Dec: still listed, the patch has not landed');
+  assert.deepEqual(at('2026-12-17T00:00:00Z'), [], '09:00 KST on 17 Dec: gone');
 });
 
 test('the job parser: maintenance titles, year-less end dates, "(End of Maintenance)", zone labels, Sunny Sunday, long headings', () => {

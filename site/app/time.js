@@ -71,6 +71,18 @@ export function fmtDate(t) {
   return `${k.day} ${k.mo} ${k.year}`;
 }
 
+// Whole calendar days in Korea from a to b: 0 = the same Korean day, 1 = the next one. The one way the pages
+// count "days left" to a deadline, so two pages never disagree about the same date.
+export function kstDays(a, b) {
+  const day = (t) => Math.floor((t + 9 * 3600000) / DAY);
+  return day(b) - day(a);
+}
+
+// "today", "tomorrow" or "N days": the wording that goes with kstDays.
+export function dayWord(n) {
+  return n <= 0 ? 'today' : n === 1 ? 'tomorrow' : `${n} days`;
+}
+
 export function daysBetween(a, b) {
   return Math.round((b - a) / DAY);
 }

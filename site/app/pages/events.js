@@ -43,7 +43,10 @@ export function EventRow({ e, now, showPost, onHide }) {
   const start = e.start ? Date.parse(e.start) : null;
   const end = Date.parse(e.end);
   const upcoming = start && start > now;
-  const left = upcoming ? html`starts in <${Left} until=${start} />` : end > now ? html`<${Left} until=${end} /> left` : 'ended';
+  // Left prints the words too, from its own clock: this row is redrawn only every 30 s, so words chosen here
+  // would read "now left" or "starts in now" until the next redraw.
+  const toEnd = html`<${Left} until=${end} after=" left" done="ended" />`;
+  const left = upcoming ? html`<${Left} until=${start} before="starts in " done=${toEnd} />` : end > now ? toEnd : 'ended';
   const startText = start ? fmtKst(start, !e.startApprox) + (e.afterMaintenance ? ' (after maintenance)' : '') : 'now';
   return html`<div class=${'ev ' + urgency(e, now)}>
     <div>

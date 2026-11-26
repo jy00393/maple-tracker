@@ -14,6 +14,7 @@ import { CharactersPage } from './pages/characters.js';
 import { SettingsPage } from './pages/settings.js';
 import { startSync, setPendingPair, tokenFromHash, syncConfig, syncStatus, onSyncStatus } from './sync.js';
 import { appStatus } from './calc/status.js';
+import { setUpWorker } from './offline.js';
 
 // [route, tab label, page, hidden from the tab row]
 const ROUTES = [
@@ -168,9 +169,8 @@ async function boot() {
     p.textContent = `The tracker couldn't load its data files (${err.message}). If you opened index.html straight from disk, serve the folder instead, or use the GitHub Pages link.`;
     root.appendChild(p);
   }
-  if ('serviceWorker' in navigator && window.isSecureContext && !/[?&]nosw/.test(location.search)) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
+  // With ?nosw this removes a worker left by an earlier visit, instead of only not registering one.
+  if ('serviceWorker' in navigator && window.isSecureContext) setUpWorker(navigator, location.search, window.caches);
 }
 
 boot();
