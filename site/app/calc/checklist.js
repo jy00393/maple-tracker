@@ -25,6 +25,13 @@ export function flagKey(name, who) {
   return w.id ? `${w.id}|${name}` : name;
 }
 
+// True when the checklist holds ticks or unlock flags that are not tied to a character (saved before they were
+// per character, or before any character existed). Only then does the list need an owner.
+export function hasSharedTicks(checklistState) {
+  const shared = (m) => Object.keys(m || {}).some((k) => !k.includes('|'));
+  return shared(checklistState.items) || shared(checklistState.flags);
+}
+
 // Ticks and flags saved before they were per character belong to checklist.owner (the character that was
 // active when the tracker was updated), so nothing that was ticked that day is lost.
 function isOwner(checklistState, w) {

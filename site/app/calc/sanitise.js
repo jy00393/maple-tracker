@@ -11,9 +11,12 @@ const bool = (v) => v === true;
 // A finite number inside [min, max], otherwise the fallback.
 const num = (v, fallback = null, min = -Infinity, max = Infinity) => (typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max ? v : fallback);
 // Keeps only entries whose value is an object, each passed through `fix`.
+// Keys such as "__proto__", "constructor" or "toString" would read or change what every object inherits, so
+// they are never kept as ids. (The app's own ids never look like that; only a hand-made file can hold one.)
+const safeKey = (k) => !(k in Object.prototype);
 function mapOf(v, fix = (x) => x) {
   const out = {};
-  for (const [k, x] of Object.entries(obj(v))) if (isObj(x)) out[k] = fix(x);
+  for (const [k, x] of Object.entries(obj(v))) if (isObj(x) && safeKey(k)) out[k] = fix(x);
   return out;
 }
 // Removes a numeric field that holds something unusable (so pages fall back to their own default).
@@ -160,7 +163,7 @@ export function sanitiseState(raw, base) {
 
   const seen = new Set();
   out.characters = Array.from(Array.isArray(raw.characters) ? raw.characters : [])
-    .filter((c) => isObj(c) && typeof c.id === 'string' && c.id && !seen.has(c.id) && seen.add(c.id))
+    .filter((c) => isObj(c) && typeof c.id === 'string' && c.id && safeKey(c.id) && !seen.has(c.id) && seen.add(c.id))
     .map(character);
   out.activeId = out.characters.some((c) => c.id === raw.activeId) ? raw.activeId : out.characters[0]?.id ?? null;
 

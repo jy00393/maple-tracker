@@ -1,8 +1,11 @@
 // First-run setup: one form creates the character, its boss list and its first level reading.
+import { hasSharedTicks } from './checklist.js';
 export function applySetup(s, form, bossIds, id, now = Date.now()) {
   const level = Number.isFinite(form.level) ? form.level : null;
   // Ticks made before any character existed belong to the first one.
-  if (s.characters.length === 0 && s.checklist) { s.checklist.owner = id; s.checklist.ownerSet = true; }
+  // Only when there are such ticks: on a fresh device the owner stays unset, so pairing it with a device that
+  // has old ticks never moves them to this character.
+  if (s.characters.length === 0 && s.checklist) { if (hasSharedTicks(s.checklist)) s.checklist.owner = id; s.checklist.ownerSet = true; }
   s.characters.push({
     id,
     name: String(form.name || '').trim(),
