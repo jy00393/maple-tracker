@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, newId } from '../store.js';
-import { Card, Fold, PageHead, NumberInput, MesoInput, Empty } from '../ui.js';
+import { Card, Fold, PageHead, NumberInput, MesoInput, Empty, useFields } from '../ui.js';
 import { worldLabel } from '../calc/income.js';
 import { MAIN_STAT_CHOICES, mainStatForClass, mainStatLabel } from '../calc/upgrades.js';
 import { reclassifyLines } from '../calc/potential.js';
@@ -17,10 +17,10 @@ export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman
 const blankForm = () => ({ name: '', cls: '', level: null, region: 'na', world: 'heroic', challenger: false, quanah: false, mainStat: 'STR', beyondBurning: false });
 
 function CharacterForm({ initial, onSave, onCancel, saveLabel, classStats }) {
-  const [f, setF] = useState(initial);
-  const set = (patch) => setF((prev) => ({ ...prev, ...patch }));
+  const [f, set, latest] = useFields(initial);
   const valid = f.name.trim().length > 0;
-  return html`<form class="card-b" onSubmit=${(e) => { e.preventDefault(); if (valid) onSave({ ...f, name: f.name.trim() }); }}>
+  // `latest()`, not `f`: Enter in the Combat Power box saves the box and submits in the same moment.
+  return html`<form class="card-b" onSubmit=${(e) => { e.preventDefault(); const now = latest(); if (now.name.trim()) onSave({ ...now, name: now.name.trim() }); }}>
     <div class="form-grid">
       <label class="field"><span>Name (in-game)</span><input id="char-name" class="input" value=${f.name} required onInput=${(e) => set({ name: e.currentTarget.value })} /></label>
       <label class="field"><span>Class</span><input id="char-class" class="input" list="class-list" value=${f.cls} onInput=${(e) => { const cls = e.currentTarget.value; set({ cls, ...mainStatOnClassChange(f.cls, cls, f.mainStat, classStats) }); }} /></label>

@@ -350,7 +350,12 @@ test('Bosses logs pitched drops for the active character, and removes them', asy
   const again = await show('bosses');
   assert.match(again.text.replace(/\s+/g, ' '), /2 of 11 Pitched · 1 of 6 Brilliant/);
   again.find((n) => n.localName === 'button' && /^Remove the Berserked drop/.test(n.attrs['aria-label'] || '')).fire('click');
-  await tick(5);
+  // The × only asks; "Remove" in the question that follows deletes.
+  const yes = () => again.find((n) => n.localName === 'button' && /^Yes, remove the Berserked drop/.test(n.attrs['aria-label'] || ''));
+  assert.ok(await until(() => yes()), 'the × asks before removing');
+  assert.equal(store.getState().pitch.main.drops.length, 3);
+  yes().fire('click');
+  assert.ok(await until(() => store.getState().pitch.main.drops.length === 2));
   assert.deepEqual(store.getState().pitch.main.drops.map((d) => d.item), ['dreamy-belt', 'oath-of-death']);
   close(again);
   // Another character starts with an empty log of its own.

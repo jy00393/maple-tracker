@@ -11,6 +11,8 @@ export function PitchedCard({ data, state, char, now }) {
   const today = kstDay(now);
   // No date picked means "today", which keeps up if the page stays open past midnight. A drop cannot be in the future.
   const [picked, setDay] = useState('');
+  // The drop whose × was pressed. It is removed only after "Remove" is pressed too: the × sits beside "Got one".
+  const [asking, setAsking] = useState(null);
   const sum = pitchedSummary(data.pitched, state.pitch[char.id]);
   const useDay = isDay(picked) && picked <= today ? picked : today;
   const day = picked || today;
@@ -18,10 +20,13 @@ export function PitchedCard({ data, state, char, now }) {
     const p = charSlice(s, 'pitch', char.id, () => ({ drops: [] }));
     p.drops.push({ id: newId(), item: itemId, d: useDay });
   });
-  const remove = (id) => update((s) => {
-    const p = s.pitch[char.id];
-    if (p) p.drops = p.drops.filter((x) => x.id !== id);
-  });
+  const remove = (id) => {
+    setAsking(null);
+    update((s) => {
+      const p = s.pitch[char.id];
+      if (p) p.drops = p.drops.filter((x) => x.id !== id);
+    });
+  };
   const meta = sum.sets.map((s) => `${s.owned} of ${s.total} ${s.id === 'pitched' ? 'Pitched' : 'Brilliant'}`).join(' · ');
   return html`<${Card} title="Pitched and Brilliant drops" meta=${meta} className="span2">
     <div class="toolbar">
@@ -33,7 +38,11 @@ export function PitchedCard({ data, state, char, now }) {
         ${set.items.map(({ item, drops }) => html`<div class=${'drop' + (drops.length ? ' got' : '')}>
           <div><b>${item.name}</b><div class="small muted">${item.slot} · ${item.from}</div></div>
           <div class="drop-r">
-            ${drops.map((d) => html`<span class="tagdate">${showDay(d.d)}<button type="button" class="x" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => remove(d.id)}>×</button></span>`)}
+            ${drops.map((d) => (asking === d.id
+              ? html`<span class="tagdate ask" role="group" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}?`}>${showDay(d.d)}
+                  <button type="button" class="danger" aria-label=${`Yes, remove the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => remove(d.id)}>Remove</button>
+                  <button type="button" aria-label=${`Keep the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => setAsking(null)}>Keep</button></span>`
+              : html`<span class="tagdate">${showDay(d.d)}<button type="button" class="x" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => setAsking(d.id)}>×</button></span>`))}
             ${drops.length ? null : html`<span class="small muted">Not yet</span>`}
             <button type="button" class="btn" aria-label=${`Got one: ${item.name}`} onClick=${() => log(item.id)}>Got one</button>
           </div>

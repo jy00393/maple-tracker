@@ -220,12 +220,15 @@ export function Fold({ title, meta, children, className = '', bodyClass = 'card-
 
 // With `onStep` the buttons report -1 or +1 and the owner applies it to the value that is current at the
 // click (the drawn value can be a few seconds old). Without it they report the new value through `onChange`.
+// At a limit a button is greyed and marked aria-disabled, not truly disabled: a press still reaches the owner, who
+// decides from the current value (so a count drawn just before a reset can never lock the + button), and the
+// keyboard focus stays on the button.
 export function Counter({ value, target, onChange, onStep, label }) {
   const step = (d) => (onStep ? onStep(d) : onChange(Math.max(0, Math.min(target, value + d))));
   return html`<div class="counter">
-    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} onClick=${() => step(-1)}>−</button>
+    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} aria-disabled=${String(value <= 0)} onClick=${() => step(-1)}>−</button>
     <span class=${'val' + (value >= target ? ' full' : '')} aria-live="polite">${value} / ${target}</span>
-    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} onClick=${() => step(1)}>+</button>
+    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} aria-disabled=${String(value >= target)} onClick=${() => step(1)}>+</button>
   </div>`;
 }
 
@@ -272,27 +275,43 @@ export function fmtBig(n) {
   return String(Math.round(n));
 }
 
+// Form fields kept in one object. `set` merges a patch; `latest()` returns the fields including a patch made earlier
+// in the same event, before any redraw. A form's submit reads `latest()`: Enter in a box saves that box and submits
+// the form in one go, and the submit must not miss what was just typed.
+export function useFields(initial) {
+  const [f, setF] = useState(initial);
+  const ref = useRef(f);
+  const set = (patch) => { ref.current = { ...ref.current, ...patch }; setF(ref.current); };
+  return [f, set, () => ref.current];
+}
+
 // The box shows the saved amount rounded ("45M"). Leaving it without typing changes nothing, so the exact number
 // is never replaced by the rounded one. Text it can't read puts the saved amount back; an empty box clears it.
+// Typing is saved when the box is left and when Enter is pressed (Enter never leaves the box, and inside a form it
+// submits at once). Phones get the full keyboard, because amounts are typed with a unit and a dot ("45M", "1.5B").
 export function MesoInput({ value, onChange, label, placeholder = 'e.g. 1.5B' }) {
   const [text, setText] = useState(value ? fmtBig(value) : '');
   // Kept outside render state, so a blur right after typing (before a redraw) still sees the typing.
   const edited = useRef(false);
   useEffect(() => { setText(value ? fmtBig(value) : ''); edited.current = false; }, [value]);
-  return html`<input class="input" inputmode="decimal" aria-label=${label} placeholder=${placeholder} value=${text}
+  // Saves once per edit: after Enter, the blur that follows finds nothing new.
+  const commit = (raw) => {
+    if (!edited.current) return;
+    edited.current = false;
+    if (!String(raw).trim()) { onChange(null); setText(''); return; }
+    // Typed back to exactly what was shown (the rounded "45M"): the exact saved amount stays.
+    if (value && parseMesos(raw) === parseMesos(fmtBig(value))) { setText(fmtBig(value)); return; }
+    const v = parseMesos(raw);
+    if (v === null || v > MESO_MAX) { setText(value ? fmtBig(value) : ''); return; }
+    onChange(v);
+    setText(v ? fmtBig(v) : '');
+  };
+  return html`<input class="input" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck=${false}
+    aria-label=${label} placeholder=${placeholder} value=${text}
     onInput=${(e) => { setText(e.currentTarget.value); edited.current = true; }}
-    onBlur=${(e) => {
-      if (!edited.current) return;
-      edited.current = false;
-      const raw = e.currentTarget.value;
-      if (!String(raw).trim()) { onChange(null); setText(''); return; }
-      // Typed back to exactly what was shown (the rounded "45M"): the exact saved amount stays.
-      if (value && parseMesos(raw) === parseMesos(fmtBig(value))) { setText(fmtBig(value)); return; }
-      const v = parseMesos(raw);
-      if (v === null || v > MESO_MAX) { setText(value ? fmtBig(value) : ''); return; }
-      onChange(v);
-      setText(v ? fmtBig(v) : '');
-    }} />`;
+    onKeyDown=${(e) => { if (e.key === 'Enter' && !e.isComposing) commit(e.currentTarget.value); }}
+    onChange=${(e) => commit(e.currentTarget.value)}
+    onBlur=${(e) => commit(e.currentTarget.value)} />`;
 }
 
 // The largest amount the tracker keeps (saved data is cleaned to this on load).
