@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 import { postUrl, findRanked, wantsDetail } from './lib/nexon-parse.mjs';
 import { buildCalendar } from './lib/ics.mjs';
 import { mergeShops } from './lib/shops.mjs';
-import { checkNewsList, refreshPosts } from './lib/job.mjs';
+import { checkNewsList, checkCacheLoss, feedBaseline, nextFeedCount, refreshPosts } from './lib/job.mjs';
 import { WZ_URL, ITEMS_URL, MIN_LEVEL, ITEMS_SCHEMA, latestGmsVersion, buildItems, serialiseItems } from './lib/items.mjs';
 
 const LIST_URL = 'https://g.nexonstatic.com/maplestory/cms/v1/news';
@@ -76,9 +76,14 @@ async function writeJsonIfChanged(name, value) {
 
 async function updateNewsAndEvents(errors) {
   const now = Date.now();
-  // A list that is empty, malformed or far shorter than last time is a failed fetch: nothing below is written.
+  // A list that is empty, malformed, far shorter than the last good feed, or missing many of the posts read
+  // before is a failed fetch: nothing below is written.
   const lastNews = await readJson('news.json', { items: [] });
-  const list = checkNewsList(await getJson(LIST_URL), Array.isArray(lastNews.items) ? lastNews.items.length : 0);
+  const baseline = feedBaseline(lastNews);
+  const list = checkNewsList(await getJson(LIST_URL), baseline);
+  const cache = await readJson('posts.json', { posts: {} });
+  const posts = cache.posts && typeof cache.posts === 'object' ? cache.posts : {};
+  checkCacheLoss(posts, list, now);
 
   const news = list
     .slice()
@@ -95,8 +100,6 @@ async function updateNewsAndEvents(errors) {
       url: postUrl(p)
     }));
 
-  const cache = await readJson('posts.json', { posts: {} });
-  const posts = cache.posts || {};
   const candidates = list.filter((p) => wantsDetail(p, now));
   // Which posts are read, in which order, and what counts as a usable answer: lib/job.mjs.
   const { fetched } = await refreshPosts({
@@ -124,7 +127,7 @@ async function updateNewsAndEvents(errors) {
 
   const changed = [];
   if (await writeJsonIfChanged('shops.json', shops)) changed.push('shops');
-  if (await writeJsonIfChanged('news.json', { items: news })) changed.push('news');
+  if (await writeJsonIfChanged('news.json', { feedCount: nextFeedCount(baseline, list.length), items: news })) changed.push('news');
   if (await writeJsonIfChanged('posts.json', { posts })) changed.push('posts');
   if (await writeJsonIfChanged('events.json', { events, sunny })) changed.push('events');
   if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now))) changed.push('calendar');

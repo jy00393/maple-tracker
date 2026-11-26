@@ -256,7 +256,8 @@ test('72: a news list that is malformed or far too short is refused', () => {
   const full = Array.from({ length: 480 }, (_, i) => item(i + 1));
   assert.equal(checkNewsList(full, 150).length, 480);
   assert.equal(checkNewsList(full.slice(0, 3), 0).length, 3, 'a first run has nothing to compare with');
-  assert.equal(checkNewsList(full.slice(0, 40), 150).length, 40);
+  assert.equal(checkNewsList(full.slice(0, 75), 150).length, 75);
+  assert.throws(() => checkNewsList(full.slice(0, 40), 150), /only 40 posts/, 'under half of the last good feed');
   assert.throws(() => checkNewsList(full.slice(0, 3), 150), /only 3 posts/);
   assert.throws(() => checkNewsList([{ error: 'rate limited' }], 150), /without an id, a name or a date/);
   assert.throws(() => checkNewsList([{ error: 'rate limited' }], 0), /without an id/);
@@ -436,9 +437,9 @@ test('77: the data commit is saved when main moved during the run', { skip: canR
     // The run checks out main at X.
     ok(dir, 'git clone -q -c core.autocrlf=false remote.git run');
     ok(join(dir, 'run'), identity);
-    // While it works, a push lands on main: new code, and a data file changed by hand.
+    // While it works, a push lands on main: new code, and a data file this run does not change, edited by hand.
     writeFileSync(join(dir, 'dev', 'code.txt'), 'Y\n');
-    writeFileSync(join(dir, 'dev', 'site', 'data', 'news.json'), 'from the computer\n');
+    writeFileSync(join(dir, 'dev', 'site', 'data', 'shops.json'), 'from the computer\n');
     ok(join(dir, 'dev'), 'git commit -q -am Y && git push -q origin main');
     // The run has fresh data and saves it with the workflow's own commands.
     writeFileSync(join(dir, 'run', 'site', 'data', 'events.json'), 'from the run\n');
@@ -449,7 +450,8 @@ test('77: the data commit is saved when main moved during the run', { skip: canR
     const show = (f) => ok(join(dir, 'remote.git'), `git show main:${f}`).trim();
     assert.equal(show('code.txt'), 'Y');
     assert.equal(show('site/data/events.json'), 'from the run');
-    assert.equal(show('site/data/news.json'), 'from the run', "the run's fresh copy wins");
+    assert.equal(show('site/data/news.json'), 'from the run');
+    assert.equal(show('site/data/shops.json'), 'from the computer', 'the hand edit is kept');
     // The files that get deployed are the run's too.
     assert.equal(readFileSync(join(dir, 'run', 'site', 'data', 'events.json'), 'utf8').trim(), 'from the run');
     assert.equal(readFileSync(join(dir, 'run', 'code.txt'), 'utf8').trim(), 'Y');
