@@ -127,31 +127,51 @@ export function slotProgress(entry = {}, target, tierNames = []) {
   return { pct, parts, gaps };
 }
 
+// True when the Top slot holds an overall, which fills Bottom too (gear.json "overall" names the two slots).
+export function wearsOverall(gearData, gearState) {
+  const rule = gearData && gearData.overall;
+  const top = rule && gearState && gearState.slots && gearState.slots[rule.slot];
+  return Boolean(top && top.tier && top.overall);
+}
+
 export function gearSummary(gearData, gearState = {}, mainStat = 'STR') {
   const preset = gearData.presets[gearState.preset || 'mid'] || gearData.presets.mid;
-  const slots = gearData.slots.map((slot) => {
+  const coveredId = wearsOverall(gearData, gearState) ? gearData.overall.hides : null;
+  const all = gearData.slots.map((slot) => {
     const stored = (gearState.slots || {})[slot.id] || {};
     const entry = Array.isArray(stored.potLines) ? { ...stored, lines: usefulLines(slot, stored, mainStat) } : stored;
     const tierNames = gearData.slotTypes[slot.type].filter(Boolean);
     const target = slotTargets(slot, preset, entry.target || {});
     target.tier = Math.min(target.tier, tierNames.length);
     const progress = slotProgress(entry, target, tierNames);
-    return { slot, entry, target, ...progress, weightedGap: slot.weight * (1 - progress.pct) };
+    // covered: the Bottom under an overall. It stays in `slots` so pages can draw it, but it is not scored.
+    return { slot, entry, target, ...progress, weightedGap: slot.weight * (1 - progress.pct), ...(slot.id === coveredId ? { covered: true } : {}) };
   });
+  const slots = all.filter((s) => !s.covered);
   const totalWeight = sum(slots.map((s) => s.slot.weight));
   const overall = sum(slots.map((s) => s.slot.weight * s.pct)) / totalWeight;
   const gaps = slots.filter((s) => s.pct < 1).sort((a, b) => b.weightedGap - a.weightedGap);
   const temporary = slots.filter((s) => s.entry.temporary);
-  return { preset, overall, slots, gaps, temporary };
+  return { preset, overall, slots: all, gaps, temporary, totalWeight };
 }
 
-// Pace from saved daily snapshots: percentage points per week and the date 100% would arrive.
-export function gearProjection(history = [], current, now = Date.now()) {
+// The saved points that were scored against `preset`. Points carry the target they were scored against (p);
+// ones saved before that (no p) count for every target.
+export function historyFor(history, preset) {
+  return (Array.isArray(history) ? history : []).filter((h) => h && (!preset || !h.p || h.p === preset));
+}
+
+// Pace from saved daily snapshots: percentage points per week and the date 100% would arrive. Only points scored
+// against the current target are compared. Saved points are rounded to 0.1%, so the live score is rounded the
+// same way and a gain smaller than that is no progress.
+export function gearProjection(history = [], current, now = Date.now(), preset = null) {
+  history = historyFor(history, preset);
   if (history.length < 2) return null;
   const first = history[0];
   const spanDays = (now - Date.parse(first.d + 'T00:00:00Z')) / DAY;
   if (spanDays < 3) return null;
-  const gained = current - first.pct;
+  const gained = Math.round((Math.round(current * 1000) / 1000 - first.pct) * 1000) / 1000;
+  if (gained === 0) return { perWeek: 0, eta: null };
   const perWeek = (gained / spanDays) * 7;
   if (perWeek <= 0) return { perWeek, eta: null };
   const weeks = (1 - current) / perWeek;

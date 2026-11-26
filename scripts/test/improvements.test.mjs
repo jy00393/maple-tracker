@@ -812,7 +812,7 @@ test('main stat: Demon Avenger counts Max HP lines, Xenon counts STR, DEX and LU
   const str = pick('STR +13%', 'HP');
   const all = pick('All Stats +10%', 'HP');
   assert.deepEqual([hp.type, hp.stat, str.type, all.type], ['main', 'HP', 'offstat', 'offstat']);
-  assert.equal(U.usefulLines(hat, { potLines: [hp, str, all] }), 1);
+  assert.equal(U.usefulLines(hat, { potLines: [hp, str, all] }, 'HP'), 1);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: [hp, str, all] } } }, 'HP').main, 12);
   const daOrder = P.lineChoices(pot, 'hat', 4, 160, 'HP').filter((c) => c.prime);
   assert.ok(daOrder.find((c) => c.text === 'MaxHP +12%').useful);
@@ -822,7 +822,7 @@ test('main stat: Demon Avenger counts Max HP lines, Xenon counts STR, DEX and LU
   const xs = ['STR +13%', 'DEX +13%', 'LUK +13%', 'INT +13%'].map((t) => pick(t, 'XENON'));
   assert.deepEqual(xs.map((l) => l.type), ['main', 'main', 'main', 'offstat']);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: { tier: 1, potLines: xs.slice(0, 3) } } }, 'XENON').main, 39);
-  assert.equal(U.usefulLines(hat, { potLines: xs }), 3);
+  assert.equal(U.usefulLines(hat, { potLines: xs }, 'XENON'), 3);
 
   // An ordinary class is unchanged.
   assert.deepEqual([pick('STR +13%', 'STR').type, pick('DEX +13%', 'STR').type, pick('MaxHP +12%', 'STR').type], ['main', 'offstat', 'hp']);
@@ -870,7 +870,7 @@ test('main stat: class changes and main-stat changes keep saved lines consistent
   P.reclassifyLines(data, g, 'HP');
   assert.deepEqual(g.slots.hat.potLines.map((l) => l.type), ['main', 'offstat', 'offstat']);
   assert.equal(U.lineTotals(gear.slots, { slots: { hat: g.slots.hat } }, 'HP').main, 12);
-  assert.equal(U.usefulLines(gear.slots.find((s) => s.id === 'hat'), g.slots.hat), 1);
+  assert.equal(U.usefulLines(gear.slots.find((s) => s.id === 'hat'), g.slots.hat, 'HP'), 1);
   // A line entered by hand before the tables follows its stat too: STR is not the main stat of an HP character.
   assert.deepEqual(g.slots.top.potLines, [{ type: 'offstat', stat: 'STR', value: 13 }]);
   P.reclassifyLines(data, g, 'STR', 'HP');

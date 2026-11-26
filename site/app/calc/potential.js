@@ -112,7 +112,9 @@ export function reclassifyLines(data, gearState, mainStat, oldMainStat) {
     if (!e || !Array.isArray(e.potLines) || !e.pot) continue;
     const level = e.ilvl || (slot.type === 'ring' && (e.tier || 0) <= 1 ? 120 : 160);
     e.potLines = refreshLines(data.potential, slot.id, e.pot, level, e.potLines, { mainStat, keepMissing: true }).map((l) => {
-      if (!l || !l.type || (l.pid !== undefined && l.pid !== null) || (l.type !== 'main' && l.type !== 'offstat')) return l;
+      // Table lines of the current tier were just re-made by refreshLines. One kept from another tier (keepMissing)
+      // was not, so it goes through the same stat check as a line entered by hand.
+      if (!l || !l.type || (l.type !== 'main' && l.type !== 'offstat')) return l;
       const out = { ...l };
       if (!out.stat && out.type === 'main' && single(oldMainStat)) out.stat = oldMainStat;
       if (!out.stat) return out;
