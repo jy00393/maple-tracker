@@ -48,6 +48,12 @@ export function fmtLeft(ms) {
   return `${m}m ${pad(s % 60)}s`;
 }
 
+// The same without seconds, for text that is only redrawn now and then (a tooltip): "12 min", "3h 05m", "2d 4h".
+export function fmtLeftCoarse(ms) {
+  if (Number.isFinite(ms) && ms > 0 && ms < 3600000) return `${Math.max(1, Math.ceil(ms / 60000))} min`;
+  return fmtLeft(ms);
+}
+
 export function kstParts(t) {
   const d = new Date(t + 9 * 3600000);
   return { wd: WD[d.getUTCDay()], day: d.getUTCDate(), mo: MO[d.getUTCMonth()], year: d.getUTCFullYear(), hh: pad(d.getUTCHours()), mm: pad(d.getUTCMinutes()) };
@@ -69,6 +75,19 @@ export function fmtDate(t) {
   if (!Number.isFinite(t) || Math.abs(t) > 8.64e15) return '—';
   const k = kstParts(t);
   return `${k.day} ${k.mo} ${k.year}`;
+}
+
+// A day on its own, in Korea: "7 Dec", with the year only when it is not this year's ("7 Dec 2027").
+export function fmtDay(t, now = Date.now()) {
+  if (!Number.isFinite(t) || Math.abs(t) > 8.64e15) return '—';
+  const k = kstParts(t);
+  return k.year === kstParts(now).year ? `${k.day} ${k.mo}` : `${k.day} ${k.mo} ${k.year}`;
+}
+
+// Beside a figure that was typed by hand: the day it was typed. "" when that is not known.
+export function asOf(at, now = Date.now()) {
+  if (!Number.isFinite(at) || at <= 0) return '';
+  return kstDays(at, now) <= 0 ? 'as of today' : `as of ${fmtDay(at, now)}`;
 }
 
 // Whole calendar days in Korea from a to b: 0 = the same Korean day, 1 = the next one. The one way the pages

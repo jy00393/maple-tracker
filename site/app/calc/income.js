@@ -77,11 +77,17 @@ export function characterLines(char, bossState, bossData, bossById, now) {
     const earned = [];
     const base = { bossId, boss, value, party: pick.party || 1 };
     if (boss.reset === 'daily') {
+      // `open`: the days this week that can still be cleared: today while it has no clear, and the days after
+      // it. A day that passed without a clear cannot be made up (one clear a day), so it is not open.
+      const today = Math.floor((now - start) / DAY);
+      let open = 0;
       for (let i = 0; i < 7; i++) {
-        const c = claim(periodKey('daily', start + i * DAY));
+        const key = periodKey('daily', start + i * DAY);
+        const c = claim(key);
         if (c) earned.push(c.value);
+        else if (i >= today && !winner(key)) open++;
       }
-      lines.push({ ...base, kind: 'daily', planned: extra.spare ? 0 : 7, cleared: earned.length, clearedNow: ownNow, earned, ...extra });
+      lines.push({ ...base, kind: 'daily', planned: extra.spare ? 0 : 7, open: extra.spare ? 0 : open, cleared: earned.length, clearedNow: ownNow, earned, ...extra });
     } else if (boss.reset === 'monthly') {
       // The month's mark holds the time it was ticked; it is earned in that crystal week only. Marks saved before
       // that (true) carry no time and are counted in the current week.
@@ -166,12 +172,13 @@ export function weeklyOpen(lines, cap = Infinity, extraEarned = []) {
   return { count: best.filter((u) => u.open).length, value: sum(best.map((u) => u.value)) - sum(earned) };
 }
 
-// How many more crystals a line can add this crystal week, on the same basis as `earned`. A monthly crystal
+// How many more crystals a line can add this crystal week, on the same basis as `earned`. A daily boss counts
+// the days still open (`open`): a day that passed uncleared has left the week's target. A monthly crystal
 // counts in full while it can still be cleared this month, and not at all once it was cleared in an earlier week
 // (the weekly plan, `planned`, spreads it over the month instead).
 function openUnits(l) {
   if (l.spare) return 0;
-  if (l.kind === 'daily') return Math.max(0, l.planned - l.cleared);
+  if (l.kind === 'daily') return Number.isFinite(l.open) ? Math.max(0, l.open) : Math.max(0, l.planned - l.cleared);
   return l.clearedNow || l.doneAs ? 0 : 1;
 }
 
@@ -271,4 +278,52 @@ export function fmtMesos(n) {
 
 export function todayKey(now) {
   return dayKey(now);
+}
+
+// ---- one record per boss clear: what other pages read from the Bosses ticks ----
+
+// Why a character cannot enter a boss, from the boss's own entry fields in bosses.json (`only`, `minLevel`):
+// 'challenger' (a Challenger World boss, the character is not in it), 'level' (below `minLevel`), or null.
+// `who` is { challenger, level }; an unknown level never locks.
+export function entryBlock(boss, who) {
+  if (!boss) return null;
+  const w = who || {};
+  if (boss.only === 'challenger' && !w.challenger) return 'challenger';
+  if (boss.minLevel && Number.isFinite(w.level) && w.level < boss.minLevel) return 'level';
+  return null;
+}
+
+// The words for an entry rule, for a small note beside the boss.
+export function entryBlockText(boss, block) {
+  return block === 'challenger' ? 'Challenger World only' : block === 'level' ? `From Lv. ${boss.minLevel}` : '';
+}
+
+// The picked bosses of one reset ('daily', 'weekly', 'monthly'), one row per shared clear (a second difficulty
+// picked for the same clear is left out): { bossId, boss, line, on }. `on` = cleared for the current period, on
+// any difficulty. `lines` are characterLines().
+export function bossRows(lines, reset) {
+  return (lines || []).filter((l) => l.kind === reset && !l.spare).map((l) => ({ bossId: l.bossId, boss: l.boss, line: l, on: Boolean(l.clearedNow || l.doneAs) }));
+}
+
+// The clear of one boss, named by the ids of its difficulties (`ids`), for the current period: the difficulty
+// whose box a tick goes to (the one ticked now, else the picked one, else the first id) and whether a mark is
+// there. `bossState` is state.bosses[charId]. Returns null when none of the ids is a boss.
+export function bossClear(ids, bossState, bossById, now) {
+  const list = (ids || []).map((id) => bossById[id]).filter(Boolean);
+  if (!list.length) return null;
+  const picks = (bossState && bossState.picks) || {};
+  const clears = (bossState && bossState.clears) || {};
+  const marked = list.filter((b) => clears[b.id] && typeof clears[b.id] === 'object' && clears[b.id][clearKey(b, now)]);
+  const boss = marked[0] || list.find((b) => picks[b.id]) || list[0];
+  return { boss, on: marked.length > 0, shared: list.filter((b) => b.id !== boss.id).map((b) => b.id) };
+}
+
+// Which resets a list of boss lines follows, in plain words for a heading: one reset is named with its time,
+// a mixed list names each kind.
+export function bossResetHint(lines) {
+  const kinds = ['daily', 'weekly', 'monthly'].filter((k) => (lines || []).some((l) => l.kind === k));
+  const words = { daily: ['daily reset 09:00 KST', 'daily ones 09:00 KST'], weekly: ['weekly reset Thu 09:00 KST', 'weekly ones Thu 09:00 KST'], monthly: ['monthly reset on the 1st, 09:00 KST', 'monthly ones on the 1st'] };
+  if (!kinds.length) return '';
+  if (kinds.length === 1) return words[kinds[0]][0];
+  return `resets: ${kinds.map((k) => words[k][1]).join(' · ')}`;
 }

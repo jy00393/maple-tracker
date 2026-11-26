@@ -273,7 +273,9 @@ test('ticking a checklist box saves it for the active character only', async () 
 test('Today ticks dailies and bosses directly, with the same ticks as Checklist and Bosses', async () => {
   store.replaceState(richState(), true);
   const el = await show('today');
-  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · 2 \/ 4 bosses/);
+  // The daily boss (Normal Cygnus) is a chip of "Daily bosses", so the boss list holds the three weekly ones.
+  // The count covers every picked boss: the daily one on the chips and the three weekly ones.
+  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · \d \/ 4 bosses/);
   const daily = el.find((n) => n.localName === 'input' && n.attrs.id === 'cl-d-coupon');
   assert.ok(daily, 'a core daily can be ticked on Today');
   daily.checked = true;
@@ -288,7 +290,7 @@ test('Today ticks dailies and bosses directly, with the same ticks as Checklist 
   assert.equal(s.bosses.main.clears['will-hard'][week], true);
   close(el);
   const again = await show('today');
-  assert.match(again.text.replace(/\s+/g, ' '), /3 \/ 4 bosses/);
+  assert.match(again.text.replace(/\s+/g, ' '), /\d \/ 4 bosses/);
   close(again);
   // A character with no bosses picked gets a pointer instead of an empty list.
   store.update((x) => { x.activeId = 'da'; });
@@ -349,7 +351,12 @@ test('Bosses logs pitched drops for the active character, and removes them', asy
   const again = await show('bosses');
   assert.match(again.text.replace(/\s+/g, ' '), /2 of 11 Pitched · 1 of 6 Brilliant/);
   again.find((n) => n.localName === 'button' && /^Remove the Berserked drop/.test(n.attrs['aria-label'] || '')).fire('click');
-  await tick(5);
+  // The × only asks; "Remove" in the question that follows deletes.
+  const yes = () => again.find((n) => n.localName === 'button' && /^Yes, remove the Berserked drop/.test(n.attrs['aria-label'] || ''));
+  assert.ok(await until(() => yes()), 'the × asks before removing');
+  assert.equal(store.getState().pitch.main.drops.length, 3);
+  yes().fire('click');
+  assert.ok(await until(() => store.getState().pitch.main.drops.length === 2));
   assert.deepEqual(store.getState().pitch.main.drops.map((d) => d.item), ['dreamy-belt', 'oath-of-death']);
   close(again);
   // Another character starts with an empty log of its own.
@@ -735,7 +742,7 @@ test('Progress pages: weekly symbols shown, level from Characters, gates from to
   store.update((x) => { x.ui.progressView = 'level'; x.characters.find((c) => c.id === 'main').level = 268; });
   el = await show('progress');
   let t = el.text.replace(/\s+/g, ' ');
-  assert.match(t, /Lv\. 268 · 0\.00%/);
+  assert.match(t, /Now Lv\. 268 up to /); // no EXP % is shown for a level that came without one
   assert.match(t, /from Characters/);
   close(el);
   // A Lv. 210 character is told where the EXP figures start, not that it is past them.

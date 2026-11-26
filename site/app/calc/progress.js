@@ -6,8 +6,46 @@ import { shareKey } from './income.js';
 const sum = (arr) => arr.reduce((a, b) => a + b, 0);
 const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
+// ---------- figures typed by hand ----------
+// A count typed on Progress (symbols held, traces collected) is only true at the moment it was typed, so each
+// entry remembers that moment as `at`. An estimate made from it is a date fixed at that moment ("ready about
+// 7 Dec"), never "in 11 days" counted from whenever the page is opened. Nothing is added to a count by itself.
+
+// The start of the game day (00:00 UTC, 09:00 KST) that `t` falls in.
+const gameDay = (t) => Math.floor(t / DAY) * DAY;
+
+// When a typed entry was typed. One saved before entries were dated, or dated in the future by a wrong clock,
+// counts as typed now.
+export function typedAt(entry, now) {
+  const at = entry && entry.at;
+  return Number.isFinite(at) && at > 0 && at <= now ? at : now;
+}
+
+// Gives every typed entry that has no date yet the date `now` (saved data from before entries were dated is
+// treated as typed on the day it is first loaded). Changes `state` in place; returns true when anything was dated.
+export function dateTyped(state, now) {
+  let dated = false;
+  const stampAll = (part, used) => {
+    for (const byChar of Object.values(state[part] || {})) {
+      for (const e of Object.values(byChar || {})) {
+        if (!e || typeof e !== 'object' || Array.isArray(e) || Number.isFinite(e.at) || !used(e)) continue;
+        e.at = now;
+        dated = true;
+      }
+    }
+  };
+  stampAll('symbols', (e) => e.level > 0 || e.have > 0);
+  // A liberation entry starts at stage 0 with 0 traces, which is a typed figure too once bosses are picked.
+  stampAll('liberation', () => true);
+  return dated;
+}
+
 // ---------- symbols ----------
-export function symbolPlan(kindData, area, entry = {}) {
+// now: the time the page is drawn. The dates count from when the entry was typed (entry.at):
+//   nextAt / maxAt  the game day the next level / the last level should be reached at perDay a day
+//   nextDue         that day has come, and the typed count is still short: the count needs updating
+export function symbolPlan(kindData, area, entry = {}, now = Date.now()) {
+  entry = entry || {};
   const max = kindData.maxLevel;
   const level = clamp(Math.floor(entry.level || 0), 0, max);
   const have = Math.max(0, Math.floor(entry.have || 0));
@@ -16,10 +54,10 @@ export function symbolPlan(kindData, area, entry = {}) {
   const perDay = daily + weekly / 7;
   const power = level ? kindData.powerAtLevel1 + (level - 1) * kindData.powerPerLevel : 0;
   if (level === 0) {
-    return { level, have, perDay, power, maxed: false, locked: true, needNext: 0, remainingSymbols: sum(kindData.symbolsPerLevel), remainingMesos: sum(area.mesos), nextMesos: 0, daysToNext: Infinity, daysToMax: Infinity };
+    return { level, have, perDay, power, maxed: false, locked: true, needNext: 0, remainingSymbols: sum(kindData.symbolsPerLevel), remainingMesos: sum(area.mesos), nextMesos: 0, daysToNext: Infinity, daysToMax: Infinity, nextAt: null, maxAt: null, nextDue: false, maxDue: false };
   }
   if (level >= max) {
-    return { level, have, perDay, power, maxed: true, locked: false, needNext: 0, remainingSymbols: 0, remainingMesos: 0, nextMesos: 0, daysToNext: 0, daysToMax: 0 };
+    return { level, have, perDay, power, maxed: true, locked: false, needNext: 0, remainingSymbols: 0, remainingMesos: 0, nextMesos: 0, daysToNext: 0, daysToMax: 0, nextAt: null, maxAt: null, nextDue: false, maxDue: false };
   }
   const needNext = kindData.symbolsPerLevel[level - 1];
   const remainingSymbols = Math.max(0, sum(kindData.symbolsPerLevel.slice(level - 1)) - have);
@@ -34,7 +72,17 @@ export function symbolPlan(kindData, area, entry = {}) {
     pool -= kindData.symbolsPerLevel[l - 1];
     affordable++;
   }
-  return { level, have, perDay, power, maxed: false, locked: false, needNext, remainingSymbols, remainingMesos, nextMesos, daysToNext, daysToMax, affordable };
+  // daysToNext / daysToMax are days of dailies counted from the day the count was typed, so the dates stay put.
+  const at = typedAt(entry, now);
+  const dayOf = (days) => (Number.isFinite(days) ? gameDay(at) + days * DAY : null);
+  const nextAt = dayOf(daysToNext);
+  const maxAt = dayOf(daysToMax);
+  return {
+    level, have, perDay, power, maxed: false, locked: false, needNext, remainingSymbols, remainingMesos, nextMesos, daysToNext, daysToMax, affordable,
+    at, nextAt, maxAt,
+    nextDue: affordable === 0 && nextAt !== null && now >= nextAt,
+    maxDue: remainingSymbols > 0 && maxAt !== null && now >= maxAt
+  };
 }
 
 // ---------- liberation ----------
@@ -55,10 +103,17 @@ export function liberationCounted(def, picks = {}, bossById = null) {
   return [...best.values()];
 }
 
+// The Liberation list set from the bosses picked on Bosses: every picked boss that gives traces, one per shared
+// clear (the difficulty with the most traces when two are picked). `bossPicks` is state.bosses[charId].picks.
+export function liberationFromBosses(def, bossPicks = {}, bossById = null) {
+  const on = Object.fromEntries(Object.keys(bossPicks || {}).filter((id) => bossPicks[id] && def.sources[id] && (!bossById || bossById[id])).map((id) => [id, true]));
+  return Object.fromEntries(liberationCounted(def, on, bossById).map((c) => [c.bossId, true]));
+}
+
 export function liberationPlan(def, entry = {}, now = Date.now(), bossById = null) {
   const stages = def.stages;
   const stage = clamp(Math.floor(entry.stage || 0), 0, stages.length);
-  if (stage >= stages.length) return { done: true, remaining: 0, perWeek: 0, weeks: 0, eta: now, stage, total: sum(stages.map((s) => s.need)) };
+  if (stage >= stages.length) return { done: true, remaining: 0, perWeek: 0, weeks: 0, eta: now, stage, total: sum(stages.map((s) => s.need)), at: now, due: false };
   const traces = clamp(Math.floor(entry.traces || 0), 0, stages[stage].need);
   const remaining = stages[stage].need - traces + sum(stages.slice(stage + 1).map((s) => s.need));
   const picks = entry.picks || {};
@@ -73,7 +128,11 @@ export function liberationPlan(def, entry = {}, now = Date.now(), bossById = nul
   const weeks = perWeek > 0 ? Math.ceil(remaining / perWeek) : Infinity;
   const total = sum(stages.map((s) => s.need));
   const doneSoFar = total - remaining;
-  return { done: false, stage, traces, remaining, perWeek, weeks, eta: Number.isFinite(weeks) ? now + weeks * 7 * DAY : null, total, pct: total ? doneSoFar / total : 0 };
+  // The finish date counts from the day the traces were typed (entry.at), so it does not slide a day every day.
+  // due: that date has come, so the typed figure is out of date.
+  const at = typedAt(entry, now);
+  const eta = Number.isFinite(weeks) ? at + weeks * 7 * DAY : null;
+  return { done: false, stage, traces, remaining, perWeek, weeks, eta, at, due: eta !== null && eta <= now, total, pct: total ? doneSoFar / total : 0 };
 }
 
 // ---------- 6th job ----------

@@ -1,7 +1,8 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, PageHead, Tile, useNow, Seg, Empty } from '../ui.js';
-import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart, shareKey } from '../calc/income.js';
+import { Card, PageHead, Tile, useClock, Seg, Empty } from '../ui.js';
+import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart, shareKey, entryBlock, entryBlockText } from '../calc/income.js';
+import { knownLevel } from './level.js';
 import { dayKey } from '../time.js';
 import { PitchedCard } from './pitched.js';
 import { CombatPowerCard } from './bosscp.js';
@@ -11,7 +12,7 @@ import { reach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
 // earned, and as `planned` the week's target on the same basis (earned plus what was still open). Mounted
 // once for the whole app (main.js), so a clear ticked on any page is saved.
 export function IncomeKeeper({ data, state }) {
-  const now = useNow(60000);
+  const now = useClock({ every: 60000 });
   const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
   return html`<${IncomeRecorder} income=${income} state=${state} now=${now} />`;
 }
@@ -76,7 +77,7 @@ function setPick(charId, bossId, pick) {
   });
 }
 
-function ThisWeek({ char, income, data, now }) {
+function ThisWeek({ char, income, data, who }) {
   const mine = income.perChar[char.id];
   if (!mine || (mine.lines.length === 0 && mine.unpicked.length === 0)) return html`<${Empty}>Pick the bosses you run in the list below, then tick them off here as you clear them.<//>`;
   const cap = data.bosses.limits.weeklyPerCharacter;
@@ -95,6 +96,7 @@ function ThisWeek({ char, income, data, now }) {
           <td><label for=${id}>${l.boss.difficulty} ${l.boss.boss}</label>
             ${l.party > 1 ? html` <span class="small muted">party of ${l.party}</span>` : null}
             ${l.boss.noCrystal ? html` <span class="small muted">no crystal</span>` : null}
+            ${entryBlock(l.boss, who) ? html` <span class="small muted">${entryBlockText(l.boss, entryBlock(l.boss, who))}: not open to ${char.name}</span>` : null}
             ${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}: one clear for all difficulties</span>` : l.spare ? html` <span class="small muted">shares one clear with ${l.spare}: not counted as planned</span>` : null}
             ${over ? html` <span class="small muted">over the ${cap}-crystal cap</span>` : null}</td>
           <td class="num">${l.value ? fmtMesos(l.value) : '—'}</td>
@@ -111,29 +113,35 @@ function ThisWeek({ char, income, data, now }) {
   </table></div>`;
 }
 
-function Picker({ char, data, picks, margin }) {
+// A boss with an entry rule in bosses.json (`only`, `minLevel`) is not offered to a character that cannot enter:
+// a Challenger World boss is left out for other characters, and one above the character's level is shown locked.
+// A boss that is already picked always stays, so it can be unpicked.
+function Picker({ char, data, picks, margin, who }) {
   const [view, setView] = useState('weekly');
   const [onlyPicked, setOnlyPicked] = useState(false);
   const [onlyReach, setOnlyReach] = useState(false);
   const cp = char.cp || 0;
   const reachOf = (b) => reach(data.bossCp, b, cp, margin);
   const sharedPicks = (b) => data.bosses.bosses.filter((o) => o.id !== b.id && picks[o.id] && shareKey(o) === shareKey(b)).map((o) => o.difficulty);
-  const bosses = data.bosses.bosses.filter((b) => b.reset === view && (!onlyPicked || picks[b.id]) && (!onlyReach || !cp || reachOf(b) !== 'no' || picks[b.id]));
+  const bosses = data.bosses.bosses.filter((b) => b.reset === view && (!onlyPicked || picks[b.id]) && (!onlyReach || !cp || reachOf(b) !== 'no' || picks[b.id]) && (entryBlock(b, who) !== 'challenger' || picks[b.id]));
   return html`<div class="card-b">
     <div class="toolbar">
       <${Seg} label="Boss reset type" options=${GROUPS} value=${view} onChange=${setView} />
       <label class="small"><input type="checkbox" checked=${onlyPicked} onChange=${(e) => setOnlyPicked(e.currentTarget.checked)} /> Only bosses I run</label>
       ${cp ? html`<label class="small"><input id="only-reach" type="checkbox" checked=${onlyReach} onChange=${(e) => setOnlyReach(e.currentTarget.checked)} /> Hide bosses above my Combat Power</label>` : null}
     </div>
+    ${view === 'weekly' && !data.bosses.bosses.some((b) => b.reset === 'daily' && picks[b.id]) ? html`<p class="note">Daily bosses are under Daily above. The ones you pick there become your "Daily bosses" on Today and Checklist.</p>` : null}
     <div class="tbl-wrap"><table class="tbl">
       <thead><tr><th>Run</th><th>Boss</th><th>Party</th><th class="num">Your crystal</th></tr></thead>
       <tbody>
         ${bosses.map((b) => {
           const pick = picks[b.id];
           const id = `pick-${b.id}`;
+          const block = entryBlock(b, who);
           return html`<tr class=${pick ? '' : 'off'}>
-            <td><input type="checkbox" id=${id} checked=${Boolean(pick)} onChange=${(e) => setPick(char.id, b.id, e.currentTarget.checked ? {} : null)} /></td>
+            <td><input type="checkbox" id=${id} checked=${Boolean(pick)} disabled=${Boolean(block) && !pick} onChange=${(e) => setPick(char.id, b.id, e.currentTarget.checked ? {} : null)} /></td>
             <td><label for=${id}>${b.difficulty} ${b.boss}</label>${b.note ? html`<div class="small muted">${b.note}</div>` : null}
+              ${block ? html`<div class="small cp-no">${entryBlockText(b, block)}${block === 'level' ? `: ${char.name} is Lv. ${who.level}` : `: ${char.name} is not a Challenger World character`}.${pick ? ' Untick it if you picked it by mistake.' : ''}</div>` : null}
               ${pick && sharedPicks(b).length ? html`<div class="small muted">One clear ${b.reset === 'daily' ? 'a day' : b.reset === 'monthly' ? 'a month' : 'a week'} for all difficulties: you also picked ${sharedPicks(b).join(', ')}. Only the best one counts as planned.</div>` : null}
               ${minCpFor(data.bossCp, b) !== null ? html`<div class=${'small ' + (reachOf(b) === 'no' ? 'cp-no' : 'muted')}>${reachOf(b) === 'no' ? `Above your Combat Power: asks for ${fmtCp(minCpFor(data.bossCp, b) * margin)}` : `Entry from ${fmtCp(minCpFor(data.bossCp, b))} Combat Power`}</div>` : null}</td>
             <td>${pick ? html`<select class="select sm" aria-label=${'Party size for ' + b.boss} value=${pick.party || 1}
@@ -149,9 +157,8 @@ function Picker({ char, data, picks, margin }) {
 }
 
 export function BossesPage({ data, state }) {
-  // Redrawn every 30 s, but each draw uses the current time, the same clock a tick uses.
-  useNow(30000);
-  const now = Date.now();
+  // Redrawn every 30 s and at each reset; each draw uses the current time, the same clock a tick uses.
+  const now = useClock();
   const char = activeCharacter(state);
   if (!char) return html`<${PageHead} title="Bosses" /><${Card} title="Add a character first"><p class="note">Bosses, income and progress are tracked per character. <a href="#characters">Add your character</a> to start.</p><//>`;
   const income = computeIncome(state.characters, state, data.bosses, data.bossById, now);
@@ -159,6 +166,7 @@ export function BossesPage({ data, state }) {
   const world = income.worlds.find((w) => w.key === worldKey(char));
   const picks = state.bosses[char.id]?.picks || {};
   const cap = data.bosses.limits.weeklyPerCharacter;
+  const who = { challenger: Boolean(char.challenger), level: knownLevel(data, state, char) };
   return html`
     <${PageHead} title="Bosses">${char.name}: tick clears as you go. The crystal week resets Thursday 09:00 KST; only your ${cap} best weekly crystals sell.<//>
     ${char.quanah ? html`<p class="warnbox">Quanah World Leap characters can't sell boss crystals, so income shows zero.</p>` : null}
@@ -170,10 +178,10 @@ export function BossesPage({ data, state }) {
     </div>
     <div class="grid two">
       <${CombatPowerCard} data=${data} state=${state} char=${char} />
-      <${Card} title="This week" meta="Ticks reset with each boss's own reset"><${ThisWeek} char=${char} income=${income} data=${data} now=${now} /><//>
+      <${Card} title="This week" meta="Ticks reset with each boss's own reset"><${ThisWeek} char=${char} income=${income} data=${data} who=${who} /><//>
       <section class="card">
         <div class="card-h"><h3>Bosses you run</h3><span class="meta">Values for ${char.world === 'interactive' ? 'Interactive' : 'Heroic'}</span></div>
-        <${Picker} char=${char} data=${data} picks=${picks} margin=${marginOf(data.bossCp, state.ui.bossMargin)} />
+        <${Picker} char=${char} data=${data} picks=${picks} margin=${marginOf(data.bossCp, state.ui.bossMargin)} who=${who} />
       </section>
       <${PitchedCard} data=${data} state=${state} char=${char} now=${now} />
     </div>

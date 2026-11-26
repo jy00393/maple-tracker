@@ -12,6 +12,44 @@ let started = false;
 let applying = false;
 let timer = null;
 
+// While the page is on screen it also looks at the gist on a timer, so ticks made on the other device show up
+// without switching tabs. One small request each time, far inside GitHub's limit (5,000 an hour with a token).
+// After failures in a row the wait doubles, up to an hour; when GitHub says to wait (a rate limit), nothing is
+// sent by itself before the time it gives.
+export const POLL_MS = 5 * 60000;
+const POLL_MAX = 60 * 60000;
+const POLL_CHECK = 60000;
+let lastRun = 0; // when the last round trip with the gist started
+let fails = 0; // failed round trips in a row
+let holdUntil = 0; // GitHub asked for no requests before this time
+
+// What GitHub's answer says about waiting: "Retry-After" seconds, or the reset time of a used-up rate limit.
+function noteLimit(res) {
+  const h = res && res.headers && typeof res.headers.get === 'function' ? res.headers : null;
+  if (!h || (res.status !== 403 && res.status !== 429)) return;
+  const after = Number(h.get('retry-after'));
+  const reset = Number(h.get('x-ratelimit-reset'));
+  let until = 0;
+  if (Number.isFinite(after) && after > 0) until = Date.now() + after * 1000;
+  else if (h.get('x-ratelimit-remaining') === '0' && Number.isFinite(reset) && reset > 0) until = reset * 1000;
+  // Never trusted beyond a day: a wrong header must not switch the timer off for good.
+  if (until > Date.now()) holdUntil = Math.min(until, Date.now() + 86400000);
+}
+
+const onScreen = () => typeof document === 'undefined' || document.visibilityState !== 'hidden';
+const online = () => typeof navigator === 'undefined' || !navigator || navigator.onLine !== false;
+
+// Whether a check started by the page itself (not by a button) may go out now.
+function autoAllowed(now) {
+  return Boolean(syncConfig()) && onScreen() && online() && now >= holdUntil;
+}
+
+// The timed check: only on screen, online and connected, and only when nothing has talked to the gist for a
+// while (any other sync, such as the one after a tick, counts and moves the next check back).
+export function pollDue(now = Date.now()) {
+  return autoAllowed(now) && now - lastRun >= Math.min(POLL_MAX, POLL_MS * 2 ** Math.min(fails, 8));
+}
+
 export function syncConfig() {
   try {
     return JSON.parse(localStorage.getItem(KEY) || 'null');
@@ -58,6 +96,7 @@ async function gh(path, token, opts = {}, missing = null) {
   } catch {
     throw new Error(OFFLINE);
   }
+  noteLimit(res);
   if (res.status === 401) throw new Error('GitHub rejected the token (401). Check it has the gist scope and hasn’t expired.');
   if (res.status === 404 && missing) throw new Error(missing);
   if (!res.ok) throw new Error(`GitHub answered ${res.status}. Try again later.`);
@@ -99,10 +138,12 @@ async function writeRemote(c) {
 
 // One round trip: read the gist, merge it with this device part by part (calc/merge.js), then save whichever
 // side was missing something. Nothing is overwritten wholesale, so two devices can both have new entries.
-async function syncOnce() {
+// quiet: a timed check; the status only changes when it finds something to say.
+async function syncOnce(quiet = false) {
   const c = syncConfig();
   if (!c) return;
-  setStatus('busy', 'Syncing…');
+  lastRun = Date.now();
+  if (!quiet) setStatus('busy', 'Syncing…');
   const remote = await readRemote(c);
   // Disconnected (or "Clear all data" pressed) while the gist was being read: nothing is merged or written.
   const still = () => { const now = syncConfig(); return Boolean(now) && now.gistId === c.gistId; };
@@ -135,14 +176,21 @@ async function syncOnce() {
 
 // Runs are queued so a save and a check never overlap.
 let queue = Promise.resolve();
-export function syncNow() {
+export function syncNow(quiet = false) {
   // A failure is recorded in the shared status, so the top-bar pill never sticks on "Syncing…".
-  const run = queue.then(syncOnce).catch((e) => { setStatus('error', e.message); throw e; });
+  const run = queue.then(() => syncOnce(quiet === true)).then((r) => { fails = 0; return r; }, (e) => { fails++; setStatus('error', e.message); throw e; });
   queue = run.catch(() => {});
   return run;
 }
-export const pull = syncNow;
-export const push = syncNow;
+export const pull = () => syncNow();
+export const push = () => syncNow();
+
+// A sync the page starts by itself, on a timer or when the connection returns. Held back while GitHub asked to
+// wait, while offline and while hidden.
+function auto(quiet = false) {
+  if (!autoAllowed(Date.now())) return;
+  syncNow(quiet).catch(() => {});
+}
 
 function listen() {
   if (started) return;
@@ -150,11 +198,18 @@ function listen() {
   subscribe(() => {
     if (applying || !syncConfig()) return;
     clearTimeout(timer);
-    timer = setTimeout(() => push().catch((e) => setStatus('error', e.message)), 4000);
+    // (While GitHub asked to wait, nothing is sent; the timed check sends it once the wait is over.)
+    timer = setTimeout(() => { if (Date.now() >= holdUntil) push().catch((e) => setStatus('error', e.message)); }, 4000);
   });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && syncConfig()) pull().catch((e) => setStatus('error', e.message));
+    if (document.visibilityState === 'visible' && syncConfig() && Date.now() >= holdUntil) pull().catch((e) => setStatus('error', e.message));
   });
+  // Back online: catch up at once instead of waiting for the next timed check.
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') window.addEventListener('online', () => auto());
+  // The timer only looks at the clock once a minute; a request goes out when pollDue says so.
+  const id = setInterval(() => { if (pollDue()) auto(true); }, POLL_CHECK);
+  // (Outside a browser, in the tests, the timer must not keep the process alive.)
+  if (id && typeof id.unref === 'function') id.unref();
 }
 
 // Finds the existing sync gist for this token, or makes a secret one with the current entries.

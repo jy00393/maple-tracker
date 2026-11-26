@@ -1,5 +1,5 @@
 import { html, useEffect, useRef, useState } from '../vendor/htm-preact.mjs';
-import { fmtLeft } from './time.js';
+import { fmtLeft, nextReset } from './time.js';
 import { plural } from './calc/plural.js';
 
 export { plural };
@@ -13,20 +13,108 @@ export function useNow(intervalMs = 1000) {
   return now;
 }
 
-// A countdown that keeps itself up to date, whatever its page does: every second while seconds show (under an
-// hour), every 30 s otherwise.
-// before / after: words printed around the time ("starts in ", " left"). done: what to show once the moment has
-// passed, so the words and the number come from one clock (never "now left"). Without done it ends on "now".
-export function Left({ until, before = '', after = '', done }) {
+// ---- Clocks -------------------------------------------------------------------------------------------------
+// Everything on screen that depends on the time is redrawn by one of three pieces: useClock (a page or a bar),
+// Left (a countdown) and Ago (an age). They aim their timers at the moment the text changes, so nothing is
+// "up to 30 s behind", and they wake each other: when a countdown ends, every page clock redraws at once.
+const wakers = new Set();
+
+// Redraws every component that uses useClock, now.
+export function wakePages() {
+  [...wakers].forEach((fn) => fn());
+}
+
+// A tab that comes back to the front (a phone woken up, a laptop opened) redraws at once: its timers may have
+// been asleep across a reset.
+let watching = null;
+function watchVisibility() {
+  const doc = typeof document !== 'undefined' ? document : null;
+  if (!doc || watching === doc || typeof doc.addEventListener !== 'function') return;
+  watching = doc;
+  doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'visible') wakePages(); });
+}
+
+// The longest wait a browser timer takes (about 24.8 days).
+const TIMER_MAX = 2147483647;
+
+// The time for this draw, and a redraw:
+// - on every round `every` ms of the clock (30 s by default: 09:00:00, 09:00:30, ...),
+// - at the next reset, to the millisecond (daily 00:00 UTC, which is also when the weekly and monthly ones fall),
+// - when a countdown on screen (Left) ends,
+// - when the tab comes back to the front.
+// Each draw reads the clock afresh, so a redraw for any other reason (a tick being saved) is up to date too.
+export function useClock({ every = 30000 } = {}) {
   const [, tick] = useState(0);
-  const ms = until - Date.now();
-  const step = ms < 3630000 ? 1000 : 30000;
   useEffect(() => {
-    const id = setInterval(() => tick((n) => n + 1), step);
-    return () => clearInterval(id);
-  }, [step]);
-  if (ms <= 0 && done !== undefined) return done;
+    let id = null;
+    const arm = () => {
+      const now = Date.now();
+      const wait = Math.min(every - (now % every), nextReset('daily', now) - now, TIMER_MAX);
+      // A timer can fire a moment early; aiming again from the clock each time makes the next one land.
+      id = setTimeout(() => { tick((n) => n + 1); arm(); }, Math.max(1, wait));
+    };
+    arm();
+    const wake = () => tick((n) => n + 1);
+    wakers.add(wake);
+    watchVisibility();
+    return () => { clearTimeout(id); wakers.delete(wake); };
+  }, [every]);
+  return Date.now();
+}
+
+const HOUR_MS = 3600000;
+
+// A countdown that keeps itself up to date, whatever its page does. It redraws exactly when its text changes:
+// every second while seconds show (under an hour), every minute otherwise.
+// before / after: words printed around the time ("starts in ", " left"), so the words and the number come from
+// one clock. done: what to show once the moment has passed; without it the countdown disappears. It never reads
+// "in now" or "now left". The moment it ends, the pages redraw (wakePages), so what hung on it moves on too.
+export function Left({ until, before = '', after = '', done = null }) {
+  const [, tick] = useState(0);
+  // Whether the last draw still showed a running countdown.
+  const running = useRef(false);
+  useEffect(() => {
+    if (!Number.isFinite(until)) return undefined;
+    if (until <= Date.now()) {
+      // It ended between the draw and this moment: draw the ending, as the timer would have.
+      if (running.current) { tick((n) => n + 1); wakePages(); }
+      return undefined;
+    }
+    let id = null;
+    const arm = () => {
+      const left = until - Date.now();
+      if (left <= 0) { id = null; wakePages(); return; }
+      const unit = left >= HOUR_MS ? 60000 : 1000;
+      // The text changes when the time left drops below a whole unit; in the last second, when it runs out.
+      id = setTimeout(() => { tick((n) => n + 1); arm(); }, left < 1000 ? left : (left % unit) + 1);
+    };
+    arm();
+    return () => clearTimeout(id);
+  }, [until]);
+  const ms = until - Date.now();
+  running.current = ms > 0;
+  if (ms <= 0) return done;
   return before + fmtLeft(ms) + after;
+}
+
+// How long ago something happened ("9m 50s", "1h 05m", "2d 3h"), counting up by itself: every second while
+// seconds show, every minute after that.
+export function Ago({ since }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!Number.isFinite(since)) return undefined;
+    let id = null;
+    const arm = () => {
+      const age = Math.max(0, Date.now() - since);
+      const unit = age >= HOUR_MS ? 60000 : 1000;
+      id = setTimeout(() => { tick((n) => n + 1); arm(); }, unit - (age % unit));
+    };
+    arm();
+    return () => clearTimeout(id);
+  }, [since]);
+  const age = Date.now() - since;
+  if (!Number.isFinite(age)) return '—';
+  return age < 1000 ? 'a moment' : fmtLeft(age);
 }
 
 export function Card({ title, meta, children, className = '', bodyClass = 'card-b' }) {
@@ -132,12 +220,15 @@ export function Fold({ title, meta, children, className = '', bodyClass = 'card-
 
 // With `onStep` the buttons report -1 or +1 and the owner applies it to the value that is current at the
 // click (the drawn value can be a few seconds old). Without it they report the new value through `onChange`.
+// At a limit a button is greyed and marked aria-disabled, not truly disabled: a press still reaches the owner, who
+// decides from the current value (so a count drawn just before a reset can never lock the + button), and the
+// keyboard focus stays on the button.
 export function Counter({ value, target, onChange, onStep, label }) {
   const step = (d) => (onStep ? onStep(d) : onChange(Math.max(0, Math.min(target, value + d))));
   return html`<div class="counter">
-    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} onClick=${() => step(-1)}>−</button>
+    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} aria-disabled=${String(value <= 0)} onClick=${() => step(-1)}>−</button>
     <span class=${'val' + (value >= target ? ' full' : '')} aria-live="polite">${value} / ${target}</span>
-    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} onClick=${() => step(1)}>+</button>
+    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} aria-disabled=${String(value >= target)} onClick=${() => step(1)}>+</button>
   </div>`;
 }
 
@@ -184,27 +275,44 @@ export function fmtBig(n) {
   return String(Math.round(n));
 }
 
+// Form fields kept in one object. `set` merges a patch; `latest()` returns the fields including a patch made earlier
+// in the same event, before any redraw. A form's submit reads `latest()`: Enter in a box saves that box and submits
+// the form in one go, and the submit must not miss what was just typed.
+export function useFields(initial) {
+  const [f, setF] = useState(initial);
+  const ref = useRef(f);
+  const set = (patch) => { ref.current = { ...ref.current, ...patch }; setF(ref.current); };
+  return [f, set, () => ref.current];
+}
+
 // The box shows the saved amount rounded ("45M"). Leaving it without typing changes nothing, so the exact number
 // is never replaced by the rounded one. Text it can't read puts the saved amount back; an empty box clears it.
-export function MesoInput({ value, onChange, label, placeholder = 'e.g. 1.5B' }) {
+// Typing is saved when the box is left and when Enter is pressed (Enter never leaves the box, and inside a form it
+// submits at once). Phones get the full keyboard, because amounts are typed with a unit and a dot ("45M", "1.5B").
+export function MesoInput({ value, onChange, onConfirm, label, placeholder = 'e.g. 1.5B' }) {
   const [text, setText] = useState(value ? fmtBig(value) : '');
   // Kept outside render state, so a blur right after typing (before a redraw) still sees the typing.
   const edited = useRef(false);
   useEffect(() => { setText(value ? fmtBig(value) : ''); edited.current = false; }, [value]);
-  return html`<input class="input" inputmode="decimal" aria-label=${label} placeholder=${placeholder} value=${text}
+  // Saves once per edit: after Enter, the blur that follows finds nothing new.
+  const commit = (raw) => {
+    if (!edited.current) return;
+    edited.current = false;
+    if (!String(raw).trim()) { onChange(null); setText(''); return; }
+    // Typed back to exactly what was shown (the rounded "45M"): the exact saved amount stays.
+    // `onConfirm`: the owner may note that the amount was looked at again (its "as of" day).
+    if (value && parseMesos(raw) === parseMesos(fmtBig(value))) { setText(fmtBig(value)); if (onConfirm) onConfirm(); return; }
+    const v = parseMesos(raw);
+    if (v === null || v > MESO_MAX) { setText(value ? fmtBig(value) : ''); return; }
+    onChange(v);
+    setText(v ? fmtBig(v) : '');
+  };
+  return html`<input class="input" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck=${false}
+    aria-label=${label} placeholder=${placeholder} value=${text}
     onInput=${(e) => { setText(e.currentTarget.value); edited.current = true; }}
-    onBlur=${(e) => {
-      if (!edited.current) return;
-      edited.current = false;
-      const raw = e.currentTarget.value;
-      if (!String(raw).trim()) { onChange(null); setText(''); return; }
-      // Typed back to exactly what was shown (the rounded "45M"): the exact saved amount stays.
-      if (value && parseMesos(raw) === parseMesos(fmtBig(value))) { setText(fmtBig(value)); return; }
-      const v = parseMesos(raw);
-      if (v === null || v > MESO_MAX) { setText(value ? fmtBig(value) : ''); return; }
-      onChange(v);
-      setText(v ? fmtBig(v) : '');
-    }} />`;
+    onKeyDown=${(e) => { if (e.key === 'Enter' && !e.isComposing) commit(e.currentTarget.value); }}
+    onChange=${(e) => commit(e.currentTarget.value)}
+    onBlur=${(e) => commit(e.currentTarget.value)} />`;
 }
 
 // The largest amount the tracker keeps (saved data is cleaned to this on load).
