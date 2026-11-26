@@ -1,10 +1,13 @@
 // "You are about to lose this": unticked tasks and uncleared bosses whose reset is close.
 import { nextReset } from '../time.js';
 import { itemStatus } from './checklist.js';
+import { weeklyOpen } from './income.js';
 
 const HOUR = 3600000;
 
 // bossLines: characterLines() for the active character (may be empty).
+// opts.weeklyCap: how many weekly crystals sell (bosses.json). opts.weeklyEarned: crystals already earned this
+// week outside the lines (computeIncome's perChar.unpicked, weekly ones).
 // Returns one entry per reset that is close, soonest first:
 // { kind, at, left, items: [label], bosses: { count, value } }
 export function resetWarnings(checklistData, checklistState, bossLines, now, opts = {}) {
@@ -27,21 +30,16 @@ export function resetWarnings(checklistData, checklistState, bossLines, now, opt
       slot(st.kind).items.push(item.label);
     }
   }
-  // Only so many weekly crystals sell (opts.weeklyCap, from bosses.json): once that many are cleared nothing more
-  // can be lost, and before that only the best open ones count.
-  const weeklyCap = opts.weeklyCap > 0 ? opts.weeklyCap : Infinity;
-  let room = weeklyCap - (bossLines || []).filter((l) => l.kind === 'weekly' && l.value > 0 && l.cleared).length;
-  const byValue = [...(bossLines || [])].sort((a, b) => b.value - a.value);
-  for (const line of byValue) {
+  // Weekly bosses: the same rule as the "earned of planned" figures (weeklyOpen in income.js). Only the best
+  // weekly crystals sell, so an open boss counts when it would be one of them, at what it would add.
+  if (close('thu')) {
+    const open = weeklyOpen(bossLines, opts.weeklyCap, opts.weeklyEarned);
+    if (open.count && open.value > 0) slot('thu').bosses = open;
+  }
+  for (const line of bossLines || []) {
     // Done on another difficulty, or a second pick for the same clear: nothing left to lose.
     if (!(line.value > 0) || line.doneAs || line.spare) continue;
-    if (line.kind === 'weekly' && !line.cleared && close('thu')) {
-      if (room <= 0) continue;
-      room--;
-      const w = slot('thu');
-      w.bosses.count++;
-      w.bosses.value += line.value;
-    } else if (line.kind === 'daily' && !line.clearedNow && close('daily')) {
+    if (line.kind === 'daily' && !line.clearedNow && close('daily')) {
       const w = slot('daily');
       w.bosses.count++;
       w.bosses.value += line.value;

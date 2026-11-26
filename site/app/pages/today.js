@@ -131,7 +131,7 @@ export function TodayPage({ data, state }) {
   const best = char ? bestUpgrade(upgradeOptions(data.gear, state.gear[char.id], withCubeRates(data.upgrades, state.mesos.cubeRates), data.gearStats, damageEstimateSupported(char.mainStat) ? (state.gear[char.id] || {}).stats : null, { fl: data.flames, mainStat: char.mainStat || 'STR', weights: (state.ui.flameCalc || {}).weights })) : null;
   const weekly = weeklyIncome(data, state, now).total;
   const bestAt = best ? affordableAt(best.cost, state.mesos.held, weekly, now) : null;
-  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who, weeklyCap: data.bosses.limits.weeklyPerCharacter });
+  const warnings = resetWarnings(data.checklist, state.checklist, income ? income.lines : [], now, { who, weeklyCap: data.bosses.limits.weeklyPerCharacter, weeklyEarned: income ? income.unpicked.filter((u) => u.kind === 'weekly').flatMap((u) => u.earned) : [] });
   const timing = best && best.kind === 'sf' ? starForceTiming(data.events.sunny, best.cost, best.sunnyCost, now) : null;
   const sunday = sunnyDays(data.events.sunny, now)[0];
   const coming = comingUp(data.upcoming, now, char, 5, data.events.events);
@@ -182,7 +182,7 @@ export function TodayPage({ data, state }) {
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} in ${s.daysToNext} day${s.daysToNext === 1 ? '' : 's'} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}
           ${erdaNext.length ? html`<div><b>6th job</b>${erdaNext.map((s) => html`<div class="small">${s.label}</div>`)}</div>` : null}
           ${gearGap && !best ? html`<div><b>Gear</b><div class="small">${gearGap.slot.name}: ${gearGap.gaps.slice(0, 2).join(', ')}</div></div>` : null}
-          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} traces left · about ${genesis.weeks} weeks</div></div>` : null}
+          ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} traces left · about ${genesis.weeks} week${genesis.weeks === 1 ? '' : 's'}</div></div>` : null}
         <//>` : null}
       </div>
     </div>
