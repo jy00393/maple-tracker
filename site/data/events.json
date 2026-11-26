@@ -1086,6 +1086,23 @@
    "url": "https://www.nexon.com/maplestory/news/sale/47292"
   },
   {
+   "id": "49021-the-maplestory-collection",
+   "title": "The MapleStory Collection",
+   "start": null,
+   "end": "2026-12-09T21:00:00.000Z",
+   "startApprox": true,
+   "endApprox": false,
+   "afterMaintenance": false,
+   "raw": "until December 9, 2026 at 9:00 PM UTC",
+   "resets": [],
+   "postId": 49021,
+   "postName": "Merch Available for Pre-Order",
+   "liveDate": "2026-11-25T13:00:00Z",
+   "category": "general",
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/49021"
+  },
+  {
    "id": "47132-shadow-supplies",
    "title": "Shadow Supplies",
    "start": "2026-11-11T00:00:00.000Z",

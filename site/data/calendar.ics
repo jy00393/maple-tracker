@@ -9,22 +9,6 @@ X-WR-CALDESC:Event ends\, maintenance and weekly resets from Nexon's news (
 REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
-UID:45393-winter-countdown-event-end@maple-tracker
-DTSTAMP:20261006T170030Z
-DTSTART:20261124T225900Z
-DTEND:20261124T235900Z
-SUMMARY:Ends: Winter Countdown Event
-DESCRIPTION:Winter Countdown Event (also in [Updated 9/29] v.271 - MapleSto
- ry x Frieren: Beyond Journey's End Patch Notes\; v.272 - Maplayer One Patc
- h Notes)\nhttps://www.nexon.com/maplestory/news/events/45393
-URL:https://www.nexon.com/maplestory/news/events/45393
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Winter Countdown Event ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:47555-doorbuster-black-friday-lucky-box-tuesday-end@maple-tracker
 DTSTAMP:20261122T160000Z
 DTSTART:20261125T065900Z
@@ -593,6 +577,21 @@ URL:https://www.nexon.com/maplestory/news/sale/47292
 BEGIN:VALARM
 ACTION:DISPLAY
 DESCRIPTION:Royal Styles Update ends tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:49021-the-maplestory-collection-end@maple-tracker
+DTSTAMP:20261125T130000Z
+DTSTART:20261209T200000Z
+DTEND:20261209T210000Z
+SUMMARY:Ends: The MapleStory Collection
+DESCRIPTION:Merch Available for Pre-Order\nhttps://www.nexon.com/maplestory
+ /news/general/49021
+URL:https://www.nexon.com/maplestory/news/general/49021
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:The MapleStory Collection ends tomorrow
 TRIGGER:-P1D
 END:VALARM
 END:VEVENT

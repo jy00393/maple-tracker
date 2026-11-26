@@ -1,6 +1,16 @@
 {
  "items": [
   {
+   "id": 49021,
+   "name": "Merch Available for Pre-Order",
+   "category": "general",
+   "liveDate": "2026-11-25T13:00:00Z",
+   "summary": "Plushies, pins, and more available for a limited time!",
+   "featured": true,
+   "isClassic": false,
+   "url": "https://www.nexon.com/maplestory/news/general/49021"
+  },
+  {
    "id": 49052,
    "name": "[Completed] Scheduled Maintenance - November 24, 2026",
    "category": "maintenance",
@@ -1489,16 +1499,6 @@
    "featured": false,
    "isClassic": false,
    "url": "https://www.nexon.com/maplestory/news/sale/41224"
-  },
-  {
-   "id": 41982,
-   "name": "[Completed] Scheduled Game Update - June 17, 2026",
-   "category": "maintenance",
-   "liveDate": "2026-06-15T18:00:00Z",
-   "summary": "The maintenance has been completed and we have extended Cash Shop items in your inventory for 9 hours. Please restart your Nexon Launcher or Steam to ensure you receive the latest client update.",
-   "featured": false,
-   "isClassic": false,
-   "url": "https://www.nexon.com/maplestory/news/maintenance/41982"
   }
  ]
 }
