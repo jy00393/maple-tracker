@@ -355,21 +355,6 @@ DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
 URL:https://www.nexon.com/maplestory/news/sale/47555
 END:VEVENT
 BEGIN:VEVENT
-UID:47132-sunny-sunday-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20261129T225900Z
-DTEND:20261129T235900Z
-SUMMARY:Ends: Sunny Sunday
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Sunny Sunday ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:47555-weekend-daily-deals-end@maple-tracker
 DTSTAMP:20261122T160000Z
 DTSTART:20261130T065900Z
@@ -465,6 +450,61 @@ DTSTAMP:20261122T160000Z
 DTSTART:20261129T080000Z
 DURATION:PT30M
 SUMMARY:Starts: Anniversary Surprise Style Box
+DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
+ 47555
+URL:https://www.nexon.com/maplestory/news/sale/47555
+END:VEVENT
+BEGIN:VEVENT
+UID:47555-radiant-glowing-brilliant-bright-and-dazzling-bonus-glowing--2-en
+ d@maple-tracker
+DTSTAMP:20261122T160000Z
+DTSTART:20261201T065900Z
+DTEND:20261201T075900Z
+SUMMARY:Ends: Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glowi
+ ng Cube Packs
+DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
+ 47555
+URL:https://www.nexon.com/maplestory/news/sale/47555
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glowing
+  Cube Packs ends tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:47555-radiant-glowing-brilliant-bright-and-dazzling-bonus-glowing--2-st
+ art@maple-tracker
+DTSTAMP:20261122T160000Z
+DTSTART:20261130T080000Z
+DURATION:PT30M
+SUMMARY:Starts: Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glo
+ wing Cube Packs
+DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
+ 47555
+URL:https://www.nexon.com/maplestory/news/sale/47555
+END:VEVENT
+BEGIN:VEVENT
+UID:47555-glowing-and-bright-cubes-2-end@maple-tracker
+DTSTAMP:20261122T160000Z
+DTSTART:20261201T065900Z
+DTEND:20261201T075900Z
+SUMMARY:Ends: Glowing and Bright Cubes
+DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
+ 47555
+URL:https://www.nexon.com/maplestory/news/sale/47555
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Glowing and Bright Cubes ends tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:47555-glowing-and-bright-cubes-2-start@maple-tracker
+DTSTAMP:20261122T160000Z
+DTSTART:20261130T080000Z
+DURATION:PT30M
+SUMMARY:Starts: Glowing and Bright Cubes
 DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
  47555
 URL:https://www.nexon.com/maplestory/news/sale/47555
@@ -566,6 +606,21 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
+UID:47292-premium-ssb-update-end@maple-tracker
+DTSTAMP:20261117T160001Z
+DTSTART:20261209T065900Z
+DTEND:20261209T075900Z
+SUMMARY:Ends: Premium SSB Update
+DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
+ hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
+URL:https://www.nexon.com/maplestory/news/sale/47292
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Premium SSB Update ends tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
 UID:47292-royal-styles-update-end@maple-tracker
 DTSTAMP:20261117T160001Z
 DTSTART:20261209T065900Z
@@ -651,14 +706,14 @@ DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
 URL:https://www.nexon.com/maplestory/news/update/47132
 END:VEVENT
 BEGIN:VEVENT
-UID:47254-genesis-passes-end@maple-tracker
-DTSTAMP:20261110T163000Z
-DTSTART:20270208T225900Z
-DTEND:20270208T235900Z
+UID:47292-genesis-passes-end@maple-tracker
+DTSTAMP:20261117T160001Z
+DTSTART:20270215T225900Z
+DTEND:20270215T235900Z
 SUMMARY:Ends: Genesis Passes
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 11\nhttps://www.nexon.com/map
- lestory/news/sale/47254
-URL:https://www.nexon.com/maplestory/news/sale/47254
+DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
+ hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
+URL:https://www.nexon.com/maplestory/news/sale/47292
 BEGIN:VALARM
 ACTION:DISPLAY
 DESCRIPTION:Genesis Passes ends tomorrow
@@ -1068,21 +1123,6 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47292-genesis-passes-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20270215T225900Z
-DTEND:20270215T235900Z
-SUMMARY:Ends: Genesis Passes
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18\nhttps://www.nexon.com/map
- lestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Genesis Passes ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:47304-quanah-maple-point-shop-end@maple-tracker
 DTSTAMP:20261111T110002Z
 DTSTART:20270308T225900Z
@@ -1199,6 +1239,36 @@ URL:https://www.nexon.com/maplestory/news/events/47304
 BEGIN:VALARM
 ACTION:DISPLAY
 DESCRIPTION:Quanah Meso Shop ends tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:47292-star-stamp-shop-season-4-end@maple-tracker
+DTSTAMP:20261117T160001Z
+DTSTART:20270526T065900Z
+DTEND:20270526T075900Z
+SUMMARY:Ends: Star Stamp Shop Season 4
+DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
+ hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
+URL:https://www.nexon.com/maplestory/news/sale/47292
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Star Stamp Shop Season 4 ends tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:47292-mythic-star-style-box-end@maple-tracker
+DTSTAMP:20261117T160001Z
+DTSTART:20270526T065900Z
+DTEND:20270526T075900Z
+SUMMARY:Ends: Mythic Star Style Box
+DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
+ hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
+URL:https://www.nexon.com/maplestory/news/sale/47292
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Mythic Star Style Box ends tomorrow
 TRIGGER:-P1D
 END:VALARM
 END:VEVENT

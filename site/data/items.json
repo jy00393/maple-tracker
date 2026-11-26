@@ -1,10 +1,10 @@
 {
  "source": "maplestory.io community API, GMS v.270 game data: non-cash equipment Lv. 100+. Unofficial; it can lag behind the live game, so newer items may be missing.",
  "sourceUrl": "https://maplestory.io",
- "schema": 2,
+ "schema": 3,
  "version": "270",
- "fetchedAt": "2026-11-23T22:03:34.143Z",
- "checkedAt": "2026-11-26T01:47:16.142Z",
+ "fetchedAt": "2026-11-26T06:36:25.506Z",
+ "checkedAt": "2026-11-26T06:36:25.506Z",
  "items": [
 [1113360,"Blissful Nightmare",250,"ring"],
 [1592049,"Destiny Ancient Bow",250,"weapon"],
