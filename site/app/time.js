@@ -48,6 +48,12 @@ export function fmtLeft(ms) {
   return `${m}m ${pad(s % 60)}s`;
 }
 
+// The same without seconds, for text that is only redrawn now and then (a tooltip): "12 min", "3h 05m", "2d 4h".
+export function fmtLeftCoarse(ms) {
+  if (Number.isFinite(ms) && ms > 0 && ms < 3600000) return `${Math.max(1, Math.ceil(ms / 60000))} min`;
+  return fmtLeft(ms);
+}
+
 export function kstParts(t) {
   const d = new Date(t + 9 * 3600000);
   return { wd: WD[d.getUTCDay()], day: d.getUTCDate(), mo: MO[d.getUTCMonth()], year: d.getUTCFullYear(), hh: pad(d.getUTCHours()), mm: pad(d.getUTCMinutes()) };

@@ -1,7 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update } from '../store.js';
 import { Card } from '../ui.js';
-import { DAY, fmtKst, fmtLeft } from '../time.js';
+import { DAY, fmtKst, fmtLeftCoarse } from '../time.js';
 
 const CATS = [['gameplay', 'Gameplay', ['events', 'update', 'general', 'community']], ['sale', 'Cash Shop', ['sale']], ['maintenance', 'Maintenance', ['maintenance']]];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -54,7 +54,8 @@ function Bar({ e, from, to, now, label }) {
   const end = Date.parse(e.end);
   const left = pos(s, from, to);
   const width = Math.max(0.6, pos(end, from, to) - left);
-  const status = s > now ? `starts in ${fmtLeft(s - now)}` : end > now ? `${fmtLeft(end - now)} left` : 'ended';
+  // A tooltip cannot tick by itself, so it shows no seconds.
+  const status = s > now ? `starts in ${fmtLeftCoarse(s - now)}` : end > now ? `${fmtLeftCoarse(end - now)} left` : 'ended';
   const tip = `${e.title}\n${e.start ? fmtKst(s, !e.startApprox) : 'already running'} → ${fmtKst(end, !e.endApprox)}\n${status}`;
   return html`<a class=${`tl-bar cat-${e.category}${!e.start || s < from ? ' approx-start' : ''}`} href=${e.url} target="_blank" rel="noopener"
     style=${{ left: left + '%', width: width + '%' }} title=${tip} aria-label=${tip.replace(/\n/g, ', ')}>${label ?? shortStatus(s, end, now)}</a>`;

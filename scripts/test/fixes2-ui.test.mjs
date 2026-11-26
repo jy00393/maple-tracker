@@ -300,9 +300,9 @@ test('#11 a countdown never reads "now left" or "starts in now" after its moment
     assert.match(el.text, /23h 59m left/, 'a started event counts down to its end');
   } finally { Date.now = realNow; }
   unmount(el);
-  // Without the new options it is the same countdown as before.
+  // Without `done` a countdown whose moment has passed disappears; it never prints "now" (which read "in now").
   const plain = mount(html`<p><${Left} until=${realNow() - 5} /></p>`);
-  assert.equal(plain.text.trim(), 'now');
+  assert.equal(plain.text.trim(), '');
   unmount(plain);
 });
 

@@ -1,7 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
-import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left, plural } from '../ui.js';
-import { DAY, fmtDate, fmtKst, fmtLeft, kstDays, dayWord } from '../time.js';
+import { Card, PageHead, Tile, Bar, useClock, Empty, fmtBig, Left, plural } from '../ui.js';
+import { DAY, fmtDate, fmtKst, kstDays, dayWord } from '../time.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
 import { liveEvents, upcomingMaintenance, EventRow } from './events.js';
@@ -46,7 +46,7 @@ function SeasonCard({ season, state, now }) {
     <div class="insight"><span class="k">Season ends</span><span class="big accent">${fmtKst(o.ends)}</span>
       <span class="small muted">${o.open} of ${o.total} end-of-season steps still open. Challenger gear stops working then, so spend nothing on it.</span></div>
     ${o.groups.map((g) => html`<details open=${o.daysLeft <= 14 && !g.passed && g.items.some((i) => !i.done) && g === o.groups.find((x) => !x.passed && x.items.some((i) => !i.done))}>
-      <summary><b>By ${fmtKst(g.at)}</b> <span class="small muted">· ${g.passed ? 'passed' : `${fmtLeft(g.left)} left`} · ${g.items.filter((i) => !i.done).length} open</span></summary>
+      <summary><b>By ${fmtKst(g.at)}</b> <span class="small muted">· ${g.passed ? 'passed' : html`<${Left} until=${g.at} after=" left" done="passed" />`} · ${g.items.filter((i) => !i.done).length} open</span></summary>
       ${g.items.map((i) => html`<div class=${'row' + (i.done ? ' done' : '')}>
         <input type="checkbox" id=${'season-' + i.id} checked=${i.done} onChange=${(e) => toggle(i.id, e.currentTarget.checked)} />
         <label class="lbl" for=${'season-' + i.id}>${i.label}</label>
@@ -94,7 +94,7 @@ function ResetWarning({ w }) {
   if (w.bosses.count) parts.push(`${w.bosses.count} boss${w.bosses.count === 1 ? '' : 'es'} uncleared (${fmtMesos(w.bosses.value)})`);
   parts.push(...w.items.slice(0, 3));
   const more = w.items.length - 3;
-  return html`<p class="warnbox reset-warn" role="status"><b>${RESET_NAMES[w.kind] || 'Reset'} in <${Left} until=${w.at} /></b> (${fmtKst(w.at)}). Still open: ${parts.join(' · ')}${more > 0 ? ` · +${more} more` : ''}.
+  return html`<p class="warnbox reset-warn" role="status"><b>${RESET_NAMES[w.kind] || 'Reset'} <${Left} until=${w.at} before="in " done="has passed" /></b> (${fmtKst(w.at)}). Still open: ${parts.join(' · ')}${more > 0 ? ` · +${more} more` : ''}.
     <a href=${w.bosses.count ? '#bosses' : '#checklist'}>Open</a></p>`;
 }
 
@@ -109,9 +109,9 @@ function hideEvent(e, now) {
 }
 
 export function TodayPage({ data, state }) {
-  // Redrawn every 30 s; each draw uses the current time, the same clock a tick uses.
-  useNow(30000);
-  const now = Date.now();
+  // Redrawn every 30 s, at each reset and when a countdown on it ends; each draw uses the current time, the
+  // same clock a tick uses.
+  const now = useClock();
   const char = activeCharacter(state);
   const who = whoOf(data, state);
   const prog = dailyProgress(data.checklist, state.checklist, now, who);
@@ -145,7 +145,7 @@ export function TodayPage({ data, state }) {
         <span class="s">${streak ? `${streak}-day streak` : 'start a streak today'} · <a href="#checklist">checklist</a></span></div>
       ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.target)} planned · resets Thu 09:00 KST`} accent />` : null}
       ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? dayWord(kstDays(now, gate.at)) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
-      <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? html`next: ${ending[0].title} in <${Left} until=${Date.parse(ending[0].end)} />` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
+      <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? html`next: ${ending[0].title} <${Left} until=${Date.parse(ending[0].end)} before="in " done="has ended" />` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
       ${maint ? html`<${Tile} k="Next maintenance" v=${fmtKst(Date.parse(maint.start), false)} s=${`${fmtKst(Date.parse(maint.start))} → ${fmtKst(Date.parse(maint.end))}`} />` : null}
     </div>
     ${char ? null : html`<div class="grid two" style=${{ marginBottom: '14px' }}><${QuickSetup} data=${data} /></div>`}

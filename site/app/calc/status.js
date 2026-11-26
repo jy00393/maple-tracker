@@ -10,10 +10,28 @@ export function latestPatchNotes(news) {
     .sort((a, b) => Date.parse(b.liveDate) - Date.parse(a.liveDate))[0] || null;
 }
 
+// How old the Nexon files are, and why. The open page re-reads them by itself (data.js), so "old" has three
+// different causes that must not be mixed up:
+// - 'job': this page has just re-read the files and they are still old: the refresh job really stopped;
+// - 'unreached': the last re-read failed (no connection), so the page cannot tell;
+// - 'checking': the page has not managed a re-read for a while (it was asleep): one is on its way.
+// refresh: { failed, at } from data.js: how the last re-read went and when. Without it (no re-reading), old means 'job'.
+export const STALE_AFTER = 30 * HOUR;
+const RECHECK_LATE = 1.5 * HOUR;
+export function nexonAge(meta, now, refresh) {
+  const checked = meta ? Date.parse(meta.checkedAt) : NaN;
+  if (!meta || !Number.isFinite(checked)) return { kind: 'none', hours: 0 };
+  const hours = Math.floor((now - checked) / HOUR);
+  if (now - checked <= STALE_AFTER) return { kind: 'fresh', hours };
+  if (refresh && refresh.failed) return { kind: 'unreached', hours };
+  if (refresh && Number.isFinite(refresh.at) && now - refresh.at > RECHECK_LATE) return { kind: 'checking', hours };
+  return { kind: 'job', hours };
+}
+
 // sync: { state: 'off' | 'busy' | 'ok' | 'warn' | 'error', message } from sync.js; syncOn: a token is saved on this device.
 // meta: data/meta.json written by the refresh job (or null); tablesChecked: ISO date the game tables were last checked.
-// tokenExpires: 'YYYY-MM-DD' typed in by the user, or null.
-export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenExpires }) {
+// tokenExpires: 'YYYY-MM-DD' typed in by the user, or null. refresh: see nexonAge.
+export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenExpires, refresh }) {
   const parts = [];
   if (!syncOn) parts.push({ key: 'sync', level: 'off', short: 'Sync off', text: 'Device sync is off. Your entries stay in this browser only.' });
   else if (sync && sync.state === 'error') parts.push({ key: 'sync', level: 'error', short: 'Sync error', text: `Device sync failed: ${sync.message || 'unknown error'}` });
@@ -33,11 +51,15 @@ export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenE
     else if (days <= 7) parts.push({ key: 'token', level: 'warn', short: `Sync token: ${days} day${days === 1 ? '' : 's'} left`, text: `Your sync token expires on ${tokenExpires}. Make a new gist-only token on GitHub and connect again before then.` });
   }
 
-  const checked = meta ? Date.parse(meta.checkedAt) : NaN;
-  if (!meta || !Number.isFinite(checked)) {
+  const age = nexonAge(meta, now, refresh);
+  if (age.kind === 'none') {
     parts.push({ key: 'nexon', level: 'warn', short: 'No Nexon data', text: 'No Nexon data yet. The refresh job has not run.' });
-  } else if (now - checked > 30 * HOUR) {
-    parts.push({ key: 'nexon', level: 'warn', short: 'Nexon data old', text: `Events and news are ${Math.floor((now - checked) / HOUR)} hours old. The 6-hour refresh job may have stopped.` });
+  } else if (age.kind === 'job') {
+    parts.push({ key: 'nexon', level: 'warn', short: 'Nexon data old', text: `Events and news are ${age.hours} hours old. The 6-hour refresh job may have stopped.` });
+  } else if (age.kind === 'unreached') {
+    parts.push({ key: 'nexon', level: 'warn', short: 'Nexon data not re-checked', text: `Events and news are ${age.hours} hours old. This page could not load a newer copy (no connection?). It tries again when you come back to it.` });
+  } else if (age.kind === 'checking') {
+    parts.push({ key: 'nexon', level: 'busy', short: 'Checking Nexon data…', text: `Events and news are ${age.hours} hours old. Looking for a newer copy…` });
   } else if (meta.ok === false || (meta.errors && meta.errors.length)) {
     parts.push({ key: 'nexon', level: 'warn', short: 'Nexon problem', text: `The last Nexon refresh reported a problem: ${(meta.errors || []).slice(0, 2).join('; ') || 'unknown'}` });
   } else {

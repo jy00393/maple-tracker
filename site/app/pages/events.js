@@ -1,7 +1,8 @@
 import { html, useEffect } from '../../vendor/htm-preact.mjs';
 import { update } from '../store.js';
-import { Card, PageHead, Seg, useNow, Empty, Left } from '../ui.js';
-import { DAY, fmtKst, fmtLeft } from '../time.js';
+import { Card, PageHead, Seg, useClock, Empty, Left, Ago } from '../ui.js';
+import { DAY, fmtKst } from '../time.js';
+import { nexonAge } from '../calc/status.js';
 import { Timeline, CalendarCard } from './timeline.js';
 import { ShopsView } from './shops.js';
 
@@ -69,19 +70,26 @@ function groupByPost(events) {
   return [...map.values()];
 }
 
-function DataStatus({ meta, now }) {
-  if (!meta) return html`<p class="warnbox">No Nexon data yet. It appears after the GitHub job's first run (Actions tab → "Update Nexon data and deploy").</p>`;
-  const age = now - Date.parse(meta.checkedAt);
-  const stale = age > 30 * 3600000;
+// The age counts up by itself (Ago), every second while it shows seconds. Why old data is old comes from
+// nexonAge, the same answer the top-bar pill gives.
+const OLD_BECAUSE = {
+  job: ' The scheduled job may have stopped; re-run it from the Actions tab.',
+  unreached: ' This page could not load a newer copy just now (no connection?). It tries again when you come back to it.',
+  checking: ' Looking for a newer copy…'
+};
+function DataStatus({ meta, now, refresh }) {
+  const age = nexonAge(meta, now, refresh);
+  if (age.kind === 'none') return html`<p class="warnbox">No Nexon data yet. It appears after the GitHub job's first run (Actions tab → "Update Nexon data and deploy").</p>`;
+  const stale = age.kind !== 'fresh';
   return html`<p class=${stale || !meta.ok ? 'warnbox' : 'note'}>
-    Nexon data checked ${fmtLeft(age)} ago (${fmtKst(Date.parse(meta.checkedAt))}).
-    ${stale ? ' The scheduled job may have stopped; re-run it from the Actions tab.' : ''}
+    Nexon data checked <${Ago} since=${Date.parse(meta.checkedAt)} /> ago (${fmtKst(Date.parse(meta.checkedAt))}).
+    ${stale ? OLD_BECAUSE[age.kind] : ''}
     ${meta.errors && meta.errors.length ? ` Last run reported: ${meta.errors.slice(0, 2).join('; ')}.` : ''}
   </p>`;
 }
 
 export function EventsPage({ data, state }) {
-  const now = useNow(30000);
+  const now = useClock();
   const view = state.ui.eventsView || 'timeline';
   const all = (data.events.events || []).filter((e) => !(state.ui.hideClassic && e.isClassic));
   useEffect(() => {
@@ -124,7 +132,7 @@ export function EventsPage({ data, state }) {
 
   return html`
     <${PageHead} title="Events">Pulled from Nexon's news every 6 hours by your GitHub job. Times are in Korea time; the server runs on UTC.<//>
-    <${DataStatus} meta=${data.meta} now=${now} />
+    <${DataStatus} meta=${data.meta} now=${now} refresh=${data.refresh} />
     <div class="toolbar">
       <${Seg} label="Event view" value=${view} onChange=${(v) => update((s) => { s.ui.eventsView = v; })}
         options=${[['timeline', 'Timeline'], ['shops', 'Coin shop'], ['live', 'Live now'], ['soon', 'Starting soon'], ['ended', 'Recently ended'], ['maint', 'Maintenance'], ['news', 'All posts']]} />

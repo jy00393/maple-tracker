@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty } from '../ui.js';
+import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty, useClock } from '../ui.js';
 import { symbolPlan, liberationPlan, liberationCounted, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos, shareKey } from '../calc/income.js';
 import { fmtDate, nextReset, DAY } from '../time.js';
@@ -42,8 +42,8 @@ function SymbolTable({ kind, kindData, char, entries }) {
   <//>`;
 }
 
-function Liberation({ which, def, char, entry, bossById }) {
-  const plan = liberationPlan(def, entry, Date.now(), bossById);
+function Liberation({ which, def, char, entry, bossById, now }) {
+  const plan = liberationPlan(def, entry, now, bossById);
   const set = (patch) => update((s) => {
     const lib = charSlice(s, 'liberation', char.id, () => ({}));
     lib[which] = { ...(lib[which] || {}), ...patch };
@@ -93,8 +93,8 @@ export function reviewNotice(review, now) {
   return { due, text: `${due ? 'Check these numbers in game: ' : 'Coming up: '}${review.note}` };
 }
 
-function SixthJob({ data, char, entry }) {
-  const notice = reviewNotice(data.erda.review, Date.now());
+function SixthJob({ data, char, entry, now }) {
+  const notice = reviewNotice(data.erda.review, now);
   const templateId = erdaTemplateFor(data.erda, char, entry);
   const template = data.erda.templates[templateId];
   const levels = entry.levels || {};
@@ -131,7 +131,7 @@ function SixthJob({ data, char, entry }) {
   </div>`;
 }
 
-function ItemBurning({ data, char, entry }) {
+function ItemBurning({ data, char, entry, now }) {
   const done = entry.done || {};
   const crests = entry.crests || 0;
   const set = (fn) => update((s) => {
@@ -144,7 +144,6 @@ function ItemBurning({ data, char, entry }) {
   const weeks = nextNeed ? Math.ceil((nextNeed.crests - crests) / data.ibp.weeklyCrests) : 0;
   // Crests come in with the Thursday reset; only the resets before the event ends can still pay out.
   const end = Date.parse(data.ibp.endsAt);
-  const now = Date.now();
   const over = now > end;
   // This week's hunts plus one more week for every Thursday reset still before the end.
   const nextThu = nextReset('thu', now);
@@ -170,13 +169,15 @@ function ItemBurning({ data, char, entry }) {
 }
 
 export function ProgressPage({ data, state }) {
+  // Dates and day counts here move with the day: redrawn every minute and at each reset, like the other pages.
+  const now = useClock({ every: 60000 });
   const char = activeCharacter(state);
   if (!char) return html`<${PageHead} title="Progress" /><${Card} title="Add a character first"><p class="note"><a href="#characters">Add your character</a> to track symbols, liberation and 6th job.</p><//>`;
   const view = state.ui.progressView || 'level';
   const setView = (v) => update((s) => { s.ui.progressView = v; });
   let body;
   if (view === 'level') {
-    body = html`<${LevelView} data=${data} state=${state} char=${char} now=${Date.now()} />`;
+    body = html`<${LevelView} data=${data} state=${state} char=${char} now=${now} />`;
   } else if (view === 'symbols') {
     const entries = state.symbols[char.id] || {};
     body = html`<div class="grid">
@@ -187,16 +188,16 @@ export function ProgressPage({ data, state }) {
   } else if (view === 'liberation') {
     const lib = state.liberation[char.id] || {};
     body = html`<div class="grid two">
-      <${Liberation} which="genesis" def=${data.liberation.genesis} char=${char} entry=${lib.genesis || {}} bossById=${data.bossById} />
-      <${Liberation} which="destiny" def=${data.liberation.destiny} char=${char} entry=${lib.destiny || {}} bossById=${data.bossById} />
+      <${Liberation} which="genesis" def=${data.liberation.genesis} char=${char} entry=${lib.genesis || {}} bossById=${data.bossById} now=${now} />
+      <${Liberation} which="destiny" def=${data.liberation.destiny} char=${char} entry=${lib.destiny || {}} bossById=${data.bossById} now=${now} />
       <p class="note span2">${data.liberation.source}</p>
     </div>`;
   } else if (view === 'champions') {
     body = html`<${ChampionsView} data=${data} state=${state} />`;
   } else if (view === 'sixth') {
-    body = html`<${SixthJob} data=${data} char=${char} entry=${state.erda[char.id] || {}} />`;
+    body = html`<${SixthJob} data=${data} char=${char} entry=${state.erda[char.id] || {}} now=${now} />`;
   } else {
-    body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} />`;
+    body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} now=${now} />`;
   }
   return html`
     <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job, Legion Champions and Item Burning.<//>
