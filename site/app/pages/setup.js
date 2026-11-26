@@ -7,7 +7,8 @@ import { crystalValue, fmtMesos } from '../calc/income.js';
 import { CLASSES } from './characters.js';
 import { MAIN_STAT_CHOICES, mainStatOnClassChange } from '../calc/upgrades.js';
 
-// First-run setup on Today: one short form fills the character, the boss list and the first level reading.
+// First-run setup on Today: one short form fills the character and the boss list, and the first level reading
+// when an EXP % is typed (calc/setup.js).
 export function QuickSetup({ data }) {
   const [f, setF] = useState({ name: '', cls: '', level: null, pct: null, region: 'na', world: 'heroic', challenger: false, beyondBurning: false, mainStat: 'STR' });
   const [picked, setPicked] = useState({});

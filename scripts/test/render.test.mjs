@@ -736,7 +736,7 @@ test('Progress pages: weekly symbols shown, level from Characters, gates from to
   store.update((x) => { x.ui.progressView = 'level'; x.characters.find((c) => c.id === 'main').level = 268; });
   el = await show('progress');
   let t = el.text.replace(/\s+/g, ' ');
-  assert.match(t, /Lv\. 268 · 0\.00%/);
+  assert.match(t, /Now Lv\. 268 up to /); // no EXP % is shown for a level that came without one
   assert.match(t, /from Characters/);
   close(el);
   // A Lv. 210 character is told where the EXP figures start, not that it is past them.

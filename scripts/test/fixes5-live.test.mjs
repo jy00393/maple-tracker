@@ -226,13 +226,13 @@ test('3 5 26: Today never reads "in now"; the warning, the ticks and the next-en
   const data = loadData({ events: { events: [event('a', 'Event A', reset - 5 * DAY, ends), event('b', 'Event B', reset - 5 * DAY, reset + 2 * DAY)], sunny: [] } });
   const el = await show(TodayPage, data);
   await setBox(box(el, 'cl-d-coupon'), true);
-  await setBox(box(el, 'today-boss-zakum-normal'), true);
+  await setBox(box(el, 'today-boss-lucid-hard'), true);
   let text = textOf(el);
   assert.match(text, /Daily reset in 0m 20s/);
   assert.match(text, /Thursday reset in 0m 20s/);
   assert.match(text, /Core dailies 1 \/ \d+/);
   assert.match(text, /Events ending this week 2 next: Event A in 0m 16s/);
-  assert.ok(ticked(box(el, 'today-boss-zakum-normal')));
+  assert.ok(ticked(box(el, 'today-boss-lucid-hard')));
   // Second by second across both moments.
   for (let t = clock.t + SEC; t <= reset + 3 * SEC; t += SEC) {
     await advanceTo(t);
@@ -247,7 +247,7 @@ test('3 5 26: Today never reads "in now"; the warning, the ticks and the next-en
     } else {
       assert.doesNotMatch(text, /Daily reset|Thursday reset/, `${when}: the warnings left with the reset`);
       assert.match(text, /Core dailies 0 \/ \d+/, `${when}: yesterday's ticks cleared with the reset`);
-      assert.ok(!ticked(box(el, 'cl-d-coupon')) && !ticked(box(el, 'today-boss-zakum-normal')), when);
+      assert.ok(!ticked(box(el, 'cl-d-coupon')) && !ticked(box(el, 'today-boss-lucid-hard')), when);
     }
   }
   unmount(el);

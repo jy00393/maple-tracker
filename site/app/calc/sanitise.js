@@ -35,6 +35,9 @@ function character(c) {
   return out;
 }
 
+// The latest time that can still be shown as a date (a day inside what a Date can hold).
+const TIME_MAX = 8.64e15 - 86400000;
+
 const TARGET_MAX = { tier: 9, stars: 30, pot: 4, bpot: 4, lines: 3 };
 
 function gearSlot(e) {
@@ -98,6 +101,7 @@ function liberationOf(l) {
     const out = { ...w, picks: obj(w.picks) };
     numField(out, 'stage', 0, 99);
     numField(out, 'traces', 0, 1e7);
+    numField(out, 'at', 0, TIME_MAX);
     return out;
   });
 }
@@ -109,6 +113,8 @@ function symbolsOf(s) {
     numField(out, 'have', 0, 1e6);
     numField(out, 'daily', 0, 1e4);
     numField(out, 'weekly', 0, 1e5);
+    // When level / held were last typed (see calc/progress.js, "figures typed by hand").
+    numField(out, 'at', 0, TIME_MAX);
     return out;
   });
 }
@@ -122,9 +128,6 @@ function erdaOf(e) {
   if ('costs' in out && !isObj(out.costs)) delete out.costs;
   return out;
 }
-
-// The latest time that can still be shown as a date (a day inside what a Date can hold).
-const TIME_MAX = 8.64e15 - 86400000;
 
 function levelOf(l) {
   const log = Array.from(Array.isArray(l.log) ? l.log : []).filter((r) => isObj(r) && num(r.t, null, 0, TIME_MAX) !== null && num(r.level, null, 1, 300) !== null)

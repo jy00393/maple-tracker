@@ -77,6 +77,19 @@ export function fmtDate(t) {
   return `${k.day} ${k.mo} ${k.year}`;
 }
 
+// A day on its own, in Korea: "7 Dec", with the year only when it is not this year's ("7 Dec 2027").
+export function fmtDay(t, now = Date.now()) {
+  if (!Number.isFinite(t) || Math.abs(t) > 8.64e15) return '—';
+  const k = kstParts(t);
+  return k.year === kstParts(now).year ? `${k.day} ${k.mo}` : `${k.day} ${k.mo} ${k.year}`;
+}
+
+// Beside a figure that was typed by hand: the day it was typed. "" when that is not known.
+export function asOf(at, now = Date.now()) {
+  if (!Number.isFinite(at) || at <= 0) return '';
+  return kstDays(at, now) <= 0 ? 'as of today' : `as of ${fmtDay(at, now)}`;
+}
+
 // Whole calendar days in Korea from a to b: 0 = the same Korean day, 1 = the next one. The one way the pages
 // count "days left" to a deadline, so two pages never disagree about the same date.
 export function kstDays(a, b) {

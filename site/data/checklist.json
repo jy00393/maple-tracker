@@ -46,6 +46,34 @@
      "minLevel": 265
     },
     {
+     "id": "d-odium",
+     "label": "Odium daily: 15 Odium symbols",
+     "gate": "odium",
+     "note": "Opens at Lv. 270. Daily quest: Odium Area Expedition (MapleStory Wiki, checked 23 Nov 2026).",
+     "minLevel": 270
+    },
+    {
+     "id": "d-shangrila",
+     "label": "Shangri-La daily: 15 Shangri-La symbols",
+     "gate": "shangrila",
+     "note": "Opens at Lv. 275. Daily quest: Shangri-La Contamination Purification (MapleStory Wiki, checked 23 Nov 2026).",
+     "minLevel": 275
+    },
+    {
+     "id": "d-arteria",
+     "label": "Arteria daily: 15 Arteria symbols",
+     "gate": "arteria",
+     "note": "Opens at Lv. 280. Daily quest: Defeat the Arteria Remnants (MapleStory Wiki, checked 23 Nov 2026).",
+     "minLevel": 280
+    },
+    {
+     "id": "d-carcion",
+     "label": "Carcion daily: 15 Carcion symbols",
+     "gate": "carcion",
+     "note": "Opens at Lv. 285. Daily quest: Carcion Recovery Support (MapleStory Wiki, checked 23 Nov 2026).",
+     "minLevel": 285
+    },
+    {
      "id": "d-ursus",
      "label": "Ursus: one run",
      "min": "5 min",
@@ -248,5 +276,5 @@
    ]
   }
  ],
- "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (Cernium 260 and Arcus 265 are the symbol areas' unlock levels in symbols.json; Mayrin 270 is in Nexon's notice). One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses."
+ "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (the symbol-area dailies use the areas' unlock levels in symbols.json: Cernium 260, Arcus 265, Odium 270, Shangri-La 275, Arteria 280, Carcion 285, with the daily amounts and quest names from the same file; Mayrin 270 is in Nexon's notice); \"gate\" = the id of a symbol area in symbols.json: the item stays locked until Progress holds a symbol level above 0 for that area or the player marks it unlocked. Gated items are listed in level order, and of those still above the character's level only the next one is shown. One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses."
 }

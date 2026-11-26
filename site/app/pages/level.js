@@ -3,7 +3,7 @@ import { update, charSlice } from '../store.js';
 import { Card, NumberInput, Empty, fmtBig, plural } from '../ui.js';
 import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
-import { DAY, fmtDate, fmtKst, kstDays, dayWord } from '../time.js';
+import { DAY, fmtDate, fmtDay, fmtKst, kstDays, dayWord, asOf } from '../time.js';
 import { ExpSourcesCard } from './expsources.js';
 
 // Your own readings that still stand, oldest first. Levels never go down, so readings whose levels go down over
@@ -135,13 +135,15 @@ export function levelOutlook(data, state, char, now) {
   const sameSide = readings.filter((r) => (r.t < burnUntil) === beyond);
   const rate = expRate(exp, sameSide, beyond, 14, now);
   const eventEnd = Date.parse((data.ibp && data.ibp.endsAt) || 0);
-  const gates = last ? exp.gates.filter(([lvl]) => lvl > last.level).map(([lvl, what, eventNote]) => {
+  const gates = last ? exp.gates.filter(([lvl]) => lvl > last.level).map(([lvl, what, eventNote, burnNote]) => {
     const p = project(exp, last, lvl, rate ? rate.perDay : 0, burnUntil, now);
     // Days count from now, not from the reading; a date already passed means the reading is out of date.
     const days = p.at != null ? Math.max(0, (p.at - now) / DAY) : null;
     // The event part ("Item Burning stages 5-6") only for a gate reached while the event still runs.
     const eventOn = now < eventEnd && (p.at == null || p.at < eventEnd);
-    return { level: lvl, what: eventNote && eventOn ? `${what}, ${eventNote}` : what, need: p.need, days, at: p.at, due: p.at != null && p.at <= now };
+    // The Beyond Burning part only for a character that has it, while it runs.
+    const parts = [what, eventOn ? eventNote : null, beyond ? burnNote : null].filter(Boolean);
+    return { level: lvl, what: parts.join(', '), need: p.need, days, at: p.at, due: p.at != null && p.at <= now };
   }) : [];
   return { readings, last, rate, gates, beyond, burnUntil: Number.isFinite(burnUntil) ? burnUntil : null };
 }
@@ -163,12 +165,14 @@ export function LevelView({ data, state, char, now }) {
   const shown = log.filter((r, i) => showAll || i >= log.length - 6 || !standing.has(r));
   const last = o.last;
   const toNext = last ? expToNext(exp, last.level) : null;
+  // A level typed on Characters or in setup comes without an EXP %: none is shown until one is logged.
+  const noPct = Boolean(last && last.source === 'profile');
   return html`<div class="grid two">
     <${Card} title="Level and EXP" meta=${o.rate ? `rate from the last ${o.rate.spanDays.toFixed(1)} days` : last && last.level < exp.from ? `EXP figures start at Lv. ${exp.from}` : 'log twice to get a rate'}>
       ${last ? html`<div class="insight">
         <span class="k">Now</span>
-        <span class="big">Lv. ${last.level} · ${(last.frac * 100).toFixed(2)}%</span>
-        <span class="small muted">${toNext ? `${fmtBig(toNext * (1 - last.frac))} EXP to Lv. ${last.level + 1}` : last.level < exp.from ? `EXP figures start at Lv. ${exp.from}` : 'past the EXP table'} · ${last.source === 'profile' ? 'from Characters; log your EXP % below' : `logged ${fmtKst(last.t)}`}</span>
+        <span class="big">Lv. ${last.level}${noPct ? '' : ` · ${(last.frac * 100).toFixed(2)}%`}</span>
+        <span class="small muted">${toNext ? `${noPct ? 'up to ' : ''}${fmtBig(toNext * (1 - last.frac))} EXP to Lv. ${last.level + 1}` : last.level < exp.from ? `EXP figures start at Lv. ${exp.from}` : 'past the EXP table'} · ${last.source === 'profile' ? 'from Characters; log your EXP % below' : `logged ${fmtKst(last.t)}`}</span>
         ${o.rate ? html`<span class="small">About <b>${fmtBig(o.rate.perDay)} EXP a day</b>${toNext ? `, so a level every ${(toNext / o.rate.perDay).toFixed(1)} days at this point` : ''}.</span>` : null}
       </div>` : html`<${Empty}>Log your level below to start.<//>`}
       <form class="form-grid" onSubmit=${(e) => {
@@ -217,8 +221,8 @@ export function LevelView({ data, state, char, now }) {
         <span class="small muted">${fmtBig(g.need)} EXP</span>
         <span class=${'date' + (g.days != null && g.days < 7 ? ' now' : '')}>${g.due ? 'due' : g.at ? fmtDate(g.at) : '—'}</span>
         <span class="small muted">${g.due ? 'log your level' : g.at != null ? dayWord(kstDays(now, g.at)) : ''}</span>
-      </div>`) : html`<${Empty}>No gates ahead.<//>`}
-      ${!o.rate ? html`<p class="note">${last && last.level < exp.from ? `Gate dates show from Lv. ${exp.from}, where the EXP figures start.` : "Dates show once you've logged your level on two different days."}</p>` : null}
+      </div>`) : html`<${Empty}>${last ? 'No gates ahead.' : 'Log your level to see the gates.'}<//>`}
+      ${!o.rate && last ? html`<p class="note">${last && last.level < exp.from ? `Gate dates show from Lv. ${exp.from}, where the EXP figures start.` : "Dates show once you've logged your level on two different days."}</p>` : null}
       <p class="note">${exp.source}</p>
     <//>
     <${ExpSourcesCard} data=${data} level=${last ? last.level : null} />
@@ -226,7 +230,10 @@ export function LevelView({ data, state, char, now }) {
 }
 
 // Sol Erda and Fragments: what the next upgrades cost and when you can afford them.
-export function ErdaCosts({ data, char, entry, template }) {
+// since: when the Sol Erda figures on this card were last changed (null: not known). The days to each step count
+// from then, so they become a date that stays put.
+export function ErdaCosts({ data, char, entry, template, since = null, now = Date.now() }) {
+  const from = since && since <= now ? since : now;
   const up = data.upgrades.erda;
   const weekly = { ...up.weeklyDefault, ...(entry.weekly || {}) };
   const costs = entry.costs || {};
@@ -246,9 +253,10 @@ export function ErdaCosts({ data, char, entry, template }) {
     const shortSol = Math.max(0, sol - (entry.solErda || 0));
     const shortFrag = Math.max(0, frag - (entry.fragments || 0));
     const weeks = Math.max(weekly.sol > 0 ? shortSol / weekly.sol : shortSol ? Infinity : 0, weekly.frag > 0 ? shortFrag / weekly.frag : shortFrag ? Infinity : 0);
-    return { st, known, origin: st.node === 'origin', weeks, ready: known && shortSol === 0 && shortFrag === 0 };
+    const at = Number.isFinite(weeks) ? from + Math.ceil(weeks * 7) * DAY : null;
+    return { st, known, origin: st.node === 'origin', weeks, at, ready: known && shortSol === 0 && shortFrag === 0 };
   });
-  return html`<${Card} title="Sol Erda planner" meta=${`${entry.solErda || 0} Sol Erda · ${entry.fragments || 0} ${plural(entry.fragments || 0, 'Fragment')} held`}>
+  return html`<${Card} title="Sol Erda planner" meta=${`${entry.solErda || 0} Sol Erda · ${entry.fragments || 0} ${plural(entry.fragments || 0, 'Fragment')} held${since ? ` ${asOf(since, now)}` : ''}`}>
     <div class="form-grid">
       <label class="field"><span>Sol Erda a week</span><${NumberInput} className="input" label="Sol Erda per week" value=${weekly.sol} max=${999} onChange=${(v) => set((e) => { e.weekly = { ...weekly, sol: v || 0 }; })} /></label>
       <label class="field"><span>Fragments a week</span><${NumberInput} className="input" label="Fragments per week" value=${weekly.frag} max=${99999} onChange=${(v) => set((e) => { e.weekly = { ...weekly, frag: v || 0 }; })} /></label>
@@ -259,8 +267,8 @@ export function ErdaCosts({ data, char, entry, template }) {
           <${NumberInput} label=${r.st.label + ' Sol Erda cost'} value=${r.known?.sol ?? ''} max=${999} onChange=${(v) => set((e) => { e.costs = { ...(e.costs || {}), [r.st.id]: { ...(e.costs || {})[r.st.id], sol: v || 0 } }; })} /><span class="small muted">Sol Erda</span>
           <${NumberInput} label=${r.st.label + ' Fragment cost'} value=${r.known?.frag ?? ''} max=${99999} onChange=${(v) => set((e) => { e.costs = { ...(e.costs || {}), [r.st.id]: { ...(e.costs || {})[r.st.id], frag: v || 0 } }; })} /><span class="small muted">Fragments</span>
         </div>` : null}</div>
-      <span class=${'date' + (r.ready ? ' now' : '')}>${!r.known ? '—' : r.ready ? 'Ready now' : Number.isFinite(r.weeks) ? `${Math.ceil(r.weeks * 7)} ${plural(Math.ceil(r.weeks * 7), 'day')}` : 'add income'}</span>
+      <span class=${'date' + (r.ready ? ' now' : '')}>${!r.known ? '—' : r.ready ? 'Ready now' : r.at === null ? 'add income' : r.at <= now ? 'update what you hold' : `about ${fmtDay(r.at, now)}`}</span>
     </div>`) : html`<${Empty}>Every step in the order is done.<//>`}
-    <p class="note">${up.source} Dates count every step above in order.</p>
+    <p class="note">${up.source} Dates count every step above in order, from the day you last changed the figures on this page. Sol Erda and Fragments are not added by themselves: retype what you hold now and then.</p>
   <//>`;
 }

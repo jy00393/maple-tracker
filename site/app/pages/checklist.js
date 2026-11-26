@@ -3,7 +3,7 @@ import { update, activeCharacter } from '../store.js';
 import { Card, Counter, PageHead, useClock, Bar } from '../ui.js';
 import { periodKey } from '../time.js';
 import { StreakRecorder, StreakCard } from './session.js';
-import { itemStatus, resetOf, recordKey, flagKey, moveResetDay, RESET_CYCLE } from '../calc/checklist.js';
+import { itemStatus, resetOf, recordKey, moveResetDay, RESET_CYCLE, openAreas, setUnlocked, listedItems } from '../calc/checklist.js';
 import { knownLevel } from './level.js';
 import { toggleClear } from './bosses.js';
 
@@ -19,7 +19,8 @@ export function whoOf(data, state) {
 export function whoFor(data, state, c) {
   if (!c) return {};
   const bosses = data.bosses && data.bossById ? { data: data.bosses, byId: data.bossById, all: state.bosses || {}, char: c, chars: state.characters || [] } : null;
-  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses };
+  // open: the symbol areas Progress already holds a level for, so their dailies are never shown as locked.
+  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]) };
 }
 
 const DAY_NAMES = { mon: ['Mon', 'Monday'], wed: ['Wed', 'Wednesday'], thu: ['Thu', 'Thursday'] };
@@ -112,14 +113,11 @@ export function Item({ item, group, cs, now, who }) {
         s.checklist.resets[item.id] = next;
       })}>${names[0]} reset</button>`);
   }
-  if (st.tooLow) {
-    right.push(html`<span class="pill">from Lv. ${item.minLevel}</span>`);
-    right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[flagKey(`lvl:${item.id}`, who)] = true; })}>Mark unlocked</button>`);
-  }
-  // While the level lock is on, only that one is offered; the quest unlock comes after it.
-  if (st.gated && !st.tooLow) {
-    right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { s.checklist.flags[flagKey(item.gate, who)] = true; })}>Mark unlocked</button>`);
-  }
+  if (st.tooLow) right.push(html`<span class="pill">from Lv. ${item.minLevel}</span>`);
+  // One press opens the item, whatever keeps it locked (the level, the area's questline, or both); an item
+  // opened by hand can be locked again.
+  if (st.locked) right.push(html`<button type="button" class="btn" onClick=${() => update((s) => { setUnlocked(s.checklist, item, who, true); })}>Mark unlocked</button>`);
+  else if (st.byHand) right.push(html`<button type="button" class="linkbtn small" aria-label=${`Lock again: ${item.label}`} onClick=${() => update((s) => { setUnlocked(s.checklist, item, who, false); })}>Lock again</button>`);
   const chips = st.rows && !st.prompt && item.type !== 'link' ? st.rows : null;
   const label = st.prompt
     ? html`<span class="lbl"><a href=${item.href || '#bosses'}>${item.empty || item.label}</a></span>`
@@ -154,7 +152,7 @@ export function ChecklistPage({ data, state }) {
       ${data.checklist.groups.map((group) => {
         // A group whose items have all ended (or are not for this character) is left out, heading included.
         if (group.items.every((item) => itemStatus(item, group, cs, now, who).expired)) return null;
-        const items = group.items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`);
+        const items = listedItems(group, cs, now, who).map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`);
         return html`<${Card} title=${group.title} meta=${group.hint} bodyClass="card-b tight">${items}<//>`;
       })}
     </div>
