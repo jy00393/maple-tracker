@@ -1,6 +1,6 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, Fold, NumberInput, Stepper, Empty } from '../ui.js';
+import { Card, Fold, NumberInput, Stepper, Empty, plural } from '../ui.js';
 import { shopPlan, itemCap, limitText } from '../calc/shops.js';
 import { fmtKst, kstDays } from '../time.js';
 import { resetOf } from '../calc/checklist.js';
@@ -67,8 +67,8 @@ function Shop({ shop, state, char, now, resetKind }) {
       <${Card} title="How it adds up">
         ${shop.scope ? html`<p class="note">${shop.scope}</p>` : null}
         ${earn ? null : html`<p class="note">How ${coin} is earned is not listed here, so only the amount you hold is counted. Keep it up to date.</p>`}
-        ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} claims a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
-          <p class="note">"Still to earn" assumes ${earn.perWeek} claims in every week that is left, up to the ${earn.max} total.${RESET_DAY[resetKind] ? ` Weeks start on ${RESET_DAY[resetKind]} at 09:00 KST, the reset set for this mission on Checklist.` : ''}</p>` : null}
+        ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} ${plural(earn.perWeek, 'claim')} a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
+          <p class="note">"Still to earn" assumes ${earn.perWeek} ${plural(earn.perWeek, 'claim')} in every week that is left, up to the ${earn.max} total.${RESET_DAY[resetKind] ? ` Weeks start on ${RESET_DAY[resetKind]} at 09:00 KST, the reset set for this mission on Checklist.` : ''}</p>` : null}
         <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold up to date.</p>
         ${shop.useBy ? html`<p class="warnbox">Most items from this shop expire on ${fmtKst(Date.parse(shop.useBy))}. Use them before then.</p>` : null}
       <//>

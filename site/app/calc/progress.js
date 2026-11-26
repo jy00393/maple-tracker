@@ -1,5 +1,6 @@
 import { usefulLines } from './upgrades.js';
 import { DAY } from '../time.js';
+import { plural } from './plural.js';
 import { shareKey } from './income.js';
 
 const sum = (arr) => arr.reduce((a, b) => a + b, 0);
@@ -137,9 +138,9 @@ export function slotProgress(entry = {}, target, tierNames = []) {
   const pct = Math.min(1, Math.round(raw * 10000) / 10000);
   const gaps = [];
   if (parts.tier < 1) gaps.push(entry.tier ? `tier: ${tierNames[entry.tier - 1] || 'none'} → ${tierNames[target.tier - 1] || 'tier ' + target.tier}` : `empty: get ${tierNames[target.tier - 1] || 'tier ' + target.tier}`);
-  if (parts.stars < 1) gaps.push(`+${target.stars - (entry.stars || 0)} stars`);
+  if (parts.stars < 1) gaps.push(`+${target.stars - (entry.stars || 0)} ${plural(target.stars - (entry.stars || 0), 'star')}`);
   if (parts.pot < 1) gaps.push(`potential up to ${['None', 'Rare', 'Epic', 'Unique', 'Legendary'][target.pot]}`);
-  if (parts.lines < 1) gaps.push(`${target.lines - (entry.lines || 0)} more useful line${target.lines - (entry.lines || 0) === 1 ? '' : 's'}`);
+  if (parts.lines < 1) gaps.push(`${target.lines - (entry.lines || 0)} more useful ${plural(target.lines - (entry.lines || 0), 'line')}`);
   if (parts.bpot < 1) gaps.push(`bonus potential up to ${['None', 'Rare', 'Epic', 'Unique', 'Legendary'][target.bpot]}`);
   return { pct, parts, gaps };
 }

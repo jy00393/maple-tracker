@@ -1,5 +1,8 @@
 import { html, useEffect, useRef, useState } from '../vendor/htm-preact.mjs';
 import { fmtLeft } from './time.js';
+import { plural } from './calc/plural.js';
+
+export { plural };
 
 export function useNow(intervalMs = 1000) {
   const [now, setNow] = useState(Date.now());
@@ -59,13 +62,19 @@ export function Seg({ options, value, onChange, label }) {
 // Saves on every keystroke. The text being typed is left alone until the box is left or the saved number changes
 // some other way (a − / + button, another device). Rewriting it from the saved number on every redraw turned a
 // half-typed "0.0" into "0", so 0.05 could not be typed.
-export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label, className = 'input num sm' }) {
+// `rev`: the owner changes it when a button of its own sets the value (a preset, a reset). The typed text is then
+// dropped even if the saved number did not change, which is the one outside change the box cannot see by itself.
+// `clamp=${false}`: a number outside min..max is passed on as typed, so the owner can ignore it instead of saving
+// the nearest limit (250 typed for 25 must not become 100).
+export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label, className = 'input num sm', clamp = true, rev }) {
   const box = useRef(null);
   // { text: what the box held after the last keystroke, after: the saved text on the first redraw that followed }
   const typed = useRef(null);
   const [, redraw] = useState(0);
   const saved = value === null || value === undefined ? '' : String(value);
   let shown = saved;
+  const seenRev = useRef(rev);
+  if (seenRev.current !== rev) { seenRev.current = rev; typed.current = null; }
   const t = typed.current;
   if (t && box.current && box.current.value === t.text) {
     if (!('after' in t)) t.after = saved;
@@ -81,8 +90,10 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
       if (raw === '') return onChange(null);
       let n = Number(raw);
       if (!Number.isFinite(n)) return;
-      if (max !== undefined) n = Math.min(max, n);
-      n = Math.max(min, n);
+      if (clamp) {
+        if (max !== undefined) n = Math.min(max, n);
+        n = Math.max(min, n);
+      }
       if (Number.isInteger(step)) n = Math.round(n);
       onChange(n);
     }} />`;
@@ -93,13 +104,17 @@ export function NumberInput({ value, onChange, min = 0, max, step = 1, id, label
 export function Stepper({ value, onChange, min = 0, max, label, presets }) {
   const v = Number(value) || 0;
   const clamp = (n) => Math.max(min, max !== undefined ? Math.min(max, n) : n);
+  // A button press always replaces what was typed, also when it lands on the number already saved
+  // (99 typed with a 30 cap saves 30; pressing "Max 30" must then show 30, not 99).
+  const [rev, setRev] = useState(0);
+  const press = (n) => { setRev((r) => r + 1); onChange(clamp(n)); };
   return html`<div class="stepper">
     <div class="stepper-row">
-      <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} disabled=${v <= min} onClick=${() => onChange(clamp(v - 1))}>−</button>
-      <${NumberInput} className="input num" label=${label} value=${value} min=${min} max=${max} onChange=${onChange} />
-      <button type="button" class="iconbtn" aria-label=${'One more: ' + label} disabled=${max !== undefined && v >= max} onClick=${() => onChange(clamp(v + 1))}>+</button>
+      <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} disabled=${v <= min} onClick=${() => press(v - 1)}>−</button>
+      <${NumberInput} className="input num" label=${label} value=${value} min=${min} max=${max} rev=${rev} onChange=${onChange} />
+      <button type="button" class="iconbtn" aria-label=${'One more: ' + label} disabled=${max !== undefined && v >= max} onClick=${() => press(v + 1)}>+</button>
     </div>
-    ${presets && presets.length ? html`<div class="stepper-presets">${presets.map(([n, text]) => html`<button type="button" class="chip" aria-pressed=${String(v === n)} onClick=${() => onChange(clamp(n))}>${text}</button>`)}</div>` : null}
+    ${presets && presets.length ? html`<div class="stepper-presets">${presets.map(([n, text]) => html`<button type="button" class="chip" aria-pressed=${String(v === n)} onClick=${() => press(n)}>${text}</button>`)}</div>` : null}
   </div>`;
 }
 

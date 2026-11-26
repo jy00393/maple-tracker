@@ -4,7 +4,7 @@ import { lineChoices, makeLine, refreshLines } from '../calc/potential.js';
 import { FLAME_FIELDS, cleanFlame, flameLabel, flameTotals, starStats, detectSets, setBonusLabel, STAT_FIELDS } from '../calc/gearstats.js';
 import { upgradeOptions } from '../calc/advice.js';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig } from '../ui.js';
+import { Card, Fold, PageHead, Bar, Seg, NumberInput, Stepper, Empty, Modal, PotBadge, fmtBig, plural } from '../ui.js';
 import { gearSummary, gearProjection, historyFor } from '../calc/progress.js';
 import { maxStarsFor } from '../calc/starforce.js';
 import { itemLevel, slotOutlook, withCubeRates } from '../calc/advice.js';
@@ -216,7 +216,7 @@ function Outlook({ outlook, entry, target }) {
     ${capNote ? html`<div class="small">${capNote}</div>` : null}
     ${outlook.cube ? html`<div>
       <div class="big">${Math.round(outlook.cube.bright.expected)} Bright cubes</div>
-      <div class="small">${POT[Math.max(1, outlook.cube.from)]} → ${POT[outlook.cube.to]}: ≈ ${fmtBig(outlook.cube.bright.cost)}, or ${outlook.cube.bright.n90} cubes (${fmtBig(outlook.cube.bright.cost90)}) to be 90% sure. Glowing: ≈ ${fmtBig(outlook.cube.glowing.cost)}.</div>
+      <div class="small">${POT[Math.max(1, outlook.cube.from)]} → ${POT[outlook.cube.to]}: ≈ ${fmtBig(outlook.cube.bright.cost)}, or ${outlook.cube.bright.n90} ${plural(outlook.cube.bright.n90, 'cube')} (${fmtBig(outlook.cube.bright.cost90)}) to be 90% sure. Glowing: ≈ ${fmtBig(outlook.cube.glowing.cost)}.</div>
     </div>` : null}
   </div>`;
 }
@@ -289,7 +289,7 @@ function SlotModal({ row, data, char, onClose, cubeRates }) {
         <label class="toggle"><input type="checkbox" checked=${Boolean(entry.temporary)} onChange=${(e) => set({ temporary: e.currentTarget.checked })} /> Temporary item (Item Burning, event or rental)</label>
         ${data.gear.overall && slot.id === data.gear.overall.slot ? html`<label class="toggle"><input type="checkbox" checked=${Boolean(entry.overall)} onChange=${(e) => set({ overall: e.currentTarget.checked })} /> Overall (fills the Bottom slot too, so Bottom is not scored)</label>` : null}
         <details>
-          <summary class="small muted">Target for this slot: ${tiers[target.tier - 1] || 'tier ' + target.tier}${target.stars ? `, ${target.stars}★` : ''}${hasPotential(slot) ? `, ${POT[target.pot]} with ${target.lines} useful lines` : ''}. Change</summary>
+          <summary class="small muted">Target for this slot: ${tiers[target.tier - 1] || 'tier ' + target.tier}${target.stars ? `, ${target.stars}★` : ''}${hasPotential(slot) ? `, ${POT[target.pot]} with ${target.lines} useful ${plural(target.lines, 'line')}` : ''}. Change</summary>
           <div class="form-grid" style=${{ marginTop: '10px' }}>
             <label class="field"><span>Target tier</span><select class="select" value=${String(target.tier)} onChange=${(e) => setTarget({ tier: Number(e.currentTarget.value) })}>${tiers.map((t, i) => html`<option value=${i + 1}>${t}</option>`)}</select></label>
             ${slot.sf ? html`<div class="field"><span>Target stars</span><${Stepper} label="Target stars" value=${target.stars} max=${30} onChange=${(v) => setTarget({ stars: v || 0 })} /></div>` : null}
@@ -374,7 +374,7 @@ export function GearPage({ data, state }) {
     </div>
     <div class="tiles">
       <div class="tile"><span class="k">Overall vs ${sum.preset.name}</span><span class="v">${Math.round(sum.overall * 100)}%</span><${Bar} pct=${sum.overall} big /></div>
-      <div class="tile"><span class="k">${msLabel} % from potential</span><span class="v">${totals.main}%</span><span class="s">${totals.damageLines} damage lines${totals.boss ? ` · Boss +${totals.boss}%` : ''}${totals.ied ? ` · IED ${totals.ied}%` : ''}</span></div>
+      <div class="tile"><span class="k">${msLabel} % from potential</span><span class="v">${totals.main}%</span><span class="s">${totals.damageLines} damage ${plural(totals.damageLines, 'line')}${totals.boss ? ` · Boss +${totals.boss}%` : ''}${totals.ied ? ` · IED ${totals.ied}%` : ''}</span></div>
       ${flames.items ? html`<div class="tile"><span class="k">Flames · ${flames.items} item${flames.items === 1 ? '' : 's'}</span><span class="v">${msLabel} +${flames.main}</span><span class="s">ATT +${flames.att} · All Stats +${flames.allstat}%${flames.boss ? ` · Boss +${flames.boss}%` : ''}${flames.dmg ? ` · Damage +${flames.dmg}%` : ''}</span></div>` : null}
       <div class="tile ok"><span class="k">Farming lines</span><span class="v">${totals.meso}% · ${totals.drop}%</span><span class="s">Meso obtained · Item drop rate</span></div>
       <div class="tile"><span class="k">Pace</span><span class="v">${proj ? `${(proj.perWeek * 100).toFixed(1)} pts/wk` : '—'}</span>

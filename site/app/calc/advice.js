@@ -3,6 +3,7 @@ import { gearSummary, slotProgress } from './progress.js';
 import { starPlan, maxStarsFor } from './starforce.js';
 import { cubePlan, hasPotential } from './upgrades.js';
 import { DAY } from '../time.js';
+import { plural } from './plural.js';
 import { starDelta, damageGain, cleanFlame } from './gearstats.js';
 import { scoreDist, flameScore, flameWeights, flamesSupported } from './flames.js';
 
@@ -65,7 +66,7 @@ export function upgradeOptions(gearData, gearState, up, gearStats, stats, flameC
     const tierNames = gearData.slotTypes[r.slot.type].filter(Boolean);
     const gainOf = (patch) => (r.slot.weight * (slotProgress({ ...r.entry, ...patch }, r.target, tierNames).pct - r.pct)) / totalWeight;
     if (o.sf) {
-      const opt = { slotId: r.slot.id, kind: 'sf', label: `${r.slot.name}: ${o.sf.from} → ${o.sf.to} stars`, cost: o.sf.plain.cost, sunnyCost: o.sf.sunny.cost, booms: o.sf.plain.booms, gain: gainOf({ stars: o.sf.to }) };
+      const opt = { slotId: r.slot.id, kind: 'sf', label: `${r.slot.name}: ${o.sf.from} → ${o.sf.to} ${plural(o.sf.to, 'star')}`, cost: o.sf.plain.cost, sunnyCost: o.sf.sunny.cost, booms: o.sf.plain.booms, gain: gainOf({ stars: o.sf.to }) };
       if (gearStats && gearStats.starforce) {
         const d = starDelta(gearStats.starforce, r.slot, itemLevel(r.slot, r.entry), o.sf.from, o.sf.to);
         const dmg = damageGain(stats, d);
