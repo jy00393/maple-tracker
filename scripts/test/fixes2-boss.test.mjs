@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { FakeNode, installFakeBrowser, tick } from './lib/fake-dom.mjs';
 
 installFakeBrowser({});
-const { html, render } = await import('../../site/vendor/htm-preact.mjs');
+const { html, render, useEffect } = await import('../../site/vendor/htm-preact.mjs');
 const store = await import('../../site/app/store.js');
 const { characterLines, computeIncome, shareKey, crystalValue } = await import('../../site/app/calc/income.js');
 const { resetWarnings } = await import('../../site/app/calc/reminders.js');
@@ -32,11 +32,21 @@ const week = periodKey('thu', FRI);
 const day = periodKey('daily', FRI);
 
 // ---- a page in the stand-in browser, with a clock the test moves ----
+// Every test stands alone: it sets its own clock with at(t, ...) and its own saved state, and both are put back
+// when it ends (pass or fail), so no test depends on the one before it or on the order they run in.
 const realNow = Date.now;
 let clock = null;
 Date.now = () => (clock === null ? realNow() : clock);
-const mounted = [];
-after(() => { for (const el of mounted) render(null, el); Date.now = realNow; });
+after(() => { Date.now = realNow; });
+function at(t, time) {
+  clock = time;
+  t.after(() => { clock = null; store.resetState(); });
+}
+// Waits for the page to catch up; never a fixed delay that a busy machine can outlast.
+async function until(check, ms = 5000) {
+  for (const end = realNow() + ms; realNow() < end;) { if (check()) return true; await tick(5); }
+  return Boolean(check());
+}
 function pageData() {
   const names = { gearstats: 'gearStats', characters: 'nexonCharacters', expsources: 'expSources', bosscp: 'bossCp' };
   const data = {};
@@ -52,17 +62,26 @@ function pageData() {
   return data;
 }
 const DATA = pageData();
-async function show(Page, mutate) {
+// Mounts a page on its own saved state and returns once it listens to the store (the page subscribes in an
+// effect, some time after its first draw: a click before that would change the store without a redraw).
+// The page is taken down when the test ends.
+async function show(t, Page, mutate) {
   const s = store.blankState();
   s.characters = [{ ...char }];
   s.activeId = 'a';
   mutate(s);
   store.replaceState(s);
   const el = new FakeNode('div');
-  mounted.push(el);
-  const App = () => html`<${Page} data=${DATA} state=${store.useStore()} />`;
+  let listening = false;
+  const App = () => {
+    const state = store.useStore();
+    // Effects run in order, so this one runs right after useStore has subscribed.
+    useEffect(() => { listening = true; }, []);
+    return html`<${Page} data=${DATA} state=${state} />`;
+  };
+  t.after(() => { render(null, el); store.resetState(); });
   render(html`<${App} />`, el);
-  await tick(5);
+  assert.ok(await until(() => listening), 'the page listens to the store');
   return el;
 }
 const marksOf = () => store.getState().bosses.a.clears;
@@ -186,38 +205,36 @@ test('the Thursday warning never counts more bosses than crystals that sell', ()
   assert.equal(resetWarnings({ groups: [] }, {}, open.r.lines, wed).find((x) => x.kind === 'thu').bosses.count, cap + 2);
 });
 
-test('Today passes the cap to the reset warning', async () => {
-  clock = Date.parse('2026-12-02T20:00:00Z');
+test('Today passes the cap to the reset warning', async (t) => {
+  at(t, Date.parse('2026-12-02T20:00:00Z'));
   const key = periodKey('thu', clock);
   const cap = bosses.limits.weeklyPerCharacter;
   const best = bosses.bosses.filter((b) => b.reset === 'weekly' && !b.noCrystal).sort((a, b) => b.price - a.price)
     .filter((b, i, all) => all.findIndex((o) => o.boss === b.boss) === i).slice(0, cap + 2);
-  const el = await show(TodayPage, (s) => {
+  const el = await show(t, TodayPage, (s) => {
     s.bosses = { a: { picks: solo(...best.map((b) => b.id)), clears: Object.fromEntries(best.slice(0, cap).map((b) => [b.id, { [key]: true }])) } };
   });
+  assert.match(el.text, /Crystals this week/, 'Today has drawn');
   assert.doesNotMatch(el.text, /bosses? uncleared/);
-  clock = null;
 });
 
 // ---- finding 4: a box drawn ticked before a reset, clicked after it ----
-test('unticking never adds a clear for a new period', async () => {
+test('unticking never adds a clear for a new period', async (t) => {
   for (const [Page, prefix] of [[BossesPage, 'clear-'], [TodayPage, 'today-boss-']]) {
-    clock = Date.parse('2026-12-02T23:59:50Z');
-    const el = await show(Page, (s) => { s.bosses = { a: { picks: solo('lucid-hard'), clears: { 'lucid-hard': { 'thu:2026-11-26': true } } } }; });
+    at(t, Date.parse('2026-12-02T23:59:50Z'));
+    const el = await show(t, Page, (s) => { s.bosses = { a: { picks: solo('lucid-hard'), clears: { 'lucid-hard': { 'thu:2026-11-26': true } } } }; });
     const box = el.find((n) => n.localName === 'input' && n.attrs.id === prefix + 'lucid-hard');
     assert.ok(box, 'the boss has a tick box');
     clock = Date.parse('2026-12-03T00:00:05Z'); // the weekly reset passed without a redraw
     box.checked = false; // what the browser does before it calls the handler
     box.fire('change');
-    await tick(5);
     assert.deepEqual(Object.keys(marksOf()['lucid-hard']), ['thu:2026-11-26'], `${prefix}: no clear in the new week`);
     assert.equal(income(solo('lucid-hard'), marksOf(), clock).earned, 0);
   }
-  clock = null;
 });
 
-test('toggleClear: ticking sets, unticking clears, a tick moves between difficulties', () => {
-  clock = FRI;
+test('toggleClear: ticking sets, unticking clears, a tick moves between difficulties', (t) => {
+  at(t, FRI);
   const s = store.blankState();
   s.characters = [{ ...char }];
   s.activeId = 'a';
@@ -250,7 +267,6 @@ test('toggleClear: ticking sets, unticking clears, a tick moves between difficul
   clock = FRI + 60000;
   toggleClear('a', bossById['black-mage-hard'], { shared: ['black-mage-extreme'] }, true);
   assert.equal(marksOf()['black-mage-hard'][periodKey('monthly', FRI)], FRI);
-  clock = null;
 });
 
 // ---- finding 5: two kept party picks of one boss ----
@@ -288,11 +304,11 @@ test('liberation counts one difficulty per boss clear', () => {
   for (const def of [liberation.genesis, liberation.destiny]) for (const id of Object.keys(def.sources)) assert.ok(bossById[id], id);
 });
 
-test('Liberation: ticking a difficulty un-ticks the others of that boss; "1 week" is singular', async () => {
-  clock = FRI;
+test('Liberation: ticking a difficulty un-ticks the others of that boss; "1 week" is singular', async (t) => {
+  at(t, FRI);
   const g = liberation.genesis;
   const last = g.stages.length - 1;
-  const el = await show(ProgressPage, (s) => {
+  const el = await show(t, ProgressPage, (s) => {
     s.ui.progressView = 'liberation';
     s.liberation = { a: { genesis: { stage: last, traces: g.stages[last].need - 1, picks: { 'lucid-easy': true, 'lucid-normal': true } } } };
   });
@@ -302,18 +318,16 @@ test('Liberation: ticking a difficulty un-ticks the others of that boss; "1 week
   const chip = el.find((n) => n.localName === 'button' && /Hard Lucid/.test(n.text));
   assert.ok(chip, 'Hard Lucid has a chip');
   chip.fire('click');
-  await tick(5);
   const picks = store.getState().liberation.a.genesis.picks;
   assert.equal(picks['lucid-hard'], true);
   assert.equal(Boolean(picks['lucid-easy']), false);
   assert.equal(Boolean(picks['lucid-normal']), false);
-  assert.doesNotMatch(el.text, /only the best ticked one counts/);
-  clock = null;
+  assert.ok(await until(() => !/only the best ticked one counts/.test(el.text)), 'the note goes once one difficulty is ticked');
 });
 
 // ---- finding 56: singular counts on Bosses ----
-test('Bosses: one boss over the cap and one difficulty out of reach read as singular', async () => {
-  clock = FRI;
+test('Bosses: one boss over the cap and one difficulty out of reach read as singular', async (t) => {
+  at(t, FRI);
   const cap = bosses.limits.weeklyPerCharacter;
   const distinct = bosses.bosses.filter((b) => b.reset === 'weekly' && !b.noCrystal).sort((a, b) => a.price - b.price)
     .filter((b, i, all) => all.findIndex((o) => o.boss === b.boss) === i).slice(0, cap + 1);
@@ -321,25 +335,23 @@ test('Bosses: one boss over the cap and one difficulty out of reach read as sing
   const needs = bosses.bosses.filter((b) => b.reset === 'weekly' && !b.noCrystal && cpData.minCp[b.id] > 0).map((b) => cpData.minCp[b.id]).sort((a, b) => a - b);
   const cp = needs.map((n) => n).reverse().find((n) => suggestBosses(bosses, cpData, n, 1, char).beyond === 1);
   assert.ok(cp, 'some Combat Power leaves exactly one difficulty out of reach');
-  const el = await show(BossesPage, (s) => {
+  const el = await show(t, BossesPage, (s) => {
     s.characters[0].cp = cp;
     s.bosses = { a: { picks: solo(...distinct.map((b) => b.id)), clears: {} } };
   });
   assert.match(el.text, /1 picked boss falls outside the cap/);
   assert.match(el.text, /1 harder difficulty is out of reach for now\./);
   assert.doesNotMatch(el.text, /\b1 (picked bosses|harder difficulties|bosses)\b/);
-  clock = null;
 });
 
-test('Bosses: the tile compares earned with this week\'s target', async () => {
-  clock = FRI;
+test('Bosses: the tile compares earned with this week\'s target', async (t) => {
+  at(t, FRI);
   const picks = solo('lucid-hard', 'black-mage-hard');
   const clears = { 'lucid-hard': { [week]: true }, 'black-mage-hard': { [periodKey('monthly', FRI)]: FRI } };
-  const el = await show(BossesPage, (s) => { s.bosses = { a: { picks, clears } }; });
+  const el = await show(t, BossesPage, (s) => { s.bosses = { a: { picks, clears } }; });
   const r = income(picks, clears, FRI);
   assert.equal(r.earned, r.target);
   const tile = el.find((n) => String(n.attrs.class || n.className || '').split(' ').includes('tile') && /Earned this week/.test(n.text));
   const amounts = tile.text.match(/[\d.]+[KMB]/g);
   assert.equal(amounts[0], amounts[1], `earned and planned agree when everything is cleared: ${tile.text}`);
-  clock = null;
 });

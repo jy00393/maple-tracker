@@ -78,7 +78,7 @@ function setPick(charId, bossId, pick) {
 
 function ThisWeek({ char, income, data, now }) {
   const mine = income.perChar[char.id];
-  if (!mine || mine.lines.length === 0) return html`<${Empty}>Pick the bosses you run in the list below, then tick them off here as you clear them.<//>`;
+  if (!mine || (mine.lines.length === 0 && mine.unpicked.length === 0)) return html`<${Empty}>Pick the bosses you run in the list below, then tick them off here as you clear them.<//>`;
   const cap = data.bosses.limits.weeklyPerCharacter;
   let weeklyRank = 0;
   return html`<div class="tbl-wrap"><table class="tbl">
@@ -101,6 +101,12 @@ function ThisWeek({ char, income, data, now }) {
           <td class="num">${l.doneAs && !l.cleared ? '—' : l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared > 1 ? `Cleared ${l.cleared} times` : l.cleared ? 'Cleared' : l.clearedNow ? 'Earlier this month' : '—'}</td>
         </tr>`;
       })}
+      ${mine.unpicked.map((u) => html`<tr class="off">
+        <td></td>
+        <td>${u.boss.difficulty} ${u.boss.boss} <span class="small muted">cleared this week, no longer picked. Still counted as earned, as a solo clear.</span></td>
+        <td class="num">${fmtMesos(u.earned[0])}</td>
+        <td class="num">${u.kind === 'daily' ? `${u.earned.length} / 7 days` : u.earned.length > 1 ? `Cleared ${u.earned.length} times` : 'Cleared'}</td>
+      </tr>`)}
     </tbody>
   </table></div>`;
 }
@@ -158,7 +164,7 @@ export function BossesPage({ data, state }) {
     ${char.quanah ? html`<p class="warnbox">Quanah World Leap characters can't sell boss crystals, so income shows zero.</p>` : null}
     <div class="tiles">
       <${Tile} k="Earned this week" v=${fmtMesos(mine.earned)} s=${`of ${fmtMesos(mine.target)} planned`} accent />
-      <${Tile} k="Weekly crystals" v=${`${Math.min(mine.weeklyCleared, cap)} / ${Math.min(mine.weeklyPicked, cap)}`} s=${mine.overCap ? `${mine.overCap} picked boss${mine.overCap === 1 ? ' falls' : 'es fall'} outside the cap` : `cap ${cap} per character`} />
+      <${Tile} k="Weekly crystals" v=${`${Math.min(mine.weeklyCleared, cap)} / ${Math.min(mine.weeklyPicked + mine.weeklyUnpicked, cap)}`} s=${mine.overCap ? `${mine.overCap} picked boss${mine.overCap === 1 ? ' falls' : 'es fall'} outside the cap` : `cap ${cap} per character`} />
       <${Tile} k=${world ? world.label + ' world' : 'World'} v=${world ? fmtMesos(world.earnedTotal) : '—'} s=${world ? `${world.earnedCount} of ${data.bosses.limits.perWorldPerWeek} crystals sold` : ''} />
       <${Tile} k="Price basis" v=${char.world === 'interactive' ? 'Interactive' : 'Heroic ×5'} s="from the GMS v.272 crystal table" />
     </div>
