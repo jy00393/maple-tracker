@@ -1,4 +1,5 @@
 import { html, useEffect, useRef, useState } from '../vendor/htm-preact.mjs';
+import { fmtLeft } from './time.js';
 
 export function useNow(intervalMs = 1000) {
   const [now, setNow] = useState(Date.now());
@@ -7,6 +8,19 @@ export function useNow(intervalMs = 1000) {
     return () => clearInterval(id);
   }, [intervalMs]);
   return now;
+}
+
+// A countdown that keeps itself up to date, whatever its page does: every second while seconds show (under an
+// hour), every 30 s otherwise.
+export function Left({ until }) {
+  const [, tick] = useState(0);
+  const ms = until - Date.now();
+  const step = ms < 3630000 ? 1000 : 30000;
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), step);
+    return () => clearInterval(id);
+  }, [step]);
+  return fmtLeft(ms);
 }
 
 export function Card({ title, meta, children, className = '', bodyClass = 'card-b' }) {

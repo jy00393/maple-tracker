@@ -2,7 +2,13 @@
  "source": "MapleStory Wiki, Intense Power Crystal, GMS v.272 tab (page edited 15 Nov 2026; checked 23 Nov 2026). Prices are the Interactive-world solo values; Heroic worlds pay 5x.",
  "sourceUrl": "https://maplestorywiki.net/w/Intense_Power_Crystal",
  "heroicMultiplier": 5,
- "limits": {
+ "sharedClear": {
+    "by": ["boss", "reset"],
+    "note": "Difficulties of a boss with the same reset share one clear (Easy and Normal Zakum: one a day; Chaos Zakum: its own weekly clear).",
+    "source": "MapleStory Wiki boss pages, 'Clear Limit' rows (for example 'Zakum': '1 clear every day (shared with Normal)'). Read for every boss with more than one difficulty on 2026-11-26; all agree with this rule. Yakuza Boss and Gigatoad have no page figure and have one difficulty each.",
+    "checked": "2026-11-26"
+  },
+  "limits": {
   "weeklyPerCharacter": 14,
   "perWorldPerWeek": 180,
   "note": "Limit of 180 per world per week, 14 weekly crystals per character per week (GMS)."

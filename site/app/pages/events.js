@@ -1,6 +1,6 @@
 import { html, useEffect } from '../../vendor/htm-preact.mjs';
 import { update } from '../store.js';
-import { Card, PageHead, Seg, useNow, Empty } from '../ui.js';
+import { Card, PageHead, Seg, useNow, Empty, Left } from '../ui.js';
 import { DAY, fmtKst, fmtLeft } from '../time.js';
 import { Timeline, CalendarCard } from './timeline.js';
 import { ShopsView } from './shops.js';
@@ -43,7 +43,7 @@ export function EventRow({ e, now, showPost, onHide }) {
   const start = e.start ? Date.parse(e.start) : null;
   const end = Date.parse(e.end);
   const upcoming = start && start > now;
-  const left = upcoming ? `starts in ${fmtLeft(start - now)}` : end > now ? `${fmtLeft(end - now)} left` : 'ended';
+  const left = upcoming ? html`starts in <${Left} until=${start} />` : end > now ? html`<${Left} until=${end} /> left` : 'ended';
   const startText = start ? fmtKst(start, !e.startApprox) + (e.afterMaintenance ? ' (after maintenance)' : '') : 'now';
   return html`<div class=${'ev ' + urgency(e, now)}>
     <div>

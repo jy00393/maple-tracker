@@ -40,7 +40,8 @@ test('Heroic crystal values are five times the table and split by party', () => 
 
 test('only the 14 best weekly crystals count', () => {
   const now = Date.parse('2026-11-23T03:00:00Z');
-  const weekly = bosses.bosses.filter((b) => b.reset === 'weekly' && !b.noCrystal).slice(0, 16);
+  // One difficulty per boss: difficulties share a clear.
+  const weekly = bosses.bosses.filter((b, i, all) => b.reset === 'weekly' && !b.noCrystal && all.findIndex((o) => o.boss === b.boss && o.reset === 'weekly') === i).slice(0, 16);
   const picks = Object.fromEntries(weekly.map((b) => [b.id, { party: 1 }]));
   const clears = Object.fromEntries(weekly.map((b) => [b.id, { [periodKey('thu', now)]: true }]));
   const char = { id: 'a', world: 'heroic', region: 'na', challenger: true };

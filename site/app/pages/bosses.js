@@ -1,7 +1,7 @@
 import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Tile, useNow, Seg, Empty } from '../ui.js';
-import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart } from '../calc/income.js';
+import { computeIncome, crystalValue, clearKey, fmtMesos, worldKey, crystalWeekStart, shareKey } from '../calc/income.js';
 import { dayKey } from '../time.js';
 import { PitchedCard } from './pitched.js';
 import { CombatPowerCard } from './bosscp.js';
@@ -45,14 +45,19 @@ function blankBosses() {
 // The period comes from the moment of the click, not from when the page last redrew (up to 30 s earlier), so a
 // tick just after a reset lands in the new period. A monthly mark keeps the time, so its crystal counts in the
 // week it was cleared.
-export function toggleClear(charId, boss) {
+// `line` is the boss's line from characterLines: its `shared` lists the other difficulties with the same clear.
+// Ticking one difficulty moves the tick from any other; unticking a boss that is done on another difficulty
+// takes that tick away.
+export function toggleClear(charId, boss, line) {
   update((s) => {
     const t = Date.now();
     const b = charSlice(s, 'bosses', charId, blankBosses);
     const key = clearKey(boss, t);
     const marks = (b.clears[boss.id] = b.clears[boss.id] || {});
+    const others = ((line && line.shared) || []).filter((id) => b.clears[id] && b.clears[id][key]);
+    for (const id of others) delete b.clears[id][key];
     if (marks[key]) delete marks[key];
-    else marks[key] = boss.reset === 'monthly' ? t : true;
+    else if (!others.length) marks[key] = boss.reset === 'monthly' ? t : true;
     // keep only recent marks
     const keys = Object.keys(marks).sort();
     while (keys.length > 12) delete marks[keys.shift()];
@@ -76,18 +81,20 @@ function ThisWeek({ char, income, data, now }) {
     <thead><tr><th>Done</th><th>Boss</th><th class="num">Crystal</th><th class="num">This week</th></tr></thead>
     <tbody>
       ${mine.lines.map((l) => {
-        if (l.kind === 'weekly' && l.value > 0) weeklyRank++;
-        const over = l.kind === 'weekly' && l.value > 0 && weeklyRank > cap;
+        const counts = l.kind === 'weekly' && l.value > 0 && !l.spare;
+        if (counts) weeklyRank++;
+        const over = counts && weeklyRank > cap;
         const id = `clear-${l.bossId}`;
-        return html`<tr class=${over ? 'off' : ''}>
-          <td><input type="checkbox" id=${id} checked=${l.clearedNow} onChange=${() => toggleClear(char.id, l.boss, now)}
+        return html`<tr class=${over || l.doneAs ? 'off' : ''}>
+          <td><input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${() => toggleClear(char.id, l.boss, l)}
             aria-label=${`${l.boss.difficulty} ${l.boss.boss} cleared ${l.kind === 'daily' ? 'today' : l.kind === 'monthly' ? 'this month' : 'this week'}`} /></td>
           <td><label for=${id}>${l.boss.difficulty} ${l.boss.boss}</label>
             ${l.party > 1 ? html` <span class="small muted">party of ${l.party}</span>` : null}
             ${l.boss.noCrystal ? html` <span class="small muted">no crystal</span>` : null}
+            ${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}: one clear for all difficulties</span>` : l.spare ? html` <span class="small muted">shares one clear with ${l.spare}: not counted as planned</span>` : null}
             ${over ? html` <span class="small muted">over the ${cap}-crystal cap</span>` : null}</td>
           <td class="num">${l.value ? fmtMesos(l.value) : '—'}</td>
-          <td class="num">${l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared ? 'Cleared' : l.clearedNow ? 'Earlier this month' : '—'}</td>
+          <td class="num">${l.doneAs && !l.cleared ? '—' : l.kind === 'daily' ? `${l.cleared} / 7 days` : l.cleared ? 'Cleared' : l.clearedNow ? 'Earlier this month' : '—'}</td>
         </tr>`;
       })}
     </tbody>
@@ -100,6 +107,7 @@ function Picker({ char, data, picks, margin }) {
   const [onlyReach, setOnlyReach] = useState(false);
   const cp = char.cp || 0;
   const reachOf = (b) => reach(data.bossCp, b, cp, margin);
+  const sharedPicks = (b) => data.bosses.bosses.filter((o) => o.id !== b.id && picks[o.id] && shareKey(o) === shareKey(b)).map((o) => o.difficulty);
   const bosses = data.bosses.bosses.filter((b) => b.reset === view && (!onlyPicked || picks[b.id]) && (!onlyReach || !cp || reachOf(b) !== 'no' || picks[b.id]));
   return html`<div class="card-b">
     <div class="toolbar">
@@ -116,6 +124,7 @@ function Picker({ char, data, picks, margin }) {
           return html`<tr class=${pick ? '' : 'off'}>
             <td><input type="checkbox" id=${id} checked=${Boolean(pick)} onChange=${(e) => setPick(char.id, b.id, e.currentTarget.checked ? {} : null)} /></td>
             <td><label for=${id}>${b.difficulty} ${b.boss}</label>${b.note ? html`<div class="small muted">${b.note}</div>` : null}
+              ${pick && sharedPicks(b).length ? html`<div class="small muted">One clear ${b.reset === 'daily' ? 'a day' : b.reset === 'monthly' ? 'a month' : 'a week'} for all difficulties: you also picked ${sharedPicks(b).join(', ')}. Only the best one counts as planned.</div>` : null}
               ${minCpFor(data.bossCp, b) !== null ? html`<div class=${'small ' + (reachOf(b) === 'no' ? 'cp-no' : 'muted')}>${reachOf(b) === 'no' ? `Above your Combat Power: asks for ${fmtCp(minCpFor(data.bossCp, b) * margin)}` : `Entry from ${fmtCp(minCpFor(data.bossCp, b))} Combat Power`}</div>` : null}</td>
             <td>${pick ? html`<select class="select sm" aria-label=${'Party size for ' + b.boss} value=${pick.party || 1}
               onChange=${(e) => setPick(char.id, b.id, { party: Number(e.currentTarget.value) })}>
@@ -158,5 +167,5 @@ export function BossesPage({ data, state }) {
       </section>
       <${PitchedCard} data=${data} state=${state} char=${char} now=${now} />
     </div>
-    <p class="note">${data.bosses.source} Limits: ${data.bosses.limits.note}</p>`;
+    <p class="note">${data.bosses.source} Limits: ${data.bosses.limits.note} ${data.bosses.sharedClear.note}</p>`;
 }

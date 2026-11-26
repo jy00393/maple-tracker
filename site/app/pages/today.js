@@ -1,6 +1,6 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
-import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig } from '../ui.js';
+import { Card, PageHead, Tile, Bar, useNow, Empty, fmtBig, Left } from '../ui.js';
 import { DAY, fmtDate, fmtKst, fmtLeft } from '../time.js';
 import { dailyProgress, whoOf, Item, itemStatus } from './checklist.js';
 import { toggleClear } from './bosses.js';
@@ -68,16 +68,17 @@ function TodoCard({ data, state, now, who, char, lines, prog }) {
     const st = itemStatus(item, group, cs, now, who);
     return !item.optional && !st.locked && !st.expired && !st.link;
   });
-  const cleared = lines.filter((l) => l.clearedNow).length;
+  // A boss cleared on another difficulty is done too: the difficulties share one clear.
+  const cleared = lines.filter((l) => l.clearedNow || l.doneAs).length;
   return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${lines.length ? ` · ${cleared} / ${lines.length} bosses` : ''}`} bodyClass="card-b tight todo">
     <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
     ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
     ${char ? html`<div class="group-h"><h4>Bosses <span class="hint">weekly reset Thu 09:00 KST</span></h4><a class="small" href="#bosses">Pick bosses</a></div>
       ${lines.length ? lines.map((l) => {
         const id = `today-boss-${l.bossId}`;
-        return html`<div class=${'row' + (l.clearedNow ? ' done' : '')}>
-          <input type="checkbox" id=${id} checked=${l.clearedNow} onChange=${() => toggleClear(char.id, l.boss, now)} />
-          <label class="lbl" for=${id}>${l.boss.difficulty} ${l.boss.boss}</label>
+        return html`<div class=${'row' + (l.clearedNow || l.doneAs ? ' done' : '')}>
+          <input type="checkbox" id=${id} checked=${l.clearedNow || Boolean(l.doneAs)} onChange=${() => toggleClear(char.id, l.boss, l)} />
+          <label class="lbl" for=${id}>${l.boss.difficulty} ${l.boss.boss}${l.doneAs ? html` <span class="small muted">done on ${l.doneAs}</span>` : null}</label>
           <div class="right"><span class="min">${l.kind === 'daily' ? 'daily' : l.kind === 'monthly' ? 'monthly' : 'weekly'}${l.value ? ` · ${fmtMesos(l.value)}` : ''}</span></div>
         </div>`;
       }) : html`<p class="note" style=${{ padding: '4px 8px 8px' }}>No bosses picked yet. Choose the ones you run on <a href="#bosses">Bosses</a> and they show up here to tick.</p>`}` : null}
@@ -91,7 +92,7 @@ function ResetWarning({ w }) {
   if (w.bosses.count) parts.push(`${w.bosses.count} boss${w.bosses.count === 1 ? '' : 'es'} uncleared (${fmtMesos(w.bosses.value)})`);
   parts.push(...w.items.slice(0, 3));
   const more = w.items.length - 3;
-  return html`<p class="warnbox reset-warn" role="status"><b>${RESET_NAMES[w.kind] || 'Reset'} in ${fmtLeft(w.left)}</b> (${fmtKst(w.at)}). Still open: ${parts.join(' · ')}${more > 0 ? ` · +${more} more` : ''}.
+  return html`<p class="warnbox reset-warn" role="status"><b>${RESET_NAMES[w.kind] || 'Reset'} in <${Left} until=${w.at} /></b> (${fmtKst(w.at)}). Still open: ${parts.join(' · ')}${more > 0 ? ` · +${more} more` : ''}.
     <a href=${w.bosses.count ? '#bosses' : '#checklist'}>Open</a></p>`;
 }
 
@@ -142,7 +143,7 @@ export function TodayPage({ data, state }) {
         <span class="s">${streak ? `${streak}-day streak` : 'start a streak today'} · <a href="#checklist">checklist</a></span></div>
       ${income ? html`<${Tile} k="Crystals this week" v=${fmtMesos(income.earned)} s=${`of ${fmtMesos(income.planned)} planned · resets Thu 09:00 KST`} accent />` : null}
       ${gate ? html`<${Tile} k=${`Next gate · Lv. ${gate.level}`} v=${gate.due ? 'due' : gate.at ? (fmtDate(gate.at) === fmtDate(now) ? 'today' : `${Math.ceil(gate.days)} day${Math.ceil(gate.days) === 1 ? '' : 's'}`) : '—'} s=${gate.due ? `your last reading says you should be there · ${gate.what}` : gate.at ? `${fmtDate(gate.at)} · ${gate.what}` : level.last && level.last.level < data.upgrades.exp.from ? `dates from Lv. ${data.upgrades.exp.from} · ${gate.what}` : 'log your level on Progress for a date'} />` : null}
-      <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? `next: ${ending[0].title} in ${fmtLeft(Date.parse(ending[0].end) - now)}` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
+      <${Tile} k="Events ending this week" v=${String(ending.length)} s=${ending[0] ? html`next: ${ending[0].title} in <${Left} until=${Date.parse(ending[0].end)} />` : soon.salesHidden ? 'only Cash Shop sales' : 'none'} />
       ${maint ? html`<${Tile} k="Next maintenance" v=${fmtKst(Date.parse(maint.start), false)} s=${`${fmtKst(Date.parse(maint.start))} → ${fmtKst(Date.parse(maint.end))}`} />` : null}
     </div>
     ${char ? null : html`<div class="grid two" style=${{ marginBottom: '14px' }}><${QuickSetup} data=${data} /></div>`}
