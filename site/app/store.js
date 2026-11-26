@@ -227,6 +227,18 @@ export function update(mutator) {
 }
 
 // keepTime: used by sync so a merged copy keeps its own timestamps.
+// Marks a part as looked at now without changing it (retyping the same mesos held confirms the figure): only its
+// change time moves, which is what "as of" dates read. `path` is the part's path in state.stamps.
+export function touch(path) {
+  const next = structuredClone(state);
+  const now = Date.now();
+  stampEdit(next.stamps, state, next, now, new Set([path]));
+  next.updatedAt = laterThan(state.updatedAt, now);
+  state = next;
+  save();
+  listeners.forEach((fn) => fn(state));
+}
+
 export function replaceState(raw, keepTime = false) {
   dailySnapshot();
   const before = state;

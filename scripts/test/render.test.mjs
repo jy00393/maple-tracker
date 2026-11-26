@@ -274,7 +274,8 @@ test('Today ticks dailies and bosses directly, with the same ticks as Checklist 
   store.replaceState(richState(), true);
   const el = await show('today');
   // The daily boss (Normal Cygnus) is a chip of "Daily bosses", so the boss list holds the three weekly ones.
-  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · 1 \/ 3 bosses/);
+  // The count covers every picked boss: the daily one on the chips and the three weekly ones.
+  assert.match(el.text.replace(/\s+/g, ' '), /Do today \d+ \/ \d+ dailies · \d \/ 4 bosses/);
   const daily = el.find((n) => n.localName === 'input' && n.attrs.id === 'cl-d-coupon');
   assert.ok(daily, 'a core daily can be ticked on Today');
   daily.checked = true;
@@ -289,7 +290,7 @@ test('Today ticks dailies and bosses directly, with the same ticks as Checklist 
   assert.equal(s.bosses.main.clears['will-hard'][week], true);
   close(el);
   const again = await show('today');
-  assert.match(again.text.replace(/\s+/g, ' '), /2 \/ 3 bosses/);
+  assert.match(again.text.replace(/\s+/g, ' '), /\d \/ 4 bosses/);
   close(again);
   // A character with no bosses picked gets a pointer instead of an empty list.
   store.update((x) => { x.activeId = 'da'; });

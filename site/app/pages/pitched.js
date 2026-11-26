@@ -39,10 +39,10 @@ export function PitchedCard({ data, state, char, now }) {
           <div><b>${item.name}</b><div class="small muted">${item.slot} · ${item.from}</div></div>
           <div class="drop-r">
             ${drops.map((d) => (asking === d.id
-              ? html`<span class="tagdate ask" role="group" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}?`}>${showDay(d.d)}
+              ? html`<span key=${d.id + ':ask'} class="tagdate ask" role="group" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}?`}>${showDay(d.d)}
                   <button type="button" class="danger" aria-label=${`Yes, remove the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => remove(d.id)}>Remove</button>
                   <button type="button" aria-label=${`Keep the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => setAsking(null)}>Keep</button></span>`
-              : html`<span class="tagdate">${showDay(d.d)}<button type="button" class="x" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => setAsking(d.id)}>×</button></span>`))}
+              : html`<span key=${d.id} class="tagdate">${showDay(d.d)}<button type="button" class="x" aria-label=${`Remove the ${item.name} drop of ${showDay(d.d)}`} onClick=${() => setAsking(d.id)}>×</button></span>`))}
             ${drops.length ? null : html`<span class="small muted">Not yet</span>`}
             <button type="button" class="btn" aria-label=${`Got one: ${item.name}`} onClick=${() => log(item.id)}>Got one</button>
           </div>

@@ -1,5 +1,5 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
-import { update, activeCharacter, newId } from '../store.js';
+import { update, activeCharacter, newId, touch } from '../store.js';
 import { Card, Fold, PageHead, Seg, NumberInput, Stepper, Empty, MesoInput, fmtBig, useNow, parseMesos, MESO_MAX, plural } from '../ui.js';
 import { computeIncome, crystalWeekStart } from '../calc/income.js';
 import { starPlan, starSpread, maxStarsFor } from '../calc/starforce.js';
@@ -123,7 +123,7 @@ function Planner({ data, state, now }) {
     <//>
     <${Card} title="Your meso income" meta="per week">
       <div class="insight"><span class="k">Weekly income</span><span class="big accent">${fmtBig(inc.total)}</span><${IncomeBar} inc=${inc} /></div>
-      <label class="field"><span>Mesos you have now${heldAt ? ` (${asOf(heldAt, now)})` : ''}</span><${MesoInput} label="Mesos held" value=${m.held} onChange=${(v) => setM((x) => { x.held = v || 0; })} /></label>
+      <label class="field"><span>Mesos you have now${heldAt ? ` (${asOf(heldAt, now)})` : ''}</span><${MesoInput} label="Mesos held" value=${m.held} onChange=${(v) => setM((x) => { x.held = v || 0; })} onConfirm=${() => touch('mesos/held')} /></label>
       <div class="field"><span>Boss crystals (from Bosses, all characters)</span><b>${fmtBig(inc.bosses)} a week</b></div>
       <div class="form-grid">
         <label class="field"><span>Ursus mesos per run (1 run a day)</span><${MesoInput} label="Ursus mesos per run" placeholder="e.g. 36m" value=${m.ursus} onChange=${(v) => setM((x) => { x.ursus = v; })} /></label>

@@ -81,7 +81,7 @@ export function symbolPlan(kindData, area, entry = {}, now = Date.now()) {
     level, have, perDay, power, maxed: false, locked: false, needNext, remainingSymbols, remainingMesos, nextMesos, daysToNext, daysToMax, affordable,
     at, nextAt, maxAt,
     nextDue: affordable === 0 && nextAt !== null && now >= nextAt,
-    maxDue: maxAt !== null && now >= maxAt
+    maxDue: remainingSymbols > 0 && maxAt !== null && now >= maxAt
   };
 }
 

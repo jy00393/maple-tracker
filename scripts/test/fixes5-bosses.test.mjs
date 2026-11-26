@@ -187,7 +187,8 @@ test('with no daily boss picked the item is a pointer to Bosses and is not count
   const withPick = { characters: [main], bosses: { a: { picks: solo('lucid-hard', 'cygnus-normal'), clears: {} } } };
   const none = dailyProgress(checklist, cs, FRI, whoFor(DATA, state, main));
   const some = dailyProgress(checklist, cs, FRI, whoFor(DATA, withPick, main));
-  assert.equal(some.total, none.total + 1, 'the item joins the dailies total only when a daily boss is picked');
+  // Daily bosses are counted with the bosses, never with the core dailies: a new pick cannot undo a finished day.
+  assert.equal(some.total, none.total, 'picking a daily boss does not change the dailies total');
   // The old chip ticks never make it done.
   assert.equal(itemStatus(item, g, cs, FRI, whoFor(DATA, withPick, main)).done, false);
 });
@@ -204,7 +205,9 @@ test('Today: the chips are the picked daily bosses; pressing one is the Bosses t
   assert.doesNotMatch(text(row()), /Hilla|Pink Bean|Cygnus/, 'no boss that is not picked');
   assert.match(text(row()), /0 \/ 2/);
   const total = dailyProgress(checklist, store.getState().checklist, FRI, who(store.getState())).total;
-  assert.match(text(el), new RegExp(`Do today ${total - 1} / ${total} dailies · 0 / 1 boss `));
+  // The other dailies are all ticked, so the dailies are complete whatever the bosses say; the boss count holds
+  // all three picked bosses, the daily ones included.
+  assert.match(text(el), new RegExp(`Do today ${total} / ${total} dailies · 0 / 3 bosses `));
   // Listed once: the daily bosses are chips, the list under "Bosses" holds the weekly one.
   assert.equal(byId(el, 'today-boss-omni-cln-normal'), null);
   assert.ok(byId(el, 'today-boss-lucid-hard'));
@@ -217,6 +220,7 @@ test('Today: the chips are the picked daily bosses; pressing one is the Bosses t
 
   chips().find((c) => c.text.trim() === 'Normal Zakum').fire('click');
   assert.ok(await until(() => /2 \/ 2/.test(text(row()))));
+  assert.ok(text(el).includes('dailies · 2 / 3 bosses '), 'the boss count covers the daily ones');
   // Every core daily is done: the tile, the card and the streak agree.
   assert.ok(await until(() => { const h = (store.getState().checklist.history || {})[dayKey(FRI)]; return h && h.done === total && h.total === total; }), 'the streak day is complete');
   assert.match(text(el), new RegExp(`Core dailies ${total} / ${total}`));

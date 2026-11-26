@@ -27,7 +27,7 @@ function SymbolTable({ kind, kindData, char, entries, now }) {
       : plan.nextAt === null ? '—'
       : html`${fmtDay(plan.nextAt, now)}${small(dayWord(kstDays(now, plan.nextAt)))}`;
     const toMax = plan.locked ? '—' : plan.maxed ? 'done'
-      : html`${plan.maxAt === null ? '—' : plan.maxDue ? 'update Held' : fmtDay(plan.maxAt, now)}${small(fmtMesos(plan.remainingMesos))}`;
+      : html`${plan.maxAt === null ? '—' : plan.remainingSymbols === 0 ? 'ready now' : plan.maxDue ? 'update Held' : fmtDay(plan.maxAt, now)}${small(fmtMesos(plan.remainingMesos))}`;
     const typedBefore = !plan.locked && !plan.maxed && Number.isFinite(entry.at) && kstDays(entry.at, now) > 0;
     if (!plan.locked) totalMesos += plan.remainingMesos;
     return html`<tr class=${plan.locked ? 'off' : ''}>

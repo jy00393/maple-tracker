@@ -474,12 +474,19 @@ test('0 39: an open page re-reads on return and about hourly, never within 15 mi
   assert.equal(asked(), 3);
   assert.equal(data.refresh.failed, true);
   assert.ok(data.events.events.some((e) => e.title === 'Posted Meanwhile'));
+  // Back online: the failed read is tried again within a minute, without waiting for the hour.
   net.onLine = true;
-  await advance(20 * MIN);
+  await advance(2 * MIN);
+  assert.equal(asked(), 4);
+  assert.equal(data.refresh.failed, false);
+  // The "online" event asks again only once the usual 15 minutes have passed.
   for (const fn of win.on) fn();
   await settle();
   assert.equal(asked(), 4);
-  assert.equal(data.refresh.failed, false);
+  await advance(18 * MIN);
+  for (const fn of win.on) fn();
+  await settle();
+  assert.equal(asked(), 5);
 
   const before = [asked(), sets];
   stop();

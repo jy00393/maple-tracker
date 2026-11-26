@@ -89,21 +89,28 @@ export const REFRESH_GAP = 900000; // never more often than every 15 minutes
 // Keeps an open page's Nexon data current: re-reads when the tab comes back to the front (or the connection
 // returns) and about hourly while it is on screen; never while hidden, never more often than every 15 minutes.
 // get(): the data on screen; set(next): show the new one. Returns a function that stops it.
+export const RETRY_GAP = 60000;
+
 export function watchData({ get, set, base = '', doc = globalThis.document, win = globalThis.window, nav = globalThis.navigator }) {
   let last = (get().refresh && get().refresh.at) || Date.now();
   let busy = false;
   let stopped = false;
   const visible = () => !doc || doc.visibilityState !== 'hidden';
+  // A failed or skipped attempt does not count as a check: it is tried again after a minute, and at once when
+  // the connection or the tab comes back.
+  let tried = 0;
   const check = async (gap) => {
-    if (busy || stopped || !visible() || Date.now() - last < gap) return;
+    if (busy || stopped || !visible() || Date.now() - last < gap || Date.now() - tried < RETRY_GAP) return;
     busy = true;
+    const before = last;
     last = Date.now();
     try {
       const next = await refreshData(get(), base, !(nav && nav.onLine === false));
+      if (next && next.refresh && next.refresh.failed) { last = before; tried = Date.now(); }
       if (!stopped) set(next);
-    } finally { busy = false; }
+    } catch { last = before; tried = Date.now(); } finally { busy = false; }
   };
-  const onBack = () => { check(REFRESH_GAP); };
+  const onBack = () => { tried = 0; check(REFRESH_GAP); };
   const id = setInterval(() => { check(REFRESH_EVERY); }, 60000);
   if (id && typeof id.unref === 'function') id.unref();
   if (doc && typeof doc.addEventListener === 'function') doc.addEventListener('visibilitychange', onBack);

@@ -93,9 +93,11 @@ function TodoCard({ data, state, now, who, char, lines, prog }) {
   });
   const listed = lines.filter((l) => !onChips.has(shareKey(l.boss)));
   // A boss cleared on another difficulty is done too: the difficulties share one clear.
-  const cleared = listed.filter((l) => l.clearedNow || l.doneAs).length;
+  // The count covers every picked boss, the daily ones on the chips included (one per shared clear).
+  const counted = lines.filter((l) => !l.spare);
+  const cleared = counted.filter((l) => l.clearedNow || l.doneAs).length;
   const hint = bossResetHint(listed);
-  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${listed.length ? ` · ${cleared} / ${listed.length} ${plural(listed.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
+  return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${counted.length ? ` · ${cleared} / ${counted.length} ${plural(counted.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
     <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
     ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
     ${char ? html`<div class="group-h"><h4>Bosses${hint ? html` <span class="hint">${hint}</span>` : null}</h4><a class="small" href="#bosses">Pick bosses</a></div>

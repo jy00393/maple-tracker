@@ -32,7 +32,9 @@ export function dailyProgress(checklistData, checklistState, now, who) {
   let total = 0;
   for (const item of group.items) {
     const st = itemStatus(item, group, checklistState, now, who);
-    if (st.locked || st.expired || st.link || item.optional) continue;
+    // Rows that follow the bosses picked on Bosses ("Daily bosses") are counted with the bosses, not here: the
+    // list changes when picks change, and a day already finished must not come undone by a new pick.
+    if (st.locked || st.expired || st.link || st.rows || item.optional) continue;
     total++;
     if (st.done) done++;
   }

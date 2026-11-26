@@ -147,17 +147,23 @@ export function StreakCard({ state, now }) {
     const next = e.currentTarget.parentNode && e.currentTarget.parentNode.childNodes[j];
     if (next && next.focus) next.focus();
   };
+  // The day's entry is the character furthest along; it is named when that is not the one on screen, so the
+  // count does not seem to contradict the dailies figure beside it.
+  const byName = (h) => {
+    const c = h && h.by && h.by !== state.activeId ? (state.characters || []).find((x) => x.id === h.by) : null;
+    return c && c.name ? ` (${c.name})` : '';
+  };
   const cells = keys.map((k, i) => {
     const h = history[k];
     const r = h && h.total ? h.done / h.total : 0;
     const lvl = !h || r === 0 ? 0 : r < 0.34 ? 1 : r < 0.67 ? 2 : r < 1 ? 3 : 4;
     return html`<button type="button" class=${`h${lvl}${k === todayKey ? ' today' : ''}${k === shown ? ' sel' : ''}`} tabindex=${k === shown ? 0 : -1}
-      aria-pressed=${String(k === shown)} aria-label=${`${showDay(k)}: ${dayCount(h)}`} title=${`${showDay(k)}: ${dayCount(h)}`}
+      aria-pressed=${String(k === shown)} aria-label=${`${showDay(k)}: ${dayCount(h)}${byName(h)}`} title=${`${showDay(k)}: ${dayCount(h)}${byName(h)}`}
       onClick=${() => setPick(k)} onKeyDown=${(e) => onKey(e, i)}></button>`;
   });
   return html`<${Card} title="Dailies streak" meta=${`best ${best} day${best === 1 ? '' : 's'}`}>
     <div class="insight"><span class="k">Current streak</span><span class="big accent">${streak} day${streak === 1 ? '' : 's'}</span><span class="small muted">Days with every core daily ticked (game days, 09:00 KST to 09:00 KST)</span></div>
     <div class="heat" role="group" aria-label="Last 16 weeks of dailies. Pick a day to see its count.">${cells}</div>
-    <p class="heat-day small" aria-live="polite"><b>${shown === todayKey ? 'Today' : showDay(shown)}:</b> ${dayCount(history[shown])}. <span class="muted">Pick a square to see that day.</span></p>
+    <p class="heat-day small" aria-live="polite"><b>${shown === todayKey ? 'Today' : showDay(shown)}:</b> ${dayCount(history[shown])}${byName(history[shown])}. <span class="muted">Pick a square to see that day.</span></p>
   <//>`;
 }
