@@ -33,6 +33,26 @@ export function cleanSeason(v) {
 
 const counted = (v) => typeof v === 'number' && Number.isFinite(v);
 
+// Coin shops whose claims are a season counter (shops.json earn.counter, e.g. the Alliance Credit Shop's Defense
+// Missions): [{ shop, counter }].
+export function linkedShops(data) {
+  const list = data && data.shops && Array.isArray(data.shops.shops) ? data.shops.shops : [];
+  return list.filter((s) => s && s.earn && typeof s.earn.counter === 'string' && Object.hasOwn(SEASON_FIELDS, s.earn.counter)).map((shop) => ({ shop, counter: shop.earn.counter }));
+}
+
+// The season counters as the pages read them: one count for a counter that a shop also keeps as its claims. Before
+// the two were joined they were typed separately; both only rise during a season, so the larger stands.
+export function seasonCounts(data, state) {
+  const s = isObj(state && state.season) ? { ...state.season } : {};
+  const shops = isObj(state && state.shops) ? state.shops : {};
+  for (const { shop, counter } of linkedShops(data)) {
+    const saved = Object.hasOwn(shops, shop.id) && isObj(shops[shop.id]) ? shops[shop.id].claims : undefined;
+    const c = counted(saved) && saved > 0 ? Math.min(Math.floor(saved), SEASON_FIELDS[counter][1]) : undefined;
+    if (c !== undefined && !(counted(s[counter]) && s[counter] >= c)) s[counter] = c;
+  }
+  return s;
+}
+
 // Which season caps are reached: { pass, supply, defense, etherion }. A Checklist item with "seasonCap": "<name>"
 // reads as done for the season once its cap is reached (see itemStatus in calc/checklist.js).
 export function seasonCaps(data, saved) {
@@ -65,16 +85,24 @@ export function passPlan(cfg, lv, at, now) {
 // from the one the figure was typed in, that week included in full.
 // Returns null without a count; { done } at the cap; { short, reach } when the cap is out of reach; otherwise
 // { left, weeks, spare, spareWeeks }: how many collections can still be missed, and how many whole weeks that is.
+// With `perDay` (Supply Report: one collection a day you log in), the days left also cap it: the day the figure was
+// typed counts (its collection may not be in the count yet). `byDays` then says the days are the limit.
 export function capPlan(cfg, n, at, now, resetKind = cfg && cfg.reset) {
   if (!cfg || !counted(n)) return null;
   if (n >= cfg.max) return { done: true };
   const from = Number.isFinite(at) && at > 0 ? Math.min(at, now) : now;
   const left = cfg.max - n;
-  const weeks = weeksLeft(Date.parse(cfg.ends), from, resetKind);
-  const room = weeks * cfg.perWeek;
-  if (room < left) return { short: true, left, weeks, reach: n + room };
+  const end = Date.parse(cfg.ends);
+  const weeks = weeksLeft(end, from, resetKind);
+  const days = Math.max(0, Math.ceil((end - Math.floor(from / DAY) * DAY) / DAY));
+  const byWeek = weeks * cfg.perWeek;
+  const byDay = cfg.perDay > 0 ? days * cfg.perDay : Infinity;
+  const byDays = byDay < byWeek;
+  const room = Math.min(byWeek, byDay);
+  const extra = byDays ? { byDays, days } : {};
+  if (room < left) return { short: true, left, weeks, reach: n + room, ...extra };
   const spare = room - left;
-  return { left, weeks, spare, spareWeeks: Math.floor(spare / cfg.perWeek) };
+  return { left, weeks, spare, spareWeeks: byDays ? 0 : Math.floor(spare / cfg.perWeek), ...extra };
 }
 
 // Expected Etherion for one enhancement from core level `from` (cost / success rate), and to Lv. `to` from `from`.
@@ -134,10 +162,12 @@ export function picksPaidBy(shop, plan, now, resetKind, weekly) {
   return Math.min(end, weekEnd);
 }
 
-// The picked items (still to buy) that expire before the picks can all be paid for.
-export function expiringPicks(plan, paidBy) {
+// The picked items (still to buy) that expire before the picks can all be paid for. Nothing is bought after the shop
+// closes (`closes`, ms), so an item that expires after that is never flagged: being short is not an expiry.
+export function expiringPicks(plan, paidBy, closes = Infinity) {
   if (!plan) return [];
-  return plan.rows.filter((r) => r.want > 0 && r.item.expires && Date.parse(r.item.expires) <= paidBy);
+  const by = Math.min(paidBy, Number.isFinite(closes) ? closes : Infinity);
+  return plan.rows.filter((r) => r.want > 0 && r.item.expires && Date.parse(r.item.expires) <= by);
 }
 
 // What expires within `days` days: grouped by date, soonest first. Each group: { at, hand: [season.json entries],

@@ -100,15 +100,16 @@ test('changesBetween lists only what changed; revertChanges puts it back and kee
   after.updatedAt = 2;
   const ch = changesBetween(before, after);
   assert.deepEqual(ch.map((c) => c.path.join('/')).sort(), ['bosses/a', 'checklist/items/y', 'mesos/goals']);
-  // Meanwhile another device changed something else, and one of the same values.
+  // Meanwhile another device changed something else, and added to the same list.
   const now = structuredClone(after);
   now.mesos.held = 9;
   now.mesos.goals = [{ id: 'h' }];
   const r = revertChanges(now, ch);
-  assert.deepEqual(r, { undone: 2, skipped: 1 });
+  // Goals are put back one by one (sync keeps each as its own unit): the removed one returns, the new one stays.
+  assert.deepEqual(r, { undone: 3, skipped: 0 });
   assert.equal(now.checklist.items.y, undefined);
   assert.equal(now.bosses.a, undefined);
-  assert.deepEqual(now.mesos.goals, [{ id: 'h' }], 'a value changed since is left as it is');
+  assert.deepEqual(now.mesos.goals, [{ id: 'g' }, { id: 'h' }], 'a goal added since is kept');
   assert.equal(now.mesos.held, 9, 'an unrelated edit is kept');
   assert.deepEqual(now.stamps, { a: 2 }, 'the bookkeeping is never put back');
   // Nothing that names the object prototype is walked or written.

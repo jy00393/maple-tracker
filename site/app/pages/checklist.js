@@ -9,7 +9,7 @@ import { toggleClear } from './bosses.js';
 import { sealNoteFor } from './challenger.js';
 import { undoable } from '../undo.js';
 import { AllDone, StreakLine, NotesToggle, RowNote } from './daily.js';
-import { seasonCaps } from '../calc/seasoncount.js';
+import { seasonCaps, seasonCounts } from '../calc/seasoncount.js';
 
 export { itemStatus, resetOf, recordKey };
 
@@ -24,7 +24,7 @@ export function whoFor(data, state, c) {
   if (!c) return {};
   const bosses = data.bosses && data.bossById ? { data: data.bosses, byId: data.bossById, all: state.bosses || {}, char: c, chars: state.characters || [] } : null;
   // open: the symbol areas Progress already holds a level for, so their dailies are never shown as locked.
-  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]), sealNote: () => sealNoteFor(data, state, c), caps: seasonCaps(data, state.season) };
+  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]), sealNote: () => sealNoteFor(data, state, c), caps: seasonCaps(data, seasonCounts(data, state)) };
 }
 
 const DAY_NAMES = { mon: ['Mon', 'Monday'], wed: ['Wed', 'Wednesday'], thu: ['Thu', 'Thursday'] };

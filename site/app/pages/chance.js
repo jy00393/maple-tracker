@@ -25,7 +25,7 @@ function BudgetField({ state, now }) {
     setBudget({ mesos: v });
   };
   return html`<div class="field"><span>Mesos you have</span>
-    <${MesoInput} label="Mesos you have for this calculation" placeholder="e.g. 4.1B" value=${b.mesos} onChange=${onChange} />
+    <${MesoInput} label="Mesos you have for this calculation" placeholder="e.g. 4.1B" value=${b.mesos} emptyShows=${held} onChange=${onChange} />
     ${b.own ? html`<span class="small muted">For this calculation only, on this device. Your planner says ${fmtBig(held)}.${' '}
         <button type="button" class="linkbtn" onClick=${() => setBudget({ mesos: null })}>Use the planner figure</button>${' · '}        <button type="button" class="linkbtn" onClick=${() => { const v = b.mesos; update((s) => { s.mesos.held = v; s.ui.budget = { ...(s.ui.budget || {}), mesos: null }; }); touch('mesos/held'); }}>Save to the planner</button></span>`
       : held > 0 ? html`<span class="small muted">From Mesos → Planner${heldAt ? ` (${asOf(heldAt, now)})` : ''}. Type another figure to try it here only.</span>`
@@ -48,14 +48,20 @@ function ItemPick({ data, state, kind, onPick }) {
   </select></label>`;
 }
 
-// The picked item, when it is one that expires.
-function expiring(data, state, kind) {
+// The item picked for a chance: { name, entry }, or null.
+function picked(data, state, kind) {
   const char = activeCharacter(state);
   const id = (state.ui.budget || {})[kind];
   const entry = char && id && state.gear[char.id] && state.gear[char.id].slots ? state.gear[char.id].slots[id] : null;
-  if (!entry || !entry.temporary) return null;
+  if (!entry) return null;
   const slot = data.gear.slots.find((s) => s.id === id);
-  return slot ? slot.name : 'This item';
+  return { name: slot ? slot.name : 'This item', entry };
+}
+
+// The picked item, when it is one that expires.
+function expiring(data, state, kind) {
+  const p = picked(data, state, kind);
+  return p && p.entry.temporary ? p.name : null;
 }
 
 const Expires = ({ name, what }) => html`<p class="warnbox">${name} expires, so put no ${what} into it. No chance is shown for it.</p>`;
@@ -109,16 +115,22 @@ export function CubeChance({ data, state, now, from, to, types }) {
   const temp = expiring(data, state, 'cubes');
   const pick = (slot, entry) => update((s) => {
     const o = { from: 3, to: 4, ...(s.ui.cubeCalc || {}) };
-    const f = Math.max(1, Math.min(3, entry.pot || 1));
+    // Only an item that can still go up a tier fills in the calculator (see the notes below for the others).
+    if (!(entry.pot >= 1 && entry.pot <= 3)) return;
+    const f = Math.floor(entry.pot);
     s.ui.cubeCalc = { ...o, from: f, to: Math.max(o.to, f + 1) };
   });
   const interactive = Boolean(char && char.world === 'interactive');
+  const item = temp ? null : picked(data, state, 'cubes');
+  const pot = item ? Number(item.entry.pot) || 0 : null;
   return html`<${Card} title="What your mesos buy" meta="exact odds">
     <div class="form-grid">
       <${BudgetField} state=${state} now=${now} />
       <${ItemPick} data=${data} state=${state} kind="cubes" onPick=${pick} />
     </div>
     ${temp ? html`<${Expires} name=${temp} what="mesos or cubes" />`
+      : item && pot >= 4 ? html`<p class="note">${item.name} is already Legendary, so cubes can't raise its tier. No chance is shown for it.</p>`
+      : item && pot < 1 ? html`<p class="note">${item.name} has no potential tier on Gear. Set its tier there to see the chance for it.</p>`
       : interactive ? html`<p class="note">These are Heroic Cube Shop prices, and ${char.name || 'this character'} is on an Interactive world, so no chance is shown.</p>`
       : !(to > from) ? html`<p class="note">Pick a target above the current tier.</p>`
       : !b.mesos ? html`<${NoBudget} />`

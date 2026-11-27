@@ -46,6 +46,9 @@ const FINE = '@fine';
 const GOAL_ORDER = 'mesos/goalOrder';
 const GOAL_MOVED = 'mesos/goalMoved';
 const GOAL_SEEN = 'mesos/goalOrderSeen';
+// Parts the earlier version holds as one unit each and never edits: this version moves their whole-part stamp
+// on every edit inside them (see stampEdit), and a merge keeps the newer one (see mergeStates).
+const WHOLE_FOR_OLD = ['season', 'challenger'];
 // Finer parts, so two devices never overwrite each other's entries:
 //   pitch/<charId>/<dropId>             one logged drop
 //   shops/<shopId>/have | claims        one number
@@ -541,6 +544,13 @@ export function stampEdit(stamps, prev, next, now = Date.now(), paths = null) {
       stamps[`${prefix}/${FINE}`] = t;
     }
   }
+  // Season counters and Challenger missions: the earlier version knows each as one unit ("season", "challenger")
+  // and never edits it, but it carries its copy along and the newer stamp wins. So every edit inside moves that
+  // whole-part stamp too, and a device still on the earlier version takes the newer copy instead of writing its
+  // stale one back. (One way only: nothing reads these stamps for the finer entries.)
+  for (const part of WHOLE_FOR_OLD) {
+    if ([...edited].some((path) => path.startsWith(`${part}/`))) stamps[part] = later(read(part));
+  }
   // The goal list: the order stamp moves for every change to it, as the earlier version expects.
   const a = pu.get(GOAL_ORDER);
   const b = nu.get(GOAL_ORDER);
@@ -594,6 +604,7 @@ export function mergeStates(a, b, now = Date.now()) {
   paths.delete('activeId'); // stamped by earlier versions; no longer merged
   paths.delete(GOAL_MOVED);
   paths.delete(GOAL_SEEN);
+  for (const part of WHOLE_FOR_OLD) paths.delete(part); // worked out at the end
   for (const path of paths) {
     const p = splitKey(path);
     if (p) {
@@ -708,6 +719,18 @@ export function mergeStates(a, b, now = Date.now()) {
       const moved = Math.max(ra.goalsMoved(), rb.goalsMoved());
       if (moved) stamps[GOAL_MOVED] = moved;
     }
+  }
+  // The whole-part stamps the earlier version reads for season and challenger: the newest either side had, one
+  // step past it when the merged part is not what the side holding that time has (as for the part stamps above).
+  for (const part of WHOLE_FOR_OLD) {
+    const ta = ra(part);
+    const tb = rb(part);
+    let t = Math.max(ta, tb);
+    if (!t) continue;
+    const text = canon(isObj(out[part]) ? out[part] : {});
+    const differs = (x) => canon(isObj(x[part]) ? x[part] : {}) !== text;
+    if ((ta === t && differs(a)) || (tb === t && differs(b))) t += 1;
+    stamps[part] = t;
   }
   out.stamps = stamps;
   out.updatedAt = Math.min(Math.max(a.updatedAt || 0, b.updatedAt || 0), now + DAY);

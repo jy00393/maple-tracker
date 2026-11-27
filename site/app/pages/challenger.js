@@ -4,11 +4,11 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, charSlice } from '../store.js';
 import { Card, Fold, Tile, Bar, Empty, plural } from '../ui.js';
-import { fmtDate, kstDays, dayWord } from '../time.js';
+import { fmtDate, fmtKst, kstDays, dayWord } from '../time.js';
 import { marginOf, minCpFor, fmtCp } from '../calc/bosscp.js';
 import { erdaTemplateFor } from '../calc/progress.js';
 import {
-  tiersOf, standing, targetPlan, earliestTier, likelyTarget, missionCoins, sealAdvice, epicPlus, bossMissions,
+  tiersOf, standing, targetPlan, earliestTier, likelyTarget, missionCoins, sealAdvice, sealDays, epicPlus, bossMissions,
   missionState, seasonalFor, levelAtTime, nextLevelMission, levelPoints
 } from '../calc/challenger.js';
 import { knownLevel, levelOutlook, levelPath } from './level.js';
@@ -106,15 +106,20 @@ function HigherRule({ cw, state }) {
 }
 
 // The Arcane Seal line: break now or save the wands for a better barrier.
-export function sealText(cw, ctx, target) {
-  const a = sealAdvice(cw, ctx, target);
+// `left`: the time to the season end in ms; the save window never runs past it.
+export function sealText(cw, ctx, target, left = Infinity) {
+  const a = sealAdvice(cw, ctx, target, left);
   if (!a) return null;
   const tiers = tiersOf(cw);
   const name = (id) => (tiers.find((t) => t.id === id) || {}).name || id;
   const here = `Stage ${a.stage.stage} (${a.stage.name})`;
   if (a.kind === 'best') return `Your tier breaks ${here}, the best barrier. Break them as they come.`;
+  if (a.why === 'ending') return `Break them now: the Arcane Seal ends ${fmtKst(Date.parse(cw.ends))}, and wands still saved then are lost.`;
   const better = `Stage ${a.next.stage} (Epic or better ${epicPlus(a.next).toFixed(1)}%, now ${epicPlus(a.stage).toFixed(1)}%)`;
-  if (a.kind === 'save') return `Save them if you can clear ${listWords(a.runs.map((r) => named(r.run)))} within 6 days: that is ${num(a.runs.reduce((x, r) => x + r.gain, 0))} points, enough for ${a.nextTier.name}, where barriers are ${better}. Only ${cw.seal.cap} wands are kept, so don't save longer.`;
+  if (a.kind === 'save') {
+    const short = a.days < sealDays(cw);
+    return `Save them if you can clear ${listWords(a.runs.map((r) => named(r.run)))} within ${a.days} ${plural(a.days, 'day')}: that is ${num(a.runs.reduce((x, r) => x + r.gain, 0))} points, enough for ${a.nextTier.name}, where barriers are ${better}. ${short ? `The season ends ${fmtKst(Date.parse(cw.ends))}, so don't save longer.` : `Only ${cw.seal.cap} wands are kept, so don't save longer.`}`;
+  }
   if (a.why === 'target') return `Break them now: your target, ${name(target)}, still breaks ${here}. ${a.nextTier.name} would open ${better}.`;
   return `Break them now: ${a.nextTier.name} opens ${better} but is ${num(a.need)} points away, more than the bosses you can clear now give.`;
 }
@@ -124,7 +129,7 @@ export function sealNoteFor(data, state, char, now = Date.now()) {
   try {
     const o = challengerOutlook(data, state, char, now);
     if (!o || o.over) return null;
-    return sealText(o.cw, o.ctx, o.target);
+    return sealText(o.cw, o.ctx, o.target, o.end - now);
   } catch {
     return null;
   }
@@ -175,7 +180,7 @@ export function ChallengerView({ data, state, char, now }) {
   const setTarget = (v) => update((s) => { const c = charSlice(s, 'challenger', char.id, () => ({ done: {} })); if (v) c.target = v; else delete c.target; });
   const doneBoss = all.filter((m) => st.set.has(m.id)).length;
   const seasonal = seasonalFor(cw, ctx);
-  const seal = over ? null : sealText(cw, ctx, o.target);
+  const seal = over ? null : sealText(cw, ctx, o.target, end - now);
   const planList = (p) => html`${p.forced ? html`<div class="small">${named(p.forced.mission)} solo +${num(p.forced.gain)}: ${p.forced.status === 'can' ? 'needed for this tier' : `needed for this tier, ${stateText(p.forced.mission, p.forced, path, ctx, now)}`}</div>` : null}
     ${p.runs.slice(0, SHOWN).map((r) => html`<div class="small">${runText(r)}${r.ids.length > 1 ? ` (with ${r.ids.length - 1} easier ${plural(r.ids.length - 1, 'mission')})` : ''}${r.status !== 'can' ? ` · ${stateText(r.run, r, path, ctx, now)}` : ''}</div>`)}
     ${p.runs.length > SHOWN ? html`<div class="small muted">and ${p.runs.length - SHOWN} smaller ${plural(p.runs.length - SHOWN, 'mission')} worth ${num(p.runs.slice(SHOWN).reduce((a, r) => a + r.gain, 0))}</div>` : null}

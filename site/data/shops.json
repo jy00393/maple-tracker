@@ -14,6 +14,7 @@
    "earn": {
     "name": "Defense Mission",
     "checklistItem": "w-ultima",
+    "counter": "defense",
     "perClaim": 800,
     "perWeek": 5,
     "max": 60,

@@ -7,25 +7,53 @@ import { fmtDay, fmtKst, asOf } from '../time.js';
 import { changedAt } from '../calc/asof.js';
 import { resetOf } from '../calc/checklist.js';
 import { expToNext } from '../calc/upgrades.js';
-import { passPlan, capPlan, etherionPlan, expiringSoon, picksPaidBy, expiringPicks, seasonalPotions } from '../calc/seasoncount.js';
+import { passPlan, capPlan, etherionPlan, expiringSoon, picksPaidBy, expiringPicks, seasonalPotions, seasonCounts, linkedShops } from '../calc/seasoncount.js';
 
 const num = (v) => Math.round(v).toLocaleString('en-US');
 const path = (k) => `season/${k}`;
 const DAY_NAME = { mon: 'Monday', wed: 'Wednesday', thu: 'Thursday' };
 const ordinal = (n) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
 
-// Typing the figure that is already saved confirms it: only its "as of" date moves.
-function setCount(k, v) {
-  const cur = getState().season || {};
+const whoOfChar = (char, level) => ({ level, challenger: Boolean(char.challenger), world: char.world || 'heroic' });
+
+// When a count was last typed: for a counter a shop also keeps (its claims), the later of the two.
+export function countAt(data, state, k, now) {
+  let at = changedAt(state, path(k), now);
+  for (const { shop, counter } of linkedShops(data)) {
+    if (counter !== k) continue;
+    const t = changedAt(state, `shops/${encodeURIComponent(shop.id)}/claims`, now);
+    if (Number.isFinite(t) && t > 0 && !(at >= t)) at = t;
+  }
+  return at;
+}
+
+// Typing the figure that is already saved confirms it: only its "as of" date moves. A counter that a coin shop also
+// keeps as its claims (shops.json earn.counter) is one count: both are written together, so lowering it in either
+// place lowers it everywhere.
+export function setCount(k, v, data = null) {
+  const st = getState();
+  const linked = linkedShops(data).filter((x) => x.counter === k);
+  const cur = seasonCounts(data, st);
+  const shopOf = (s, shop) => (s.shops && typeof s.shops === 'object' && s.shops[shop.id] && typeof s.shops[shop.id] === 'object' ? s.shops[shop.id] : null);
   if (v === null || v === undefined || !Number.isFinite(v)) {
-    if (Object.hasOwn(cur, k)) update((s) => { delete s.season[k]; });
+    if (Object.hasOwn(cur, k)) update((s) => {
+      if (s.season) delete s.season[k];
+      for (const { shop } of linked) { const x = shopOf(s, shop); if (x) x.claims = 0; }
+    });
     return;
   }
   const n = Math.floor(v);
-  if (cur[k] === n) { touch(path(k)); return; }
+  const raw = (st.season || {})[k];
+  const shopsSame = linked.every(({ shop }) => { const x = shopOf(st, shop); return !x || !x.claims || x.claims === n; });
+  if (cur[k] === n && raw === n && shopsSame) { touch(path(k)); return; }
   update((s) => {
     if (!s.season || typeof s.season !== 'object' || Array.isArray(s.season)) s.season = {};
     s.season[k] = n;
+    for (const { shop } of linked) {
+      if (!s.shops || typeof s.shops !== 'object') s.shops = {};
+      const x = shopOf(s, shop) || (s.shops[shop.id] = { have: 0, claims: 0, want: {} });
+      x.claims = n;
+    }
   });
 }
 
@@ -67,7 +95,13 @@ function capLine(cfg, short, n, at, now, resetKind, extra) {
   const lead = `${short} ${n} / ${cfg.max}`;
   if (p.done) return { lead, answer: 'done for the season' };
   const weeks = `${p.weeks} ${plural(p.weeks, 'week')} left counting the current one`;
-  if (p.short) return { lead, answer: `${cfg.max} is out of reach, about ${p.reach} by the end`, small: `At most ${cfg.perWeek} a week and ${weeks}.${when}` };
+  // Supply Report: one a day you log in, so near the end the days left are the limit, not the weeks.
+  const days = p.byDays ? `${p.days} login ${plural(p.days, 'day')} left counting ${at ? 'the day the count was typed' : 'today'}` : '';
+  if (p.short) return { lead, answer: `${cfg.max} is out of reach, about ${p.reach} by the end`, small: p.byDays ? `At most ${cfg.perDay} a day you log in, and ${days}.${when}` : `At most ${cfg.perWeek} a week and ${weeks}.${when}` };
+  if (p.byDays) {
+    const answer = p.spare > 0 ? `you can miss ${p.spare} more login ${plural(p.spare, 'day')}` : `log in every day left to reach ${cfg.max}`;
+    return { lead, answer, small: `${p.left} to go, at most ${cfg.perDay} a day you log in; ${days}. ${extra.note || ''}${when}` };
+  }
   let answer;
   if (p.spareWeeks >= 1) answer = `you can miss ${p.spareWeeks} more ${extra.unit} ${plural(p.spareWeeks, 'week')}`;
   else if (p.spare > 0) answer = `you can miss ${p.spare} more, then you need ${cfg.perWeek} every week`;
@@ -108,15 +142,23 @@ export function SeasonCounters({ data, state, char, level, now }) {
   const c = data.season && data.season.counters;
   const e = data.etherion;
   if (!char || !c) return null;
-  const s = state.season || {};
-  const at = (k) => changedAt(state, path(k), now);
+  // One count for a counter a coin shop also keeps (Defense Missions = Alliance Credit claims).
+  const s = seasonCounts(data, state);
+  const at = (k) => countAt(data, state, k, now);
   const lvlOk = (cfg) => !(cfg && cfg.minLevel && Number.isFinite(level) && level < cfg.minLevel);
   const open = (cfg) => cfg && Date.parse(cfg.ends) > now && lvlOk(cfg);
   const pass = c.pass && char.challenger && open(c.pass) ? c.pass : null;
   const supply = open(c.supply) ? c.supply : null;
   const defense = open(c.defense) ? c.defense : null;
   const ether = e && Date.parse(e.ends) > now && lvlOk(c.supply) ? e : null;
-  if (!pass && !supply && !defense && !ether) return null;
+  if (!pass && !supply && !defense && !ether) {
+    // The counters have closed, but rewards and shop items are usable a little longer (10 Feb 02:00 UTC). A
+    // Challenger character sees that list on its season card; everyone else sees it here, on its own.
+    if (char.challenger || !expiringSoon(data, state.shops, whoOfChar(char, level), now).length) return null;
+    return html`<div class="grid two" style=${{ marginTop: '14px' }}><${Card} title="Season rewards" meta="the counters have closed" className="span2">
+      <${ExpiringSoon} data=${data} state=${state} char=${char} level=${level} now=${now} />
+    <//></div>`;
+  }
   const defenseReset = defense && defense.checklistItem ? itemReset(data, state, defense.checklistItem) : null;
   const lines = [
     ...(pass ? [passLine(pass, s, at('pass'), now)] : []),
@@ -125,7 +167,7 @@ export function SeasonCounters({ data, state, char, level, now }) {
     ...(ether ? etherionLines(ether, s, at('ether'), at('core'), now) : [])
   ];
   const typed = ['pass', 'supply', 'defense', 'ether', 'core'].some((k) => Object.hasOwn(s, k));
-  const field = (k, label, max, min = 0) => html`<div class="field"><span>${label}</span><${Stepper} label=${label} value=${Object.hasOwn(s, k) ? s[k] : null} min=${min} max=${max} onChange=${(v) => setCount(k, v)} /></div>`;
+  const field = (k, label, max, min = 0) => html`<div class="field"><span>${label}</span><${Stepper} label=${label} value=${Object.hasOwn(s, k) ? s[k] : null} min=${min} max=${max} onChange=${(v) => setCount(k, v, data)} /></div>`;
   return html`<div class="grid two" style=${{ marginTop: '14px' }}><${Card} title="Season counters" meta="typed in from the game" className="span2">
     ${lines.map((l) => html`<${Line} ...${l} />`)}
     <details open=${!typed}><summary class="small">Update the counts (from the Event List in game)</summary>
@@ -151,7 +193,7 @@ export function SeasonCounters({ data, state, char, level, now }) {
 // season card (Challenger World characters) or in the counters card (everyone else).
 export function ExpiringSoon({ data, state, char, level, now }) {
   if (!char) return null;
-  const groups = expiringSoon(data, state.shops, { level, challenger: Boolean(char.challenger), world: char.world || 'heroic' }, now);
+  const groups = expiringSoon(data, state.shops, whoOfChar(char, level), now);
   if (!groups.length) return null;
   return html`<div class="expiring" style=${{ marginTop: '8px' }}>
     <div><b>Use it or lose it</b> <span class="small muted">· what expires in the next 3 weeks</span></div>
@@ -170,7 +212,8 @@ export function ExpiryWarning({ shop, plan, now, resetKind, weekly }) {
   const picked = plan.rows.filter((r) => r.want > 0 && r.item.expires);
   if (!picked.length) return null;
   const paidBy = picksPaidBy(shop, plan, now, resetKind, weekly);
-  const lost = expiringPicks(plan, paidBy);
+  // Nothing is bought after the shop closes: an item that expires later is never lost to a shortfall.
+  const lost = expiringPicks(plan, paidBy, Date.parse(shop.end));
   const first = Math.min(...picked.map((r) => Date.parse(r.item.expires)));
   return html`${lost.length ? html`<p class="warnbox">${lost.map((r) => r.item.name).join(', ')} ${plural(lost.length, 'expires', 'expire')} before your picks are paid for (${paidBy === Infinity ? 'not before the shop closes' : `around ${fmtDay(paidBy, now)}`}). You could not use ${plural(lost.length, 'it', 'them')} after that: drop ${plural(lost.length, 'it', 'them')} from your picks.</p>` : null}
     <p class="note">${picked.length} of your picks ${plural(picked.length, 'expires', 'expire')}, the first on ${fmtKst(first)}. Expiring items are gone on that date, used or not. Items without a date are permanent or have none in Nexon's post.</p>`;

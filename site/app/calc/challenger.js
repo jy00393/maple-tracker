@@ -89,36 +89,42 @@ export function tierIndex(cw, points, set) {
   return at;
 }
 
-// The fewest runs whose points reach `need`, then the smallest overshoot (which leans to easier bosses).
-// `groups`: [{ key, opts: [{ run, ids, gain }] }]; at most one option per group is taken.
+// The fewest runs whose points reach `need`, then the smallest overshoot (which leans to easier bosses), then the
+// first ids in order. `groups`: [{ key, opts: [{ run, ids, gain }] }]; at most one option per group is taken.
+// Exact: a knapsack over the groups keyed by the points so far (below the need), so a pair of easier options is
+// found even when it replaces two bigger ones at once.
 export function fewestRuns(groups, need) {
   if (!(need > 0)) return { runs: [], gain: 0, short: 0 };
   const byGain = (a, b) => b.gain - a.gain || (a.run.id < b.run.id ? -1 : 1);
-  const best = groups.filter((g) => g.opts.length).map((g) => ({ g, o: g.opts.slice().sort(byGain)[0] })).sort((a, b) => byGain(a.o, b.o));
-  const chosen = [];
-  let sum = 0;
-  for (const x of best) {
-    if (sum >= need) break;
-    chosen.push(x);
-    sum += x.o.gain;
-  }
-  if (sum < need) return { runs: chosen.map((x) => x.o), gain: sum, short: need - sum };
-  // Swap each pick, last first, for the smallest option that still reaches the need: an unused boss, or an easier
-  // option of the same boss.
-  for (let i = chosen.length - 1; i >= 0; i--) {
-    const others = sum - chosen[i].o.gain;
-    const used = new Set(chosen.filter((_, j) => j !== i).map((x) => x.g.key));
-    let pick = chosen[i];
-    for (const g of groups) {
-      if (used.has(g.key)) continue;
+  const live = groups.filter((g) => g.opts.length);
+  // Not enough even with the best option of every group: all of them, as many points as there are.
+  const tops = live.map((g) => g.opts.slice().sort(byGain)[0]).sort(byGain);
+  const most = tops.reduce((a, o) => a + o.gain, 0);
+  if (most < need) return { runs: tops, gain: most, short: need - most };
+  const idsOf = (list) => list.map((o) => o.run.id).sort();
+  const lexLess = (a, b) => {
+    const x = idsOf(a);
+    const y = idsOf(b);
+    for (let i = 0; i < Math.min(x.length, y.length); i++) if (x[i] !== y[i]) return x[i] < y[i];
+    return x.length < y.length;
+  };
+  // A pick list is better with fewer runs, then fewer points, then the first ids.
+  const better = (a, b) => !b || a.list.length < b.list.length || (a.list.length === b.list.length && (a.gain < b.gain || (a.gain === b.gain && lexLess(a.list, b.list))));
+  let open = new Map([[0, { gain: 0, list: [] }]]);
+  let done = null;
+  for (const g of live) {
+    const next = new Map(open);
+    for (const s of open.values()) {
       for (const o of g.opts) {
-        if (others + o.gain >= need && (o.gain < pick.o.gain || (o.gain === pick.o.gain && o.run.id < pick.o.run.id))) pick = { g, o };
+        if (!(o.gain > 0)) continue;
+        const c = { gain: s.gain + o.gain, list: [...s.list, o] };
+        if (c.gain >= need) { if (better(c, done)) done = c; continue; }
+        if (better(c, next.get(c.gain))) next.set(c.gain, c);
       }
     }
-    chosen[i] = pick;
-    sum = others + pick.o.gain;
+    open = next;
   }
-  return { runs: chosen.map((x) => x.o).sort(byGain), gain: sum, short: 0 };
+  return { runs: done.list.slice().sort(byGain), gain: done.gain, short: 0 };
 }
 
 // Run options from a list of missions still to do. Counted separately, each mission is a run of its own. With
@@ -279,16 +285,26 @@ export function sealStage(cw, tierIdx) {
 // Share of Epic or better cores at a stage, in percent.
 export const epicPlus = (stage) => (stage && Array.isArray(stage.odds) ? stage.odds.slice(2).reduce((a, x) => a + x, 0) : 0);
 
+// How many days of wands are kept: the cap over the wands a day (20 / 3 = 6 whole days), from the data.
+export function sealDays(cw) {
+  const s = cw && cw.seal;
+  return s && s.cap > 0 && s.perDay > 0 ? Math.floor(s.cap / s.perDay) : 0;
+}
+
 // Break now or save the wands? Saving only helps when the next barrier stage is at or below the tier the player is
-// heading for and the bosses the character can do now are enough to get there. { kind: 'best' | 'break' |
-// 'save', stage, next?, nextTier?, need?, runs? }.
-export function sealAdvice(cw, ctx, targetId) {
+// heading for and the bosses the character can do now are enough to get there, and only for as long as the wands
+// are kept and the season lasts: `left` is the time to the season end in ms (wands still saved then are lost).
+// { kind: 'best' | 'break' | 'save', stage, next?, nextTier?, need?, runs?, days? }; why 'ending' when under a
+// day is left.
+export function sealAdvice(cw, ctx, targetId, left = Infinity) {
   const st = standing(cw, ctx);
   const stage = sealStage(cw, st.idx);
   if (!stage) return null;
   const stages = cw.seal.stages;
   const next = stages.find((s) => s.stage === stage.stage + 1) || null;
   if (!next) return { kind: 'best', stage };
+  const days = Math.min(sealDays(cw) || Infinity, Number.isFinite(left) ? Math.floor(Math.max(0, left) / 86400000) : Infinity);
+  if (!(days >= 1)) return { kind: 'break', why: 'ending', stage, next, nextTier: tiersOf(cw).find((t) => t.id === next.from) || null };
   const tiers = tiersOf(cw);
   const nextIdx = tiers.findIndex((t) => t.id === next.from);
   const nextTier = tiers[nextIdx];
@@ -296,7 +312,7 @@ export function sealAdvice(cw, ctx, targetId) {
   if (targetIdx >= 0 && targetIdx < nextIdx) return { kind: 'break', why: 'target', stage, next, nextTier };
   const need = Math.max(0, nextTier.points - st.points);
   const plan = planPoints(cw, ctx, need);
-  if (plan.short === 0 && plan.maybe.length === 0) return { kind: 'save', stage, next, nextTier, need, runs: plan.runs };
+  if (plan.short === 0 && plan.maybe.length === 0) return { kind: 'save', stage, next, nextTier, need, runs: plan.runs, days };
   return { kind: 'break', why: 'far', stage, next, nextTier, need };
 }
 

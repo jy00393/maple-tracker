@@ -144,6 +144,8 @@
    "label": "Supply Report",
    "max": 60,
    "perWeek": 5,
+   "perDay": 1,
+   "perDayQuote": "Supplies are automatically collected upon daily login. (Nexon v.272 patch notes, news id 47132, Supply Report section; read 27 Nov 2026.)",
    "reset": null,
    "ends": "2027-02-09T23:59:00Z",
    "minLevel": 101,

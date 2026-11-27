@@ -1,6 +1,8 @@
 import { html, useEffect, useReducer, useRef } from '../vendor/htm-preact.mjs';
 import { getState, update } from './store.js';
-import { changesBetween, revertChanges } from './calc/undo.js';
+import { changesBetween, revertChanges, revertPeriods } from './calc/undo.js';
+import { dayKey } from './time.js';
+import { crystalWeekStart } from './calc/income.js';
 
 // The Undo bar: after a tick, an untick, a bulk tick, "Use this list", "Got one" or a delete, a bar at the bottom
 // says what changed and offers Undo for about 6 seconds. One at a time: a new action replaces the bar.
@@ -12,7 +14,7 @@ import { changesBetween, revertChanges } from './calc/undo.js';
 // How long the bar stays, in ms. Tests may lengthen it so nothing depends on how fast they run.
 export const undoTimes = { ms: 6000 };
 
-let current = null; // { id, label, changes, at } or { id, label, result } after an undo
+let current = null; // { id, label, changes, then, prior } or { id, label, result } after an undo
 let seq = 0;
 let depth = 0;
 let timer = null;
@@ -28,16 +30,24 @@ function hideLater() {
   timer = setTimeout(() => { if (current && current.id === id) { current = null; tell(); } }, undoTimes.ms);
 }
 
+// The day (streak) and crystal week (income history) a time falls in.
+const periodKeys = (t) => ({ day: dayKey(t), week: dayKey(crystalWeekStart(t)) });
+
 export function undoable(label, fn) {
   // A step inside a bigger action (a bulk tick runs many) is part of that action's one bar.
   if (depth > 0) return fn();
   const before = getState();
+  const then = periodKeys(Date.now());
+  const prior = {
+    hist: before.checklist && before.checklist.history ? before.checklist.history[then.day] : undefined,
+    inc: before.incomeHistory ? before.incomeHistory[then.week] : undefined
+  };
   depth++;
   let out;
   try { out = fn(); } finally { depth--; }
   const changes = changesBetween(before, getState());
   if (changes.length) {
-    current = { id: ++seq, label: typeof label === 'function' ? label() : label, changes };
+    current = { id: ++seq, label: typeof label === 'function' ? label() : label, changes, then, prior: structuredClone(prior) };
     tell();
     hideLater();
   }
@@ -47,9 +57,13 @@ export function undoable(label, fn) {
 // Puts back what the action on the bar changed. Returns { undone, skipped }, or null when there is nothing.
 export function undoLast() {
   if (!current || !current.changes) return null;
-  const { changes, label } = current;
+  const { changes, label, then, prior } = current;
   let result = { undone: 0, skipped: 0 };
-  update((s) => { result = revertChanges(s, changes); });
+  update((s) => {
+    result = revertChanges(s, changes);
+    // Pressed after a reset: the earlier day's streak entry and week's income go back too (see calc/undo.js).
+    if (result.undone) revertPeriods(s, changes, then, periodKeys(Date.now()), prior);
+  });
   current = { id: ++seq, label, result };
   tell();
   hideLater();

@@ -290,7 +290,8 @@ export function useFields(initial) {
 // is never replaced by the rounded one. Text it can't read puts the saved amount back; an empty box clears it.
 // Typing is saved when the box is left and when Enter is pressed (Enter never leaves the box, and inside a form it
 // submits at once). Phones get the full keyboard, because amounts are typed with a unit and a dot ("45M", "1.5B").
-export function MesoInput({ value, onChange, onConfirm, label, placeholder = 'e.g. 1.5B' }) {
+// `emptyShows`: the figure the owner falls back to when the box is emptied (shown again then); 0 leaves it empty.
+export function MesoInput({ value, onChange, onConfirm, label, placeholder = 'e.g. 1.5B', emptyShows = 0 }) {
   const [text, setText] = useState(value ? fmtBig(value) : '');
   // Kept outside render state, so a blur right after typing (before a redraw) still sees the typing.
   const edited = useRef(false);
@@ -299,7 +300,7 @@ export function MesoInput({ value, onChange, onConfirm, label, placeholder = 'e.
   const commit = (raw) => {
     if (!edited.current) return;
     edited.current = false;
-    if (!String(raw).trim()) { onChange(null); setText(''); return; }
+    if (!String(raw).trim()) { onChange(null); setText(emptyShows ? fmtBig(emptyShows) : ''); return; }
     // Typed back to exactly what was shown (the rounded "45M"): the exact saved amount stays.
     // `onConfirm`: the owner may note that the amount was looked at again (its "as of" day).
     if (value && parseMesos(raw) === parseMesos(fmtBig(value))) { setText(fmtBig(value)); if (onConfirm) onConfirm(); return; }
