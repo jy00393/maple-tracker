@@ -1,5 +1,5 @@
 {
- "source": "Built from the v.272 research (21–23 Nov 2026) and Nexon's Challenger World notice. Items marked unconfirmed have a reset pill you can switch.",
+ "source": "Built from Nexon's v.272 patch notes and Challenger World notice, checked 21–23 Nov 2026. Items marked unconfirmed have a reset pill you can switch.",
  "groups": [
   {
    "key": "daily",
@@ -252,6 +252,7 @@
     {
      "id": "w-mp",
      "label": "Extreme Monster Parker: 5 Monster Park clears",
+     "minLevel": 260,
      "type": "count",
      "target": 5,
      "def": "mon",
@@ -276,11 +277,12 @@
     {
      "id": "w-high",
      "label": "Epic Dungeon: High Mountain at base reward",
+     "minLevel": 260,
      "def": "mon",
      "note": "Skip the 5x and 9x multipliers (7,500 and 30,000 Maple Points)."
     }
    ]
   }
  ],
- "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (the symbol-area dailies use the areas' unlock levels in symbols.json: Cernium 260, Arcus 265, Odium 270, Shangri-La 275, Arteria 280, Carcion 285, with the daily amounts and quest names from the same file; Mayrin 270 is in Nexon's notice); \"gate\" = the id of a symbol area in symbols.json: the item stays locked until Progress holds a symbol level above 0 for that area or the player marks it unlocked. Gated items are listed in level order, and of those still above the character's level only the next one is shown. One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses."
+ "fieldsNote": "Item fields: \"scope\": \"account\" = ticked once for the whole account (the item's note says so); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (the symbol-area dailies use the areas' unlock levels in symbols.json: Cernium 260, Arcus 265, Odium 270, Shangri-La 275, Arteria 280, Carcion 285, with the daily amounts and quest names from the same file; Mayrin 270 is in Nexon's notice; Extreme Monster Parker and Epic Dungeon 260 are in the v.272 patch notes, id 47132);\"gate\" = the id of a symbol area in symbols.json: the item stays locked until Progress holds a symbol level above 0 for that area or the player marks it unlocked. Gated items are listed in level order, and of those still above the character's level only the next one is shown. One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses."
 }

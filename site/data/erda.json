@@ -1,5 +1,7 @@
 {
- "note": "Upgrade order is a community estimate (Mapler House / class Discord via the 23 Nov 2026 research). Costs aren't included because Erda Link costs weren't confirmed.",
+ "note": "Upgrade order is a community estimate (Mapler House and class Discords, checked 23 Nov 2026).",
+ "minLevel": 260,
+ "minLevelSource": "The 6th Job Advancement opens at Lv. 260: Nexon, v.272 patch notes (news id 47132), \"Once the character reaches Lv. 260 and completes the 6th Job Advancement\"; read 27 Nov 2026.",
  "review": {
   "after": "2026-12-16T00:00:00Z",
   "note": "A third set of 6th Job HEXA Skill Nodes arrives on 16 Dec 2026 (Nexon, Inkwell's Note: Maplayer One, 17 Oct 2026; checked 23 Nov 2026). Nexon has announced no cost changes and nothing for Erda Link. The upgrade order and costs here were set before that patch."
@@ -146,6 +148,7 @@
     ]
    ],
    "lockedNote": "Sol Janus stays at the Challenger-supported Lv. 30; don't spend Sol Erda on it in Challenger World.",
+   "costNote": "Erda Link costs aren't published: the Origin Stone uses the HEXA Origin table as a stand-in, so check the first upgrade in game, and the other stones take the costs you type in.",
    "classes": [
     "Erel Light"
    ]
@@ -265,7 +268,8 @@
      10
     ]
    ],
-   "lockedNote": "A generic order; check your class Discord for the exact one."
+   "lockedNote": "A generic order; check your class Discord for the exact one.",
+   "costNote": "Only the Origin skill's costs are in this tracker (HEXA Origin table). Type in the Mastery, Enhancement and HEXA Stat costs from the game."
   }
  },
  "defaultTemplate": "hexa"

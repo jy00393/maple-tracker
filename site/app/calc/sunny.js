@@ -4,6 +4,23 @@ const DAY = 86400000;
 
 export const isStarForcePerk = (p) => /off Star Force/i.test(p);
 
+// Lines in Nexon's list that qualify the perk above them ("Cannot be claimed in Challenger World", "Can reach up to
+// 12 Stars", ...) rather than being a perk of their own.
+const NOTE = /^(Does not|Mesos used|Sol Erda obtained|Can be|Can reach|Select|Cannot|Multiplied|Elite Monsters summoned|Excludes)/i;
+
+// [{ text, notes: [...], starForce }]: each perk with the notes that follow it, Star Force discounts first, otherwise
+// in Nexon's order. Notes before the first perk are kept as perks so nothing is lost.
+export function perkGroups(perks) {
+  const out = [];
+  for (const raw of perks || []) {
+    const p = String(raw || '').trim();
+    if (!p) continue;
+    if (NOTE.test(p) && out.length) out[out.length - 1].notes.push(p);
+    else out.push({ text: p, notes: [], starForce: isStarForcePerk(p) });
+  }
+  return out.map((g, i) => [g, i]).sort((a, b) => (b[0].starForce - a[0].starForce) || (a[1] - b[1])).map(([g]) => g);
+}
+
 export function sunnyDays(sunny, now) {
   return (sunny || [])
     .map((s) => ({ ...s, start: Date.parse(`${s.date}T00:00:00Z`) }))

@@ -1,4 +1,4 @@
-import { html } from '../../vendor/htm-preact.mjs';
+import { html, useState } from '../../vendor/htm-preact.mjs';
 import { activeCharacter, update } from '../store.js';
 import { Card, PageHead, Tile, Bar, useClock, Empty, fmtBig, Left, plural } from '../ui.js';
 import { DAY, fmtDate, fmtDay, fmtKst, kstDays, dayWord, asOf } from '../time.js';
@@ -14,7 +14,7 @@ import { comingUp } from '../calc/upcoming.js';
 import { damageEstimateSupported } from '../calc/upgrades.js';
 import { weeklyIncome } from './mesos.js';
 import { QuickSetup } from './setup.js';
-import { sunnyDays, starForceTiming, isStarForcePerk } from '../calc/sunny.js';
+import { sunnyDays, starForceTiming, perkGroups } from '../calc/sunny.js';
 import { seasonOutlook } from '../calc/season.js';
 import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
@@ -74,6 +74,24 @@ function SeasonCard({ season, state, now }) {
       <p class="warnbox">${season.unknown}</p>
     </details>
     <p class="note">${season.source}</p>
+  <//>`;
+}
+
+// Next (or current) Sunny Sunday: every perk with the notes that qualify it (who can claim, how far it reaches).
+// Star Force discounts come first; past six perks the rest sit behind "+N more".
+const SUNNY_SHOWN = 6;
+function SunnyCard({ sunday }) {
+  const [all, setAll] = useState(false);
+  const groups = perkGroups(sunday.perks);
+  const shown = all ? groups : groups.slice(0, SUNNY_SHOWN);
+  const more = groups.length - shown.length;
+  return html`<${Card} title=${sunday.active ? 'Sunny Sunday is on' : 'Next Sunny Sunday'} meta=${sunday.active ? `until ${fmtKst(sunday.end)}` : fmtKst(sunday.start)}>
+    ${shown.map((g) => html`<div class="small sunny-perk">
+      <div style=${g.starForce ? { color: 'var(--ok)', fontWeight: 600 } : null}>${g.text}</div>
+      ${g.notes.map((n) => html`<div class="muted" style=${{ paddingLeft: '12px' }}>${n}</div>`)}
+    </div>`)}
+    ${more > 0 ? html`<button type="button" class="linkbtn small" onClick=${() => setAll(true)}>+${more} more</button>` : null}
+    <p class="note">From Nexon's patch notes. Runs Sunday 09:00 KST to Monday 08:59 KST.</p>
   <//>`;
 }
 
@@ -150,7 +168,10 @@ export function TodayPage({ data, state }) {
   const gear = char ? gearSummary(data.gear, state.gear[char.id], char.mainStat || 'STR') : null;
   const genesis = char ? liberationPlan(data.liberation.genesis, state.liberation[char.id]?.genesis, now, data.bossById) : null;
   const erdaState = char ? state.erda[char.id] : null;
-  const erdaNext = char ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
+  // 6th job steps only from the level it opens at (erda.json minLevel); an unknown level still sees them.
+  const charLevel = char ? knownLevel(data, state, char) : undefined;
+  const sixthOpen = charLevel === undefined || !data.erda.minLevel || charLevel >= data.erda.minLevel;
+  const erdaNext = char && sixthOpen ? erdaNextSteps(data.erda.templates[erdaTemplateFor(data.erda, char, erdaState)], erdaState || {}, 2) : [];
   const symbols = char ? nextSymbolLevels(data, state, char.id, now) : [];
   const level = char ? levelOutlook(data, state, char, now) : null;
   const gate = level && level.gates[0];
@@ -204,10 +225,7 @@ export function TodayPage({ data, state }) {
             ${state.ui.todaySales ? html` · <button type="button" class="linkbtn" onClick=${() => update((s) => { s.ui.todaySales = false; })}>Hide Cash Shop sales</button>` : soon.salesHidden ? html` · ${soon.salesHidden} Cash Shop sale${soon.salesHidden === 1 ? '' : 's'} hidden · <button type="button" class="linkbtn" onClick=${() => update((s) => { s.ui.todaySales = true; })}>Show</button>` : null}
             ${soon.dismissed ? html` · ${soon.dismissed} hidden by you · <button type="button" class="linkbtn" onClick=${() => update((s) => { s.ui.hiddenEvents = {}; })}>Restore</button>` : null}</p>
         <//>
-        ${sunday ? html`<${Card} title=${sunday.active ? 'Sunny Sunday is on' : 'Next Sunny Sunday'} meta=${sunday.active ? `until ${fmtKst(sunday.end)}` : fmtKst(sunday.start)}>
-          ${sunday.perks.filter((p) => !/^(Does not|Mesos used|Sol Erda obtained|Can be|Can reach|Select|Cannot|Multiplied|Elite Monsters summoned)/i.test(p)).slice(0, 6).map((p) => html`<div class="small" style=${isStarForcePerk(p) ? { color: 'var(--ok)', fontWeight: 600 } : null}>${p}</div>`)}
-          <p class="note">From Nexon's patch notes. Runs Sunday 09:00 KST to Monday 08:59 KST.</p>
-        <//>` : null}
+        ${sunday ? html`<${SunnyCard} key=${sunday.date} sunday=${sunday} />` : null}
         ${coming.length ? html`<${Card} title="Coming to GMS" meta="announced by Nexon" bodyClass="card-b tight">
           ${coming.map((c) => html`<div class="goal"><div><b>${c.title}</b><div class="small muted">${c.note}</div></div>
             <span class=${'date' + (c.days <= 7 ? ' now' : '')}>${c.day ? fmtDate(c.t) : fmtKst(c.t)}</span><span class="small muted">${c.when}</span></div>`)}

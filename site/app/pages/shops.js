@@ -71,7 +71,7 @@ function Shop({ shop, state, char, now, resetKind }) {
     <div class="grid">
       <${Card} title="How it adds up">
         ${shop.scope ? html`<p class="note">${shop.scope}</p>` : null}
-        ${earn ? null : html`<p class="note">How ${coin} is earned is not listed here, so only the amount you hold is counted. Keep it up to date.</p>`}
+        ${earn ? null : html`<p class="note">How to earn ${coin} is not listed here, so only the amount you hold is counted. Keep it up to date.</p>`}
         ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} ${plural(earn.perWeek, 'claim')} a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
           <p class="note">"Still to earn" assumes ${earn.perWeek} ${plural(earn.perWeek, 'claim')} in every week that is left, up to the ${earn.max} total.${RESET_DAY[resetKind] ? ` Weeks start on ${RESET_DAY[resetKind]} at 09:00 KST, the reset set for this mission on Checklist.` : ''}</p>` : null}
         <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold${earn ? ' and the claims' : ''} up to date: missions ticked on Checklist do not change them.</p>

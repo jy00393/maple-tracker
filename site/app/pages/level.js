@@ -139,10 +139,12 @@ export function levelOutlook(data, state, char, now) {
     const p = project(exp, last, lvl, rate ? rate.perDay : 0, burnUntil, now);
     // Days count from now, not from the reading; a date already passed means the reading is out of date.
     const days = p.at != null ? Math.max(0, (p.at - now) / DAY) : null;
-    // The event part ("Item Burning stages 5-6") only for a gate reached while the event still runs.
-    const eventOn = now < eventEnd && (p.at == null || p.at < eventEnd);
-    // The Beyond Burning part only for a character that has it, while it runs.
-    const parts = [what, eventOn ? eventNote : null, beyond ? burnNote : null].filter(Boolean);
+    // The event part ("Item Burning stages 5-6") only for a Challenger World character (Item Burning Plus and Mayrin
+    // are Challenger World only, Nexon notice 47305) and a gate reached while the event still runs.
+    const eventOn = Boolean(char.challenger) && now < eventEnd && (p.at == null || p.at < eventEnd);
+    // The Beyond Burning part only for a character that has it, for a gate reached while it still runs.
+    const burnOn = beyond && (p.at == null || p.at < burnUntil);
+    const parts = [what, eventOn ? eventNote : null, burnOn ? burnNote : null].filter(Boolean);
     return { level: lvl, what: parts.join(', '), need: p.need, days, at: p.at, due: p.at != null && p.at <= now };
   }) : [];
   return { readings, last, rate, gates, beyond, burnUntil: Number.isFinite(burnUntil) ? burnUntil : null };
@@ -269,6 +271,6 @@ export function ErdaCosts({ data, char, entry, template, since = null, now = Dat
         </div>` : null}</div>
       <span class=${'date' + (r.ready ? ' now' : '')}>${!r.known ? '—' : r.ready ? 'Ready now' : r.at === null ? 'add income' : r.at <= now ? 'update what you hold' : `about ${fmtDay(r.at, now)}`}</span>
     </div>`) : html`<${Empty}>Every step in the order is done.<//>`}
-    <p class="note">${up.source} Dates count every step above in order, from the day you last changed the figures on this page. Sol Erda and Fragments are not added by themselves: retype what you hold now and then.</p>
+    <p class="note">${template && template.costNote ? `${template.costNote} ` : ''}${up.source} Dates count every step above in order, from the day you last changed the figures on this page. Sol Erda and Fragments are not added by themselves: retype what you hold now and then.</p>
   <//>`;
 }

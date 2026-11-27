@@ -297,7 +297,7 @@ export function mergeShops(existing, parsed, now) {
   out.sort((a, b) => Date.parse(a.end) - Date.parse(b.end) || (a.name < b.name ? -1 : 1));
   const posts = [...new Set(out.map((s) => s.postId).filter(Boolean))];
   return {
-    source: `Nexon patch notes${posts.length ? ` (news ${posts.length === 1 ? 'id' : 'ids'} ${posts.join(', ')})` : ''}, read by the 6-hourly job. How coins are earned ("earn"), "scope" and "useBy" are typed in by hand where present.`,
+    source: `Nexon patch notes${posts.length ? ` (news ${posts.length === 1 ? 'id' : 'ids'} ${posts.join(', ')})` : ''}, read by the 6-hourly job. How coins are earned, who shares them and when items must be used are added by hand where shown.`,
     sourceUrl: (out.find((s) => s.url) || {}).url || (existing && existing.sourceUrl) || '',
     shops: out
   };

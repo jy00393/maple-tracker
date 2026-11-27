@@ -132,7 +132,9 @@ async function updateNewsAndEvents(errors) {
   if (await writeJsonIfChanged('news.json', { feedCount: nextFeedCount(baseline, list.length), items: news })) changed.push('news');
   if (await writeJsonIfChanged('posts.json', { posts })) changed.push('posts');
   if (await writeJsonIfChanged('events.json', { events, sunny })) changed.push('events');
-  if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now))) changed.push('calendar');
+  // The calendar also carries Sunny Sundays and the hand-typed dates (upcoming.json, season.json deadlines).
+  const calExtra = { sunny, upcoming: await readJson('upcoming.json', {}), season: await readJson('season.json', {}) };
+  if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now, calExtra))) changed.push('calendar');
   return { changed, fetched, posts: list.length, events: events.length, shops: shops.shops.length };
 }
 
