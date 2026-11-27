@@ -5,6 +5,7 @@ import { expToNext, expToReach, expRate, erdaCost, solErdaCap } from '../calc/up
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtDay, fmtKst, kstDays, dayWord, asOf } from '../time.js';
 import { ExpSourcesCard } from './expsources.js';
+import { undoable } from '../undo.js';
 
 // Your own readings that still stand, oldest first. Levels never go down, so readings whose levels go down over
 // time cannot all be right. The longest run of readings that never goes down stands and the rest are ignored: one
@@ -119,7 +120,7 @@ function project(exp, from, target, perDay, burnUntil, now = -Infinity) {
     l += 1;
     if (Math.max(t, now) < burnUntil && l < 280) l += 1;
   }
-  return { need, at: perDay > 0 ? t : null };
+  return { need, at: perDay > 0 ? t : null, level: l };
 }
 
 export function levelOutlook(data, state, char, now) {
@@ -148,6 +149,28 @@ export function levelOutlook(data, state, char, now) {
     return { level: lvl, what: parts.join(', '), need: p.need, days, at: p.at, due: p.at != null && p.at <= now };
   }) : [];
   return { readings, last, rate, gates, beyond, burnUntil: Number.isFinite(burnUntil) ? burnUntil : null };
+}
+
+// Each level the planner expects the character to reach before `until`, at the EXP rate of levelOutlook:
+// [{ level, at }], ascending (Beyond Burning can skip a level). Empty without a rate. `o`: a levelOutlook already
+// worked out, to save doing it twice.
+export function levelPath(data, state, char, now, until, o = levelOutlook(data, state, char, now)) {
+  const exp = data.upgrades.exp;
+  if (!o.last || !o.rate || !(o.rate.perDay > 0)) return [];
+  const burnUntil = o.burnUntil == null ? (o.beyond ? Infinity : -Infinity) : o.burnUntil;
+  const out = [];
+  let reached = o.last.level;
+  for (let target = o.last.level + 1; target <= 300; target++) {
+    if (target <= reached) continue;
+    const p = project(exp, o.last, target, o.rate.perDay, burnUntil, now);
+    if (p.at == null || !Number.isFinite(p.need)) break;
+    const at = Math.max(p.at, now);
+    if (at > until) break;
+    // A Beyond Burning level-up lands one past the target: p.level is the level actually reached.
+    out.push({ level: p.level, at });
+    reached = p.level;
+  }
+  return out;
 }
 
 function setChar(char, patch) {
@@ -204,7 +227,7 @@ export function LevelView({ data, state, char, now }) {
       <label class="toggle"><input type="checkbox" checked=${Boolean(char.beyondBurning)} onChange=${(e) => setChar(char, { beyondBurning: e.currentTarget.checked })} /> Beyond Burning (an extra level each level-up until 280)</label>
       ${log.length ? html`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Logged</th><th class="num">Level</th><th class="num">EXP %</th><th></th></tr></thead>
         <tbody>${shown.slice().reverse().map((r) => html`<tr><td>${fmtKst(r.t)}${standing.has(r) ? '' : html`<div class="small muted">Ignored: the level does not fit your other readings. If this one is right, delete the wrong ones.</div>`}</td><td class="num">${r.level}</td><td class="num">${Number(r.pct).toFixed(3)}%</td>
-          <td class="num"><button type="button" class="iconbtn" aria-label="Delete this reading" onClick=${() => update((s) => {
+          <td class="num"><button type="button" class="iconbtn" aria-label="Delete this reading" onClick=${() => undoable('Deleted a level reading', () => update((s) => {
             const l = s.level[char.id];
             if (!l || !Array.isArray(l.log)) return;
             const before = l.log;
@@ -213,7 +236,7 @@ export function LevelView({ data, state, char, now }) {
             const c = s.characters.find((x) => x.id === char.id);
             if (c) c.level = levelAfterDelete(before, r, levelReadings(data, s, c), c.level);
             passOnWas(l.log, r);
-          })}>×</button></td></tr>`)}</tbody></table></div>
+          }))}>×</button></td></tr>`)}</tbody></table></div>
         ${log.length > shown.length || showAll ? html`<button type="button" class="btn ghost" onClick=${() => setShowAll(!showAll)}>${showAll ? 'Show the last 6 only' : `Show all ${log.length} readings`}</button>` : null}` : null}
       <p class="note">Log your level and EXP % (shown under the EXP bar) once a day or so. If the character is listed in config/characters.json, the GitHub job also records it from Nexon's rankings every 6 hours. ${exp.beyondBurningNote}</p>
     <//>

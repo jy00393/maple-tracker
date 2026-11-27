@@ -2,12 +2,15 @@ import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, Fold, NumberInput, Stepper, Empty, plural } from '../ui.js';
 import { shopPlan, itemCap, limitText, weeksLeft } from '../calc/shops.js';
-import { fmtKst, kstDays, asOf } from '../time.js';
+import { fmtKst, fmtDay, kstDays, asOf } from '../time.js';
+import { ExpiryWarning, setCount, countAt } from './seasoncount.js';
+import { seasonCounts } from '../calc/seasoncount.js';
 import { changedAt } from '../calc/asof.js';
 import { resetOf, itemStatus } from '../calc/checklist.js';
 import { worldKey } from '../calc/income.js';
 import { bountyCoinOf, bountyWeek, bountyTable, nextLevelCoins } from '../calc/rewards.js';
 import { knownLevel } from './level.js';
+import { challengerCoins } from './challenger.js';
 
 const num = (v) => Math.round(v).toLocaleString('en-US');
 const RESET_DAY = { mon: 'Monday', wed: 'Wednesday', thu: 'Thursday' };
@@ -62,13 +65,18 @@ function Shop({ shop, state, char, now, resetKind, data = {} }) {
   const [onlyPicked, setOnlyPicked] = useState(false);
   const saved = state.shops[shop.id] || blankShop();
   const income = bountyIncome(data, state, char, shop, now);
-  const plan = shopPlan(shop, saved, char, now, resetKind, income || undefined);
+  // Challenger World missions not done yet pay their coins once (Progress → Challenger).
+  const missions = shop.earn && shop.earn.missions === 'challenger' && char && char.challenger ? challengerCoins(data, state, char, now) : null;
+  // A shop whose claims are a season counter (earn.counter: Defense Missions) reads and writes that one count.
+  const counter = shop.earn && shop.earn.counter ? shop.earn.counter : null;
+  const claims = counter ? Number(seasonCounts(data, state)[counter]) || 0 : saved.claims || 0;
+  const plan = shopPlan(shop, { ...saved, claims }, char, now, resetKind, income || undefined, missions ? missions.total : 0);
   // The closing day in Korea compared with today in Korea: 0 = today, 1 = tomorrow. Used for every wording.
   const closesIn = kstDays(now, Date.parse(shop.end));
   // When the two typed amounts were last changed, shown beside them: nothing else moves them.
   const stamp = (field) => changedAt(state, `shops/${encodeURIComponent(shop.id)}/${field}`, now);
   const haveAt = stamp('have');
-  const claimsAt = stamp('claims');
+  const claimsAt = counter ? countAt(data, state, counter, now) : stamp('claims');
   const set = (fn) => update((s) => { fn(charSlice(s, 'shops', shop.id, blankShop)); });
   const earn = shop.earn;
   // The level the tracker knows (typed, or a newer reading): level missions below it are already paid.
@@ -89,10 +97,11 @@ function Shop({ shop, state, char, now, resetKind, data = {} }) {
       </div>
       <div class="form-grid">
         <label class="field"><span>${coin} you hold now</span><${NumberInput} id=${'shop-have-' + shop.id} className="input" label=${coin + ' held'} value=${saved.have || null} max=${1e9} onChange=${(v) => set((x) => { x.have = Math.floor(v || 0); })} /></label>
-        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max}${claimsAt ? `, ${asOf(claimsAt, now)}` : ''})</span><${Stepper} label=${earn.name + 's claimed'} value=${Math.min(saved.claims || 0, earn.max)} max=${earn.max} onChange=${(v) => set((x) => { x.claims = v || 0; })} /></div>` : null}
+        ${earn ? html`<div class="field"><span>${earn.name}s claimed so far (max ${earn.max}${claimsAt ? `, ${asOf(claimsAt, now)}` : ''})</span><${Stepper} label=${earn.name + 's claimed'} value=${Math.min(claims, earn.max)} max=${earn.max} onChange=${(v) => (counter ? setCount(counter, v, data) : set((x) => { x.claims = v || 0; }))} /></div>` : null}
       </div>
       ${shop.note ? html`<p class="warnbox">${shop.note}</p>` : null}
       ${plan.short ? html`<p class="warnbox">Your picks cost ${num(plan.short)} ${coin} more than you can reach. Drop a pick, or lower a number.</p>` : null}
+      <${ExpiryWarning} shop=${shop} plan=${plan} now=${now} resetKind=${resetKind} weekly=${income || undefined} />
       <div class="toolbar">
         <label class="small"><input type="checkbox" checked=${onlyPicked} onChange=${(e) => setOnlyPicked(e.currentTarget.checked)} /> Only my picks</label>
         ${plan.picked ? html`<button type="button" class="btn ghost" onClick=${() => set((x) => { x.want = {}; })}>Clear picks</button>` : null}
@@ -102,7 +111,7 @@ function Shop({ shop, state, char, now, resetKind, data = {} }) {
         <tbody>
           ${rows.length === 0 ? html`<tr><td colspan="3"><span class="small muted">No picks yet.</span></td></tr>` : rows.map(({ item, want, cost }) => html`<tr class=${want ? '' : 'off'}>
             <td>${item.name}
-              <div class="small muted">${num(item.cost)} each · limit ${limitText(item)}${item.note ? ' · ' + item.note : ''}${item.notChallenger && char && char.challenger ? ' · not sold in Challenger World' : ''}</div></td>
+              <div class="small muted">${num(item.cost)} each · limit ${limitText(item)}${item.expires ? ` · expires ${fmtDay(Date.parse(item.expires), now)}` : ''}${item.note ? ' · ' + item.note : ''}${item.notChallenger && char && char.challenger ? ' · not sold in Challenger World' : ''}</div></td>
             <td><${Stepper} label=${'Still to buy: ' + item.name} value=${want} max=${itemCap(item) ?? 9999} onChange=${(v) => set((x) => { if (v) x.want[item.id] = v; else delete x.want[item.id]; })} /></td>
             <td class="num">${want ? num(cost) : '—'}</td>
           </tr>`)}
@@ -116,9 +125,10 @@ function Shop({ shop, state, char, now, resetKind, data = {} }) {
         ${earn ? html`<p class="note">${earn.name}: ${num(earn.perClaim)} ${coin} per claim, ${earn.perWeek} ${plural(earn.perWeek, 'claim')} a week, ${earn.max} in total (${num(earn.perClaim * earn.max)} ${coin}). ${earn.note}</p>
           <p class="note">"Still to earn" assumes ${earn.perWeek} ${plural(earn.perWeek, 'claim')} in every week that is left, up to the ${earn.max} total.${RESET_DAY[resetKind] ? ` Weeks start on ${RESET_DAY[resetKind]} at 09:00 KST, the reset set for this mission on Checklist.` : ''}</p>` : null}
         ${earn && earn.extra ? html`<p class="note">${earn.extra}</p>` : null}
-        ${levelNext ? html`<p class="note">Level missions pay once, when the level is reached: your next one, Lv. ${levelNext.level}, gives ${num(levelNext.coins)} ${coin}. They are not counted in "Still to earn".</p>` : null}
+        ${missions ? html`<p class="note">"Still to earn" also counts ${num(missions.total)} ${coin} from missions not done yet, once each: ${num(missions.level)} from level missions up to Lv. ${missions.endLevel}${missions.projected ? ' (where your pace takes you by the season end)' : ' (your level now: log it twice on Progress for a projection)'}, ${num(missions.boss)} from boss missions you can clear now, and ${num(missions.seasonal)} from seasonal missions not ticked on Progress → Challenger.${missions.hexaLeftOut ? ` HEXA missions (${num(missions.hexaLeftOut)}) are left out: they may not apply to Erda Link.` : ''}${missions.adv ? ` The boss missions also pay ${num(missions.adv)} Advanced Challenger Coins.` : ''}</p>` : null}
+        ${levelNext && !missions ? html`<p class="note">Level missions pay once, when the level is reached: your next one, Lv. ${levelNext.level}, gives ${num(levelNext.coins)} ${coin}. They are not counted in "Still to earn".</p>` : null}
         ${income ? html`<${BountyNotes} data=${data} income=${income} coin=${coin} weeks=${Math.max(0, weeksLeft(Date.parse(shop.end), now, resetKind) - (income.thisWeekDone ? 1 : 0))} />` : null}
-        <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold${earn ? ' and the claims' : ''} up to date: missions ticked on Checklist do not change them.</p>
+        <p class="note">Lower "Still to buy" as you buy things, and keep the amount you hold${earn ? ' and the claims' : ''} up to date: missions ticked on Checklist do not change them.${counter ? ` The claims are the same count as "${earn.name}s done" in Season counters on Today: change it in either place.` : ''}</p>
         ${shop.useBy ? html`<p class="warnbox">Most items from this shop expire on ${fmtKst(Date.parse(shop.useBy))}. Use them before then.</p>` : null}
       <//>
       ${income ? html`<${Fold} title="What each boss pays" meta=${coin}><div class="tbl-wrap"><table class="tbl"><tbody>${bountyTable(data.bounty, income.coin, data.bossById || {}).map((r) => html`<tr><td>${r.boss.difficulty} ${r.boss.boss}</td><td class="num">${r.hi > r.lo ? `${num(r.lo)} to ${num(r.hi)}` : num(r.lo)}</td></tr>`)}</tbody></table></div><p class="note">A week pays the best of these, not the sum. ${data.bounty.rangeNote || ''}</p><p class="note">${data.bounty.source}</p><//>` : null}

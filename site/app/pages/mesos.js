@@ -10,6 +10,8 @@ import { withCubeRates } from '../calc/advice.js';
 import { DAY, dayKey, fmtDate, kstDays, dayWord, asOf } from '../time.js';
 import { changedAt } from '../calc/asof.js';
 import { Flames } from './flames.js';
+import { undoable } from '../undo.js';
+import { StarChance, CubeChance } from './chance.js';
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
 const setM = (fn) => update((s) => fn(s.mesos));
@@ -66,7 +68,7 @@ function Planner({ data, state, now }) {
   // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
   // Any goal action takes down an earlier "can't read that" message: it was about a different try.
   const addGoal = (name, cost) => { setGoalErr(''); if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
-  const removeGoal = (i) => { setGoalErr(''); setM((x) => { x.goals.splice(i, 1); }); };
+  const removeGoal = (i) => { setGoalErr(''); undoable(`Removed the goal ${(m.goals[i] && m.goals[i].name) || ''}`.trim(), () => setM((x) => { x.goals.splice(i, 1); })); };
   const move = (i, d) => { setGoalErr(''); moveGoal(i, d); };
   const moveGoal = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
   // One suggestion of each kind: the first one a goal can hold. One above the limit is passed over, not the end of the search.
@@ -142,7 +144,7 @@ function parseMesosLoose(v) {
   return n !== null && n <= MESO_MAX ? n : null;
 }
 
-function StarForce({ data, state }) {
+function StarForce({ data, state, now }) {
   const sfData = data.upgrades.starforce;
   const o = { level: 160, from: 17, to: 22, discount: false, lessBoom: false, safeguard: false, mvp: 'none', spare: 0, ...(state.ui.sfCalc || {}) };
   const set = (patch) => update((s) => { s.ui.sfCalc = { ...o, ...patch }; });
@@ -184,15 +186,16 @@ function StarForce({ data, state }) {
         <tbody>${plan.steps.map((a) => html`<tr><td>${a.star} → ${a.star + 1}★${a.guard ? ' (Safeguard)' : ''}</td><td class="num">${(a.success * 100).toFixed(2)}%</td><td class="num">${a.destroy ? (a.destroy * 100).toFixed(2) + '%' : '—'}</td><td class="num">${fmtBig(a.cost)}</td></tr>`)}</tbody>
       </table></div>`}
     <//>
+    <div class="grid"><${StarChance} data=${data} state=${state} now=${now} level=${o.level} from=${from} to=${to} opts=${opts} spare=${o.spare || 0} />
     <${Fold} title="How it's worked out" meta="tap to open">
       <p class="note">Rates are the wiki base table with the old Star Catch bonus folded in (GMS made it permanent in v.271). Failing never drops a star. A boom leaves a trace restored at 12★ (15–19★), 15★ (20★), 17★ (21–22★), 19★ (23–25★) or 20★ (26★+).</p>
       <p class="note">${sfData.sunny.note} ${sfData.safeguard.note} ${sfData.mvp.note}</p>
       <p class="note">${sfData.source}</p>
-    <//>
+    <//></div>
   </div>`;
 }
 
-function Cubes({ data, state }) {
+function Cubes({ data, state, now }) {
   const c = data.upgrades.cubes;
   const char = activeCharacter(state);
   const interactive = Boolean(char && char.world === 'interactive');
@@ -231,10 +234,11 @@ function Cubes({ data, state }) {
         <button type="button" class="btn ghost" onClick=${() => { setResets((n) => n + 1); update((s) => { delete s.mesos.cubeRates; }); }}>Reset to the estimates</button>
       </details>
     <//>
+    <div class="grid"><${CubeChance} data=${data} state=${state} now=${now} from=${o.from} to=${o.to} types=${plans.map((p) => p.cube)} />
     <${Fold} title="About the odds" meta="tap to open">
       <p class="note">${c.source}</p>
       <p class="note">Line odds (e.g. two lines of STR %) aren't published for GMS, so this covers tier-ups only. Gear slots show the same estimate for their own target.</p>
-    <//>
+    <//></div>
   </div>`;
 }
 
@@ -288,8 +292,8 @@ export function MesosPage({ data, state }) {
     <div class="toolbar"><${Seg} label="Mesos section" value=${view} onChange=${(v) => update((s) => { s.ui.mesosView = v; })}
       options=${[['planner', 'Planner'], ['starforce', 'Star Force'], ['cubes', 'Cubes'], ['flames', 'Flames'], ['history', 'Income history']]} /></div>
     ${view === 'planner' ? html`<${Planner} data=${data} state=${state} now=${now} />`
-      : view === 'starforce' ? html`<${StarForce} data=${data} state=${state} />`
-      : view === 'cubes' ? html`<${Cubes} data=${data} state=${state} />`
-      : view === 'flames' ? html`<${Flames} data=${data} state=${state} />`
+      : view === 'starforce' ? html`<${StarForce} data=${data} state=${state} now=${now} />`
+      : view === 'cubes' ? html`<${Cubes} data=${data} state=${state} now=${now} />`
+      : view === 'flames' ? html`<${Flames} data=${data} state=${state} now=${now} />`
       : html`<${History} data=${data} state=${state} now=${now} />`}`;
 }

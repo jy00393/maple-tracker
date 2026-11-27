@@ -117,6 +117,11 @@ function readTime(text, index) {
   };
 }
 
+// One token from findDateTokens as a time (ms, UTC). A date without a time means the end of that day.
+export function tokenTime(token) {
+  return toUtcMs(token.date, token.time, token.time && token.time.tz, true);
+}
+
 // Find every date (with an optional time right after it) in a block of text.
 export function findDateTokens(text) {
   const re = new RegExp(DATE_PATTERN, 'gi');

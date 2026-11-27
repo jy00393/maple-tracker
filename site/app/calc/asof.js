@@ -9,7 +9,7 @@ const KNOWN_FROM = Date.UTC(2020, 0, 1);
 // The parts an "as of" date is shown for (the paths the pages pass to changedAt). Only these keep their own
 // time through an import or a restore (state.asOf), so that map stays small.
 export function datedPath(path) {
-  return path === 'mesos/held' || /^shops\/[^/]+\/(have|claims)$/.test(path) || /^(erda|ibp)\/[^/]+\/@$/.test(path);
+  return path === 'mesos/held' || /^shops\/[^/]+\/(have|claims)$/.test(path) || /^(erda|ibp)\/[^/]+\/@$/.test(path) || /^season\/[^/]+$/.test(path);
 }
 
 // path: the part's path in state.stamps, e.g. "mesos/held" or "shops/<shopId>/have" (ids URI-encoded).

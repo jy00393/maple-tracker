@@ -1,7 +1,7 @@
 // Reads event coin shops out of a Nexon patch-notes post: a heading with "Shop" in it, a date range under it,
 // and one or more tables of Item | Price (currency) | Qty. Limit. Shops priced in mesos, NX or Maple Points
 // are left out: the planner is for event coins.
-import { cleanText, findDateRanges, slugify, postUrl } from './nexon-parse.mjs';
+import { cleanText, findDateRanges, findDateTokens, tokenTime, slugify, postUrl } from './nexon-parse.mjs';
 
 const NOT_COINS = /^(mesos?|nx|maple points?|reward points?)$/i;
 const clean = (html) => cleanText(html).replace(/\s+/g, ' ').trim();
@@ -104,7 +104,24 @@ export function parseItemCell(html) {
   if (/not available in challenger world/i.test(flat)) out.notChallenger = true;
   const note = /Note:\s*([^\n]+)/i.exec(text);
   if (note && !/not available in challenger world/i.test(note[1])) out.note = note[1].replace(/\s+/g, ' ').trim().slice(0, 160);
+  const expires = parseExpires(flat);
+  if (expires) out.expires = expires;
   return { name, ...out };
+}
+
+// "Tradable within world, expires February 10, 2027 at 2:00 AM UTC." or "Expires on February 10, 2027" -> the
+// ISO time it expires (a date without a time: the end of that day, UTC), or null. Only the item's own text counts:
+// what follows "Use to receive", "Open to receive" or "Open the box to choose" describes the items inside it.
+export function parseExpires(text) {
+  const own = String(text || '').replace(/\s+/g, ' ').split(/\b(?:use|open)\s+(?:the\s+\w+\s+)?to\s+(?:receive|choose|get)\b/i)[0];
+  for (const m of own.matchAll(/\bexpir(?:es|ation date|ation|y date)?\s*(?:on|at|:)?\s*/gi)) {
+    const rest = own.slice(m.index + m[0].length, m.index + m[0].length + 80);
+    const tok = findDateTokens(rest)[0];
+    if (!tok || tok.start !== 0 || tok.date.year < 2000 || tok.date.year > 2100) continue;
+    const t = tokenTime(tok);
+    if (Number.isFinite(t)) return new Date(t).toISOString();
+  }
+  return null;
 }
 
 function parseTable(tableHtml) {
@@ -239,7 +256,7 @@ export function findShops(body, post) {
 // - A shop with the same name from another post that opens after the existing one closed is a new shop
 //   (Challenger World Shop comes back every season) and takes nothing from the old one. Every new shop's id ends
 //   with its start date, so the coins and picks saved for last season's shop never show up in this season's.
-// - Items are matched by name (and world) the same way and keep a hand-written note when the post has none.
+// - Items are matched by name (and world) the same way and keep a hand-written note or `expires` when the post has none.
 // - When two posts describe the same shop, the newer post wins. Shops that closed more than 21 days ago go.
 // - An existing shop the job did not find (typed by hand, or its post left the window) stays until it closes.
 export function mergeShops(existing, parsed, now) {
@@ -341,6 +358,7 @@ function mergeItems(prevItems, freshItems) {
   return freshItems.map((it) => {
     const p = was.get(it);
     const id = idOf.get(it);
-    return p ? { ...it, id, ...(it.note || !p.note ? {} : { note: p.note }) } : id === it.id ? it : { ...it, id };
+    // A hand-written note or expiry date stays when the post has none.
+    return p ? { ...it, id, ...(it.note || !p.note ? {} : { note: p.note }), ...(it.expires || !p.expires ? {} : { expires: p.expires }) } : id === it.id ? it : { ...it, id };
   });
 }

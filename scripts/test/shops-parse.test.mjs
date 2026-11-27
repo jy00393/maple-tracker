@@ -78,7 +78,7 @@ test('coin shops are found in a patch-notes post; meso, point, cash and undated 
   assert.equal(s.postId, 900);
   assert.equal(s.url, 'https://www.nexon.com/maplestory/news/update/900');
   assert.deepEqual(s.items, [
-    { id: 'karma-bonus-cube', name: 'Karma Bonus Cube', only: 'interactive', cost: 100, limit: 100 },
+    { id: 'karma-bonus-cube', name: 'Karma Bonus Cube', only: 'interactive', cost: 100, limit: 100, expires: '2027-02-10T02:00:00.000Z' },
     { id: 'black-rebirth-flame', name: 'Black Rebirth Flame', only: 'heroic', cost: 10, limit: 200 },
     { id: 'event-ring-coupon', name: 'Event Ring Coupon', cost: 3000, limit: 3 },
     { id: 'mysterious-monsterbloom', name: 'Mysterious Monsterbloom', notChallenger: true, cost: 300, limit: 40, limitNote: '40 per world' },

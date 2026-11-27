@@ -126,6 +126,95 @@
    "quote": "Challenger World End of World Leap: February 10, 2027 (after maintenance) - February 23, 2027 11:59 PM UTC"
   }
  ],
+ "counters": {
+  "source": "Challenger Pass: Nexon's Challenger World notice (news id 47305, 11 Nov 2026). Supply Report and Defense Mission: Nexon v.272 patch notes (news id 47132, 11 Nov 2026), Operation Ultima section. Read 27 Nov 2026. Your counts are typed in from the game.",
+  "pass": {
+   "label": "Challenger Pass",
+   "max": 30,
+   "perLevel": 100,
+   "perWeek": 500,
+   "reset": "thu",
+   "ends": "2027-02-09T23:59:00Z",
+   "only": "challenger",
+   "minLevel": 260,
+   "scope": "Level, points and weekly missions are shared by your characters in Challenger World.",
+   "quote": "The Challenger Pass can be leveled up to Lv. 30 and for every 100 points obtained your Challenger Pass will increase by one level. A maximum of 500 points can be obtained per week."
+  },
+  "supply": {
+   "label": "Supply Report",
+   "max": 60,
+   "perWeek": 5,
+   "perDay": 1,
+   "perDayQuote": "Supplies are automatically collected upon daily login. (Nexon v.272 patch notes, news id 47132, Supply Report section; read 27 Nov 2026.)",
+   "reset": null,
+   "ends": "2027-02-09T23:59:00Z",
+   "minLevel": 101,
+   "scope": "Shared by every character on the account. One collection a day you log in, up to 5 a week.",
+   "resetNote": "Nexon does not say which day the Supply Report week starts.",
+   "archiveNote": "Each week with all 5 collections also unlocks one Ultima Archive record; the last Archive reward needs 12.",
+   "quote": "Supplies can be collected up to 5 times per week, up to 60 times during the event period."
+  },
+  "defense": {
+   "label": "Defense Mission",
+   "max": 60,
+   "perWeek": 5,
+   "killsEach": 2000,
+   "checklistItem": "w-ultima",
+   "ends": "2027-02-09T23:59:00Z",
+   "minLevel": 101,
+   "scope": "Shared by every character on the account. One completion per 2,000 kills near your level, up to 5 a week.",
+   "quote": "The Defense Mission can be completed up to 5 times per week, up to 60 times during the event period."
+  },
+  "buyBackNote": "Nexon sells missed Supply and Defense weeks for Maple Points. Everything they give expires on 10 Feb 2027, so the tracker never counts on that."
+ },
+ "expiring": [
+  {
+   "id": "reset-scrolls",
+   "label": "HEXA Matrix and Erda Link Reset Scrolls",
+   "at": "2026-12-16T02:00:00Z",
+   "minLevel": 260,
+   "detail": "Free from Maple Administrator, once per character, after the 6th job. Only worth claiming if you want to move your nodes.",
+   "quote": "HEXA Matrix Reset Scroll: Untradable, expires December 16, 2026 2:00 AM UTC.",
+   "source": "Nexon v.272 patch notes (news id 47132)"
+  },
+  {
+   "id": "specter-coupons",
+   "label": "Specter Blast reward coupons (Gaon's Spear, Keiraroid, the Turtle medal)",
+   "at": "2026-12-16T02:00:00Z",
+   "minLevel": 260,
+   "detail": "Use the coupons to turn them into the permanent items before they expire.",
+   "quote": "Gaon's Spear Coupon: Tradable within world, expires December 16, 2026 at 2:00 AM UTC.",
+   "source": "Nexon v.272 patch notes (news id 47132)"
+  },
+  {
+   "id": "etherion",
+   "label": "Etherion: spend it on your cores",
+   "at": "2027-02-09T23:59:00Z",
+   "minLevel": 101,
+   "detail": "Etherion cannot be obtained or used after this.",
+   "quote": "cannot be obtained or used after February 9, 2027 at 11:59 PM UTC.",
+   "source": "Nexon v.272 patch notes (news id 47132)"
+  },
+  {
+   "id": "supply-rewards",
+   "label": "Supply Report and Ultima Archive rewards",
+   "at": "2027-02-10T02:00:00Z",
+   "minLevel": 101,
+   "detail": "Claim them by Tue 9 Feb 23:59 UTC (Wed 10 Feb 08:59 KST) and use them before this. That includes the Growth Potion (200 - 279), the cube and flame stacks and the selector coupons. Coupons that give a permanent item (mount, chair set, medal) must be used to keep the item.",
+   "quote": "Claimed rewards can be used until February 10, 2027 at 2:00 AM UTC.",
+   "source": "Nexon v.272 patch notes (news id 47132)"
+  },
+  {
+   "id": "medal-coupon",
+   "label": "Etherion Overload Medal Coupon",
+   "at": "2027-02-10T02:00:00Z",
+   "minLevel": 101,
+   "detail": "Given at a combined core level of 30. The medal itself is permanent once the coupon is used.",
+   "quote": "Etherion Overload Medal Coupon: Tradable within world, expires February 10, 2027 at 2:00 AM UTC.",
+   "source": "Nexon v.272 patch notes (news id 47132)"
+  }
+ ],
+ "expiringNote": "From the coin shops (Nexon's patch notes, read by the 6-hourly job) and a short list typed in from news ids 47132 and 47305. Sol Erda Fragments and items marked permanent do not expire.",
  "notes": [
   {
    "label": "Open 7-day Mayrin boxes within 7 days of obtaining them",

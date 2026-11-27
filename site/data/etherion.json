@@ -1,0 +1,39 @@
+{
+ "source": "Nexon, v.272 patch notes (news id 47132, 11 Nov 2026), Etherion Relics section; read 27 Nov 2026.",
+ "sourceUrl": "https://www.nexon.com/maplestory/news/update/47132",
+ "checked": "2026-11-27",
+ "ends": "2027-02-09T23:59:00Z",
+ "max": 12,
+ "opens": "wed",
+ "lastOpensBy": "2027-02-03T00:00:00Z",
+ "killsEach": 10000,
+ "scope": "Shared by every character on the account. Kills count only while solo or not in a party.",
+ "quote": "1 additional completion becomes available every Wednesday at 12:00 AM UTC, up to 12 times during the event period.",
+ "openNote": "Nexon does not say whether a completion was open at launch on 11 Nov. Either way the 12th is open by Wed 3 Feb. The game shows how many are open now.",
+ "order": [
+  { "n": 1, "relic": "Arcane River, Grandis Daily Quest Rewards", "core": true },
+  { "n": 2, "core": true },
+  { "n": 3, "relic": "Monster Park Clear EXP" },
+  { "n": 4, "core": true },
+  { "n": 5, "relic": "Increased Sol Erda from Hunting" },
+  { "n": 6, "core": true },
+  { "n": 7, "relic": "Sol Erda from Bosses" },
+  { "n": 8, "core": true },
+  { "n": 9, "relic": "Epic Dungeon Basic EXP" },
+  { "n": 10, "core": true },
+  { "n": 11, "relic": "Treasure Hunter EXP Obtained" },
+  { "n": 12, "reward": "Etherion (x300)" }
+ ],
+ "coreNote": "You choose each core and the choice cannot be undone. A failed enhancement uses the Etherion but never lowers the core.",
+ "enhance": [
+  { "from": 1, "cost": 10, "rate": 0.9 },
+  { "from": 2, "cost": 30, "rate": 0.5 },
+  { "from": 3, "cost": 50, "rate": 0.2 },
+  { "from": 4, "cost": 100, "rate": 0.15 },
+  { "from": 5, "cost": 150, "rate": 0.05 }
+ ],
+ "medal": { "combinedLevel": 30, "reward": "Etherion Overload Medal Coupon (the medal is permanent; the coupon expires 10 Feb 2027 02:00 UTC)" },
+ "usableUntil": "2027-02-09T23:59:00Z",
+ "usableQuote": "cannot be obtained or used after February 9, 2027 at 11:59 PM UTC.",
+ "dropNote": "Nexon does not publish how much Etherion a kill or a boss drops, so the tracker can say how much you need but not how long it takes. Challenger World bosses (Kai, Mayrin) drop none."
+}

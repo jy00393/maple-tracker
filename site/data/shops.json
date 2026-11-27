@@ -14,6 +14,7 @@
    "earn": {
     "name": "Defense Mission",
     "checklistItem": "w-ultima",
+    "counter": "defense",
     "perClaim": 800,
     "perWeek": 5,
     "max": 60,
@@ -25,33 +26,38 @@
      "name": "Karma Bonus Mystical Cube",
      "only": "interactive",
      "cost": 100,
-     "limit": 100
+     "limit": 100,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-solid-cube",
      "name": "Karma Solid Cube",
      "cost": 100,
-     "limit": 100
+     "limit": 100,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "epic-potential-scroll",
      "name": "Epic Potential Scroll 100%",
      "cost": 300,
-     "limit": 5
+     "limit": 5,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "special-bonus-potential-scroll",
      "name": "Special Bonus Potential Scroll 100%",
      "only": "interactive",
      "cost": 300,
-     "limit": 5
+     "limit": 5,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "innocence-scroll",
      "name": "Innocence Scroll 100%",
      "only": "interactive",
      "cost": 100,
-     "limit": 20
+     "limit": 20,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "pet-equipment-scroll",
@@ -59,52 +65,60 @@
      "only": "interactive",
      "cost": 500,
      "limit": 20,
-     "note": "ATT or Magic ATT, 100%."
+     "note": "ATT or Magic ATT, 100%.",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "black-rebirth-flame",
      "name": "Black Rebirth Flame",
      "only": "heroic",
      "cost": 10,
-     "limit": 200
+     "limit": 200,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "pure-clean-slate-scroll",
      "name": "Pure Clean Slate Scroll 100%",
      "only": "interactive",
      "cost": 200,
-     "limit": 10
+     "limit": 10,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "event-ring-selector",
      "name": "Event Ring Selector Coupon",
      "cost": 3000,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "event-ring-solid-cube",
      "name": "Event Ring Exclusive Solid Cube",
      "cost": 150,
-     "limit": 50
+     "limit": 50,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "event-ring-legendary-scroll",
      "name": "Event Ring Exclusive Legendary Potential Scroll 100%",
      "cost": 4000,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-unique-potential-scroll",
      "name": "Karma Unique Potential Scroll 100%",
      "cost": 3000,
-     "limit": 4
+     "limit": 4,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-bonus-epic-potential-scroll",
      "name": "Karma Bonus Epic Potential Scroll 100%",
      "only": "interactive",
      "cost": 3000,
-     "limit": 4
+     "limit": 4,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-special-heart-scroll",
@@ -112,19 +126,22 @@
      "only": "interactive",
      "cost": 2000,
      "limit": 10,
-     "note": "Attack or Magic ATT, 100%."
+     "note": "Attack or Magic ATT, 100%.",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "ap-reset-scroll",
      "name": "AP Reset Scroll",
      "cost": 50,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "sp-reset-scroll",
      "name": "SP Reset Scroll",
      "cost": 50,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "mysterious-monsterbloom",
@@ -138,51 +155,59 @@
      "id": "trait-boost-potion",
      "name": "Trait Boost Potion",
      "cost": 300,
-     "limit": 20
+     "limit": 20,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "selective-8-slot-coupon",
      "name": "Selective 8-slot Coupon",
      "cost": 100,
-     "limit": 15
+     "limit": 15,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "infinite-revitalizer",
      "name": "Infinite Revitalizer",
      "cost": 10,
      "limit": 5,
-     "per": "day"
+     "per": "day",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "character-slot-coupon",
      "name": "Character Slot Expansion Coupon",
      "notChallenger": true,
      "cost": 200,
-     "limit": 5
+     "limit": 5,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "experience-nodestone",
      "name": "Experience Nodestone",
      "cost": 150,
-     "limit": 200
+     "limit": 200,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "chaos-circulator",
      "name": "Chaos Circulator",
      "cost": 800,
-     "limit": 20
+     "limit": 20,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "black-circulator",
      "name": "Black Circulator",
      "cost": 1500,
-     "limit": 10
+     "limit": 10,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "legendary-circulator",
      "name": "Legendary Circulator",
      "cost": 2000,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "strawberry-farm-pass",
@@ -190,32 +215,37 @@
      "note": "Can only be used by characters Lv. 101 - Lv. 259 (Zero characters must have completed Story Quest Act 2).",
      "cost": 200,
      "limit": 5,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "extreme-growth-potion",
      "name": "Extreme Growth Potion",
      "cost": 70,
      "limit": 200,
-     "note": "Burning characters can't use it."
+     "note": "Burning characters can't use it.",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "growth-potion-200-249",
      "name": "Growth Potion (200 - 249)",
      "cost": 5000,
-     "limit": 2
+     "limit": 2,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "growth-potion-200-259",
      "name": "Growth Potion (200 - 259)",
      "cost": 10000,
-     "limit": 1
+     "limit": 1,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "sol-erda",
      "name": "Sol Erda",
      "cost": 8000,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     }
    ],
    "postId": 47132,
@@ -239,13 +269,15 @@
      "id": "karma-abyssal-rebirth-flame",
      "name": "Karma Abyssal Rebirth Flame",
      "cost": 1,
-     "limit": 900
+     "limit": 900,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "sol-erda",
      "name": "Sol Erda",
      "cost": 10,
-     "limit": 30
+     "limit": 30,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "mu-gong-s-soul-shard",
@@ -258,7 +290,8 @@
      "name": "Karma Bright Cube",
      "cost": 2,
      "limit": 7,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-bonus-bright-cube",
@@ -266,7 +299,8 @@
      "only": "interactive",
      "cost": 3,
      "limit": 7,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-solid-cube",
@@ -274,14 +308,16 @@
      "only": "heroic",
      "cost": 1,
      "limit": 20,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "heart-upgrade-module",
      "name": "Heart Upgrade Module: Plasma",
      "note": "Can only be purchased once per account across Interactive Worlds and Challenger World.",
      "cost": 5,
-     "limit": 1
+     "limit": 1,
+     "expires": "2027-02-10T02:00:00.000Z"
     }
    ],
    "postId": 47132,
@@ -305,44 +341,51 @@
      "id": "vip-buff-exp",
      "name": "VIP Buff (EXP)",
      "cost": 10,
-     "limit": null
+     "limit": null,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "vip-buff-stats",
      "name": "VIP Buff (Stats)",
      "cost": 10,
-     "limit": null
+     "limit": null,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "4x-exp-coupon-30-min",
      "name": "4x EXP Coupon (30 min)",
      "cost": 500,
      "limit": 2,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-burning-rebirth-flame",
      "name": "Karma Burning Rebirth Flame",
      "cost": 50,
-     "limit": 300
+     "limit": 300,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "special-medal-of-honor",
      "name": "Special Medal of Honor",
      "cost": 100,
-     "limit": 350
+     "limit": 350,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "black-circulator",
      "name": "Black Circulator",
      "cost": 1000,
-     "limit": 30
+     "limit": 30,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "symbol-selector-coupon",
      "name": "Symbol Selector Coupon",
      "cost": 100,
-     "limit": 300
+     "limit": 300,
+     "expires": "2027-02-10T02:00:00.000Z"
     }
    ],
    "postId": 47132,
@@ -367,13 +410,15 @@
      "name": "Karma Bright Cube",
      "cost": 120,
      "limit": 3,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-black-rebirth-flame",
      "name": "Karma Black Rebirth Flame",
      "cost": 20,
-     "limit": 1500
+     "limit": 1500,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-bonus-bright-cube",
@@ -381,7 +426,8 @@
      "only": "interactive",
      "cost": 240,
      "limit": 3,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-solid-cube-x2-coupon",
@@ -389,28 +435,32 @@
      "only": "heroic",
      "cost": 120,
      "limit": 6,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-premium-scroll-pet-equipment-selector-coupon",
      "name": "Karma Premium Scroll - Pet Equipment Selector Coupon",
      "only": "interactive",
      "cost": 400,
-     "limit": 45
+     "limit": 45,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-incredible-chaos-scroll-of-goodness-100",
      "name": "Karma Incredible Chaos Scroll of Goodness 100%",
      "only": "interactive",
      "cost": 20,
-     "limit": 120
+     "limit": 120,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "ark-innocence-scroll-100",
      "name": "Ark Innocence Scroll 100%",
      "only": "interactive",
      "cost": 20,
-     "limit": 30
+     "limit": 30,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "extreme-growth-potion-x3-coupon",
@@ -418,14 +468,16 @@
      "only": "heroic",
      "cost": 150,
      "limit": 3,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-premium-accessory-scroll-selector-coupon-100",
      "name": "Karma Premium Accessory Scroll Selector Coupon 100%",
      "only": "interactive",
      "cost": 400,
-     "limit": 45
+     "limit": 45,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "black-circulator-x3-coupon",
@@ -433,7 +485,8 @@
      "only": "heroic",
      "cost": 400,
      "limit": 2,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     }
    ],
    "postId": 47132,
@@ -581,45 +634,52 @@
       2500
      ]
     ],
-    "source": "How Challenger Coins are earned: Nexon's Challenger World notice (news id 47305: Weekly Progression Missions, Leveling Missions, Boss Missions, Seasonal Mission), read 2026-11-27."
+    "source": "How Challenger Coins are earned: Nexon's Challenger World notice (news id 47305: Weekly Progression Missions, Leveling Missions, Boss Missions, Seasonal Mission), read 2026-11-27.",
+    "missions": "challenger"
    },
    "items": [
     {
      "id": "frozen-secondary-weapon-box",
      "name": "Frozen Secondary Weapon Box",
      "cost": 100,
-     "limit": 1
+     "limit": 1,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "customized-soul-enchanter",
      "name": "Customized Soul Enchanter",
      "cost": 100,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "3x-exp-coupon-30-min",
      "name": "3x EXP Coupon (30 min)",
      "cost": 100,
      "limit": 7,
-     "per": "week"
+     "per": "week",
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "vip-buff-exp",
      "name": "VIP Buff (EXP)",
      "cost": 30,
-     "limit": null
+     "limit": null,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "vip-buff-stats",
      "name": "VIP Buff (Stats)",
      "cost": 30,
-     "limit": null
+     "limit": null,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-black-rebirth-flame",
      "name": "Karma Black Rebirth Flame",
      "cost": 50,
-     "limit": 1000
+     "limit": 1000,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "sol-erda-fragment",
@@ -631,80 +691,92 @@
      "id": "sol-erda",
      "name": "Sol Erda",
      "cost": 2000,
-     "limit": 5
+     "limit": 5,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "mystical-cube",
      "name": "Mystical Cube",
      "cost": 5,
-     "limit": 1000
+     "limit": 1000,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-solid-cube",
      "name": "Karma Solid Cube",
      "cost": 100,
-     "limit": 500
+     "limit": 500,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-bonus-mystical-cube",
      "name": "Karma Bonus Mystical Cube",
      "only": "interactive",
      "cost": 20,
-     "limit": 1000
+     "limit": 1000,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "pet-equipment-scroll-selector-coupon",
      "name": "Pet Equipment Scroll Selector Coupon",
      "only": "interactive",
      "cost": 500,
-     "limit": 100
+     "limit": 100,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "epic-potential-scroll-100",
      "name": "Epic Potential Scroll 100%",
      "cost": 150,
-     "limit": 30
+     "limit": 30,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "bonus-potential-scroll-100",
      "name": "Bonus Potential Scroll 100%",
      "only": "interactive",
      "cost": 150,
-     "limit": 30
+     "limit": 30,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-premium-scroll-pet-equipment-selector-coupon",
      "name": "Karma Premium Scroll - Pet Equipment Selector Coupon",
      "only": "interactive",
      "cost": 1000,
-     "limit": 10
+     "limit": 10,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "innocence-scroll-100",
      "name": "Innocence Scroll 100%",
      "only": "interactive",
      "cost": 50,
-     "limit": 10
+     "limit": 10,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "pure-clean-slate-scroll-100",
      "name": "Pure Clean Slate Scroll 100%",
      "only": "interactive",
      "cost": 100,
-     "limit": 10
+     "limit": 10,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-star-force-17-star-enhancement-lv-160",
      "name": "Karma Star Force 17-Star Enhancement (Lv. 160)",
      "cost": 3000,
-     "limit": 3
+     "limit": 3,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-premium-scroll-accessory-selector-coupon",
      "name": "Karma Premium Scroll - Accessory Selector Coupon",
      "only": "interactive",
      "cost": 1000,
-     "limit": 10
+     "limit": 10,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "spell-trace-x1-000",
@@ -730,7 +802,8 @@
      "id": "karma-abyssal-rebirth-flame",
      "name": "Karma Abyssal Rebirth Flame",
      "cost": 1,
-     "limit": 250
+     "limit": 250,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "sol-erda-fragment-x10",
@@ -742,20 +815,23 @@
      "id": "sol-erda",
      "name": "Sol Erda",
      "cost": 3,
-     "limit": 20
+     "limit": 20,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-bright-cube",
      "name": "Karma Bright Cube",
      "cost": 1,
-     "limit": 20
+     "limit": 20,
+     "expires": "2027-02-10T02:00:00.000Z"
     },
     {
      "id": "karma-bonus-bright-cube",
      "name": "Karma Bonus Bright Cube",
      "only": "interactive",
      "cost": 2,
-     "limit": 20
+     "limit": 20,
+     "expires": "2027-02-10T02:00:00.000Z"
     }
    ],
    "postId": 47305,

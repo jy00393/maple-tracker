@@ -18,6 +18,7 @@ import { startSync, setPendingPair, tokenFromHash, syncConfig, syncStatus, onSyn
 import { appStatus } from './calc/status.js';
 import { setUpWorker } from './offline.js';
 import { worldName } from './calc/world.js';
+import { UndoBar } from './undo.js';
 
 // [route, tab label, page, hidden from the tab row]
 const ROUTES = [
@@ -160,6 +161,7 @@ function App({ data }) {
     </header>
     <${IncomeKeeper} data=${data} state=${state} />
     <main id="main"><${StorageWarning} /><${Page} data=${data} state=${state} /></main>
+    <${UndoBar} />
     <${BottomNav} route=${route} newNews=${newNews} />`;
 }
 

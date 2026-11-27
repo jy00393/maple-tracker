@@ -30,6 +30,8 @@ const SPLIT = {
   level: { lists: { log: 't' } },
   erda: { maps: ['levels', 'steps', 'costs'] },
   ibp: { maps: ['done'] },
+  // challenger/<charId>/done/<missionId>: one Challenger World mission; the target tier travels in "@".
+  challenger: { maps: ['done'] },
   symbols: { entries: true },
   liberation: { entries: true }
 };
@@ -44,12 +46,16 @@ const FINE = '@fine';
 const GOAL_ORDER = 'mesos/goalOrder';
 const GOAL_MOVED = 'mesos/goalMoved';
 const GOAL_SEEN = 'mesos/goalOrderSeen';
+// Parts the earlier version holds as one unit each and never edits: this version moves their whole-part stamp
+// on every edit inside them (see stampEdit), and a merge keeps the newer one (see mergeStates).
+const WHOLE_FOR_OLD = ['season', 'challenger'];
 // Finer parts, so two devices never overwrite each other's entries:
 //   pitch/<charId>/<dropId>             one logged drop
 //   shops/<shopId>/have | claims        one number
 //   shops/<shopId>/want/<itemId>        one pick
 //   champions/slot/<index>              one Champion
 //   champions/raid/<YYYY-MM>            one month's score
+//   season/<counter>                    one season counter (Pass level, Supply count...)
 //   ui/<key>, mesos/<key>               one setting (ui/seasonDone/<id> and ui/hiddenEvents/<id>: one entry)
 // Ids inside a path are URI-encoded, so an id containing "/" cannot be split wrongly.
 const blankSlot = () => ({ name: '', rank: 0 });
@@ -59,8 +65,11 @@ const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
 // "cleared" belongs to one browser's storage (see store.js) and is never part of the entries.
 // "asOf" (see liveAsOf) is change-time bookkeeping like the stamps: not an entry, merged on its own.
 const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared', 'asOf']);
-// The same goes for which tab of a page is showing, and for the news read marker the Events page sets itself.
-const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews']);
+// The same goes for which tab of a page is showing, for the news read marker the Events page sets itself, and
+// for Checklist's "Show notes" switch (a phone and a desktop each keep their own).
+// cwHigherCounts (whether a harder Challenger boss clear completes the easier mission) is set per device too.
+// budget: mesos typed on Mesos for one "What your mesos buy" calculation, kept on this device only.
+const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews', 'cwHigherCounts', 'showNotes', 'budget']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
 // Typed figures (symbols held, traces) carry the day they were typed as `at`. Figures saved before that are
 // dated by each device on its own first load (store.js), with no change time moved. So two copies can hold the
@@ -71,7 +80,7 @@ const TYPED = new Set(['symbols', 'liberation']);
 const typedDay = (v) => (typeof v.at === 'number' && Number.isFinite(v.at) ? v.at : Infinity);
 const sameButDay = (x, y) => isObj(x) && isObj(y) && canon({ ...x, at: 0 }) === canon({ ...y, at: 0 });
 // Per-character parts: when a character is gone after a merge, so is its data.
-const PER_CHAR = ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch'];
+const PER_CHAR = ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch', 'challenger'];
 const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const DAY = 86400000;
 const enc = (s) => encodeURIComponent(String(s));
@@ -148,6 +157,10 @@ export function units(state) {
         for (const f of ['have', 'claims']) if (s[f]) out.set(`shops/${enc(id)}/${f}`, s[f]);
         if (isObj(s.want)) for (const item of keysOf(s.want)) out.set(`shops/${enc(id)}/want/${enc(item)}`, s.want[item]);
       }
+    } else if (key === 'season') {
+      // One unit per counter, so two devices that each typed a different one both keep theirs.
+      if (!isObj(val)) continue;
+      for (const k of keysOf(val)) if (val[k] !== undefined && val[k] !== null) out.set(`season/${enc(k)}`, val[k]);
     } else if (key === 'champions') {
       if (!isObj(val)) continue;
       if (Array.isArray(val.slots)) val.slots.forEach((s, i) => { if (usedSlot(s)) out.set(`champions/slot/${i}`, s); });
@@ -300,6 +313,15 @@ function setUnit(state, path, value) {
     }
     if (value === undefined) delete h[k][id];
     else h[k][id] = structuredClone(value);
+    return;
+  }
+  if (segs[0] === 'season') {
+    if (segs.length < 2) return;
+    const k = dec(segs.slice(1).join('/'));
+    if (!safe(k)) return;
+    if (!isObj(state.season)) state.season = {};
+    if (value === undefined) delete state.season[k];
+    else state.season[k] = structuredClone(value);
     return;
   }
   if (segs[0] === 'champions') {
@@ -522,6 +544,13 @@ export function stampEdit(stamps, prev, next, now = Date.now(), paths = null) {
       stamps[`${prefix}/${FINE}`] = t;
     }
   }
+  // Season counters and Challenger missions: the earlier version knows each as one unit ("season", "challenger")
+  // and never edits it, but it carries its copy along and the newer stamp wins. So every edit inside moves that
+  // whole-part stamp too, and a device still on the earlier version takes the newer copy instead of writing its
+  // stale one back. (One way only: nothing reads these stamps for the finer entries.)
+  for (const part of WHOLE_FOR_OLD) {
+    if ([...edited].some((path) => path.startsWith(`${part}/`))) stamps[part] = later(read(part));
+  }
   // The goal list: the order stamp moves for every change to it, as the earlier version expects.
   const a = pu.get(GOAL_ORDER);
   const b = nu.get(GOAL_ORDER);
@@ -575,6 +604,7 @@ export function mergeStates(a, b, now = Date.now()) {
   paths.delete('activeId'); // stamped by earlier versions; no longer merged
   paths.delete(GOAL_MOVED);
   paths.delete(GOAL_SEEN);
+  for (const part of WHOLE_FOR_OLD) paths.delete(part); // worked out at the end
   for (const path of paths) {
     const p = splitKey(path);
     if (p) {
@@ -689,6 +719,18 @@ export function mergeStates(a, b, now = Date.now()) {
       const moved = Math.max(ra.goalsMoved(), rb.goalsMoved());
       if (moved) stamps[GOAL_MOVED] = moved;
     }
+  }
+  // The whole-part stamps the earlier version reads for season and challenger: the newest either side had, one
+  // step past it when the merged part is not what the side holding that time has (as for the part stamps above).
+  for (const part of WHOLE_FOR_OLD) {
+    const ta = ra(part);
+    const tb = rb(part);
+    let t = Math.max(ta, tb);
+    if (!t) continue;
+    const text = canon(isObj(out[part]) ? out[part] : {});
+    const differs = (x) => canon(isObj(x[part]) ? x[part] : {}) !== text;
+    if ((ta === t && differs(a)) || (tb === t && differs(b))) t += 1;
+    stamps[part] = t;
   }
   out.stamps = stamps;
   out.updatedAt = Math.min(Math.max(a.updatedAt || 0, b.updatedAt || 0), now + DAY);

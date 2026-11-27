@@ -631,7 +631,8 @@ test('season: once the season is over only steps that can still be done count as
   assert.equal(over.over, true);
   assert.equal(over.last, lastBy);
 
-  at(t, ends - 20 * DAY);
+  // 10 days out: the card shows whole (it is folded to one line until 14 days before the first deadline).
+  at(t, ends - 10 * DAY);
   start();
   let text = await textOf(t, TodayPage);
   assert.match(text, new RegExp(`Season ends .*? ${season.actions.length} of ${season.actions.length} end-of-season steps still open\\. Challenger gear stops working then`));

@@ -3,6 +3,7 @@
 // are dropped or reset. Unknown extra fields are kept, so a newer version's data survives an older one.
 import { cleanDrops, isDay } from './pitched.js';
 import { cleanChampions } from './champions.js';
+import { cleanSeason } from './seasoncount.js';
 
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const obj = (v) => (isObj(v) ? v : {});
@@ -161,10 +162,28 @@ function calcOf(v, fields) {
 }
 const SF_CALC = [['level', 'int', 0, 300], ['from', 'int', 0, 30], ['to', 'int', 0, 30], ['discount', 'bool'], ['lessBoom', 'bool'], ['safeguard', 'bool'], ['mvp', 'enum', ['none', 'silver', 'gold', 'diamond']], ['spare', 'num', 0, 1e15]];
 const CUBE_CALC = [['from', 'enum', [1, 2, 3]], ['to', 'enum', [2, 3, 4]]];
+// "What your mesos buy" (pages/chance.js): mesos typed for that calculation only (null = the planner's figure) and
+// the item picked on Star Force (sf) and Cubes (cubes). Anything else is dropped.
+function budgetOf(v) {
+  const b = obj(v);
+  const out = { mesos: num(b.mesos, null, 0, 1e15) };
+  for (const k of ['sf', 'cubes']) if (typeof b[k] === 'string' && b[k].length <= 60 && safeKey(b[k])) out[k] = b[k];
+  return out;
+}
 const FLAME_CALC = [['slot', 'str'], ['level', 'int', 0, 300], ['adv', 'bool'], ['type', 'str'], ['target', 'num', 0, 99999], ['have', 'intOrNull', 0, 1e7], ['weights', 'weights'], ['secondary', 'enum', ['STR', 'DEX', 'INT', 'LUK', null]]];
 
 function shopOf(s) {
   return { ...s, have: num(s.have, 0, 0, 1e9), claims: num(s.claims, 0, 0, 1e4), want: counts(s.want, 1e5) };
+}
+
+// Challenger World missions done: { missionId: when it was ticked }, and the target tier (an id from
+// challenger.json; an unknown id is left for the page to ignore).
+function challengerOf(c) {
+  const done = {};
+  for (const [k, t] of Object.entries(obj(c.done))) if (safeKey(k) && num(t, null, 1, TIME_MAX) !== null) done[k] = Math.floor(t);
+  const out = { ...c, done };
+  if ('target' in out && !(typeof out.target === 'string' && out.target.length <= 40)) delete out.target;
+  return out;
 }
 
 // One tick record: { p: period, c: count, d: 1 when done, t: when it was ticked }. A count is a whole number
@@ -211,7 +230,7 @@ export function sanitiseState(raw, base) {
   };
 
   const ui = obj(raw.ui);
-  out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone) };
+  out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone), showNotes: typeof ui.showNotes === 'boolean' ? ui.showNotes : null, budget: budgetOf(ui.budget) };
   if ('sessionMins' in out.ui && ![30, 60, 90].includes(out.ui.sessionMins)) delete out.ui.sessionMins;
   for (const [k, fields] of [['sfCalc', SF_CALC], ['cubeCalc', CUBE_CALC], ['flameCalc', FLAME_CALC]]) {
     if (!(k in out.ui)) continue;
@@ -219,6 +238,7 @@ export function sanitiseState(raw, base) {
     if (c) out.ui[k] = c; else delete out.ui[k];
   }
   if ('bossMargin' in out.ui && ![1, 1.5, 2, 3].includes(out.ui.bossMargin)) delete out.ui.bossMargin;
+  if ('cwHigherCounts' in out.ui && typeof out.ui.cwHigherCounts !== 'boolean') delete out.ui.cwHigherCounts;
 
   const m = obj(raw.mesos);
   out.mesos = { ...base.mesos, ...m, held: num(m.held, 0, 0, 1e15), ursusRuns: num(m.ursusRuns, 1, 0, 3) };
@@ -240,7 +260,9 @@ export function sanitiseState(raw, base) {
   out.level = mapOf(raw.level, levelOf);
   out.pitch = mapOf(raw.pitch, (p) => ({ ...p, drops: cleanDrops(p.drops) }));
   out.shops = mapOf(raw.shops, shopOf);
+  out.challenger = mapOf(raw.challenger, challengerOf);
   out.champions = cleanChampions(raw.champions);
+  out.season = cleanSeason(raw.season);
   out.incomeHistory = mapOf(raw.incomeHistory, (h) => ({ ...h, earned: num(h.earned, 0, 0), planned: num(h.planned, 0, 0) }));
 
   out.updatedAt = num(raw.updatedAt, 0, 0);

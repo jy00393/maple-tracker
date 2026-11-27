@@ -107,13 +107,14 @@
      "id": "d-seal",
      "label": "Use Arcane Seal wands",
      "min": "2 min",
-     "note": "3 wands arrive every day at 09:00 KST, even when you are offline, and up to 20 are kept. Use them at least every 6 days so none are lost (Nexon v.272 patch notes, news 47132, read 27 Nov 2026).",
+     "note": "3 wands arrive every day at 09:00 KST, even when you are offline, and up to 20 are kept, so 6 days' worth at most. Your tier sets the barrier: Stage 2 from Gold, 3 from Emerald, 4 from Sapphire, 5 from Diamond, each with better cores (Nexon v.272 patch notes, news 47132, and notice 47305, read 27 Nov 2026).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
     },
     {
      "id": "d-cards",
      "label": "Spend new Training Cards",
+     "seasonCap": "defense",
      "min": "2 min",
      "note": "Cards come with each Defense Mission claim (5 Combat + 5 Special, up to 5 claims a week), so spend them after claiming (Nexon v.272 patch notes, news 47132, read 27 Nov 2026). Combat: Normal Enemy Damage, then Boss Damage, IED and ATT. Special: Grandis daily rewards, Monster Park clear EXP.",
      "until": "2027-02-09T23:59:00Z"
@@ -187,6 +188,7 @@
      "id": "w-etherion",
      "optional": true,
      "label": "Etherion Relics: 10,000 solo kills",
+     "seasonCap": "etherion",
      "note": "Shared by the account. Kills count only while solo. One more completion opens every Wednesday 09:00 KST, up to 12, and they can all be used at once, so a skipped week is not lost. The first one also adds 4 Arcane and 3 Sacred symbols a day to each area's daily quest (Nexon v.272 patch notes, news 47132, read 27 Nov 2026).",
      "until": "2027-02-09T23:59:00Z",
      "scope": "account"
@@ -210,6 +212,7 @@
     {
      "id": "w-pass",
      "label": "Challenger Pass weekly missions",
+     "seasonCap": "pass",
      "note": "Up to 500 points a week; resets Thursday 00:00 UTC. From Lv. 260; points and missions are shared by your characters in this world (Nexon v.272 patch notes, news 47132, read 27 Nov 2026).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger",
@@ -288,6 +291,7 @@
     {
      "id": "w-ultima",
      "label": "Ultima weekly hunt: 2,000 kills",
+     "seasonCap": "defense",
      "type": "count",
      "target": 5,
      "def": "thu",
@@ -311,5 +315,5 @@
    ]
   }
  ],
- "fieldsNote": "Item fields: \"optional\": true (or a group with \"optional\": true) = shown, but never counted in the core dailies, the streak or the reset warnings; things that bank up or collect themselves belong there; \"def\" = the reset day used in the \"Reset day unconfirmed\" group until the player taps the pill; \"scope\": \"account\" = ticked once for the whole account (the item's note says so; a tick made on a character before the item became account-wide still counts for its period); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (the symbol-area dailies use the areas' unlock levels in symbols.json: Cernium 260, Arcus 265, Odium 270, Shangri-La 275, Arteria 280, Carcion 285, with the daily amounts and quest names from the same file; Mayrin 270 is in Nexon's notice; Extreme Monster Parker and Epic Dungeon 260 are in the v.272 patch notes, id 47132); \"gate\" = the id of a symbol area in symbols.json: the item stays locked until Progress holds a symbol level above 0 for that area or the player marks it unlocked. Gated items are listed in level order, and of those still above the character's level only the next one is shown. One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses."
+ "fieldsNote": "Item fields: \"optional\": true (or a group with \"optional\": true) = shown, but never counted in the core dailies, the streak or the reset warnings; things that bank up or collect themselves belong there; \"def\" = the reset day used in the \"Reset day unconfirmed\" group until the player taps the pill; \"scope\": \"account\" = ticked once for the whole account (the item's note says so; a tick made on a character before the item became account-wide still counts for its period); \"only\": \"challenger\" = shown only for Challenger World characters (named in Nexon's Challenger World notice, id 47305, or in the item's own text); \"minLevel\" = locked below that level (the symbol-area dailies use the areas' unlock levels in symbols.json: Cernium 260, Arcus 265, Odium 270, Shangri-La 275, Arteria 280, Carcion 285, with the daily amounts and quest names from the same file; Mayrin 270 is in Nexon's notice; Extreme Monster Parker and Epic Dungeon 260 are in the v.272 patch notes, id 47132); \"gate\" = the id of a symbol area in symbols.json: the item stays locked until Progress holds a symbol level above 0 for that area or the player marks it unlocked. Gated items are listed in level order, and of those still above the character's level only the next one is shown. One record per boss clear (the ticks on the Bosses page): \"bosses\": \"daily\" or \"weekly\" = the row follows the bosses of that reset picked on Bosses (\"empty\" is its text while none is picked); \"boss\": [ids from bosses.json] = the row is that boss's own tick on Bosses. \"seasonCap\": \"pass\", \"supply\", \"defense\" or \"etherion\" = the row reads done for the season once that count on Today's Season counters reaches its cap (season.json counters, etherion.json)."
 }

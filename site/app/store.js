@@ -50,10 +50,18 @@ export function blankState() {
     level: {},
     pitch: {},
     shops: {},
+    // challenger[charId] = { done: { missionId: t }, target? }: Challenger World boss and seasonal missions done.
+    challenger: {},
     champions: { slots: [], raid: {} },
+    // Season counters typed in from the game, for the whole account: { pass, supply, defense, ether, core }
+    // (calc/seasoncount.js). A figure not typed yet is absent.
+    season: {},
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},
-    ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },
+    // showNotes: Checklist notes on this device (null = shown above 760px wide, behind an (i) below); never synced.
+    // budget: "What your mesos buy" on Mesos (calc/chance.js): a figure typed for that calculation only and the item
+    // picked for it. This device's own, never synced (LOCAL_UI in calc/merge.js).
+    ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {}, showNotes: null, budget: { mesos: null } },
     // When each part last changed, so sync can merge two devices part by part (see calc/merge.js).
     stamps: {},
     // Parts changed only by an import or a restore since: when they were really last changed, for "as of" dates
