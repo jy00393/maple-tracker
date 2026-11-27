@@ -1,11 +1,12 @@
 // Dated things announced by Nexon that have not happened yet, soonest first. From data/upcoming.json.
 import { DAY, kstDays, fmtKst } from '../time.js';
+import { isCashSale } from './events.js';
 
 // Events from Nexon's posts that have not started yet (data/events.json), as list entries. Cash Shop sales,
 // maintenance and Classic World posts are left out.
 export function eventStarts(events) {
   return (Array.isArray(events) ? events : [])
-    .filter((e) => e && e.start && e.title && e.category !== 'sale' && e.category !== 'maintenance' && !e.isClassic)
+    .filter((e) => e && e.start && e.title && !isCashSale(e) && e.category !== 'maintenance' && !e.isClassic)
     .map((e) => ({ id: `event-${e.id}`, at: e.start, day: Boolean(e.startApprox || e.afterMaintenance), title: `${e.title} starts`, note: e.postName ? `From Nexon's post: ${e.postName}.` : 'From a Nexon post.', auto: true }));
 }
 

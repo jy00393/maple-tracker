@@ -307,7 +307,8 @@ test('the reset pill uses the tick time that every new tick now carries', async 
 test('a counter clicked just after a reset starts the new period from zero', async () => {
   const realNow = Date.now;
   try {
-    for (const page of ['checklist', 'today']) {
+    // Checklist only: Shadow Supplies became optional (activations bank up to 50), and Today lists core dailies only.
+    for (const page of ['checklist']) {
       let fake = Date.parse('2026-11-26T23:59:50Z');
       Date.now = () => fake;
       loadState({ checklist: { items: { 'main|d-shadow': { p: 'daily:2026-11-26', c: 9 } }, resets: {}, flags: {}, history: {} } });

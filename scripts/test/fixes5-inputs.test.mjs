@@ -341,8 +341,9 @@ test('29 a checklist counter greys − at 0 and + at its cap, and a press there 
   assert.match(css, /\.iconbtn:disabled[^{]*\{[^}]*opacity/, 'and for a disabled arrow outside a stepper');
 
   // On the real checklist: the first count item, at 0, then pressed to its cap.
-  // A counter with no end date and no level or world rule, so the test does not stop working when an event ends.
-  const lasting = (i) => i.type === 'count' && !i.until && !i.only && !i.minLevel && !i.gate;
+  // A counter with no end date, no world rule and no level above the test character's, so the test does not stop
+  // working when an event ends.
+  const lasting = (i) => i.type === 'count' && !i.until && !i.only && !(i.minLevel > 264) && !i.gate;
   const group = DATA.checklist.groups.find((g) => g.items.some(lasting));
   const item = group.items.find(lasting);
   setState();

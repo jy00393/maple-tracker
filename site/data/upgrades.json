@@ -31,12 +31,15 @@
   "source": "MapleStory Wiki, Experience/Leveling Tables (edited 11 Sep 2026); 260+ matches KMS per Maplerhouse. EXP needed to go from each level to the next.",
   "from": 260,
   "toNext": [1731919984062, 1749239183902, 1766731575741, 1784398891498, 1802242880412, 2342915744535, 2366344901980, 2390008350999, 2413908434508, 2438047518853, 5412465491853, 5466590146771, 5521256048238, 5576468608720, 5632233294807, 11377111255510, 12514822381061, 13766304619167, 15142935081083, 16657228589191, 33647601750165, 37012361925181, 40713598117699, 44784957929468, 49263453722414, 99512176519276, 109463394171203, 120409733588323, 132450706947155, 145695777641870, 294305470836577, 323736017920234, 356109619712257, 391720581683483, 430892639851831, 870403132500699, 957443445750769, 1053187790325845, 1158506569358425, 1737759854037637],
-  "gates": [[265, "Hotel Arcus", "Item Burning stages 5-6"], [270, "Odium, Mayrin", "Item Burning stages 7-8"], [275, "Shangri-La", "Item Burning stages 9-10"], [280, "Arteria", "Item Burning stage 11", "end of Beyond Burning"]],
+  "gates": [[265, "Hotel Arcus", "Item Burning stages 5-6"], [270, "Odium, Mayrin, Epic Dungeon: Angler Company", "Item Burning stages 7-8"], [275, "Shangri-La, more Sol Erda held (25)", "Item Burning stages 9-10"], [280, "Arteria, Hard Mayrin, Epic Dungeon: Nightmare Paradise", "Item Burning stage 11", "end of Beyond Burning"]],
+  "gatesSource": "Angler Company 270 and Nightmare Paradise 280: MapleStory Wiki, Epic Dungeon pages (read 27 Nov 2026). Hard Mayrin 280: Nexon's Challenger World notice (47305). Sol Erda held: Nexon v.272 patch notes (47132).",
   "gatesNote": "The third part of a gate is about the Item Burning Plus event; it is shown only while the event runs (ibp.json endsAt). The fourth part is about Beyond Burning; it is shown only to a character that has it, while it runs.",
   "beyondBurningNote": "Beyond Burning gives one extra level per level-up until 280, so only every other level costs EXP."
  },
  "erda": {
-  "source": "HEXA Matrix Origin costs from the MapleStory Wiki. Erda Link costs aren't published; the Origin Stone uses the HEXA Origin table as a stand-in, so check the first upgrade in game. Erda's Request gives 9 Sol Erda and 90 Fragments a week per Maple ID.",
+  "source": "HEXA Matrix Origin costs from the MapleStory Wiki. Erda Link costs aren't published; the Origin Stone uses the HEXA Origin table as a stand-in, so check the first upgrade in game. The weekly default is Erda's Request: 9 Sol Erda a week in GMS (MapleStory Wiki, Sol Erda page, read 27 Nov 2026); the 90 Fragments a week is a player-reported figure, not confirmed by Nexon.",
+  "holdCap": [[260, 20], [275, 25], [290, 30]],
+  "holdCapSource": "Most Sol Erda a character can hold, by level: Nexon v.272 patch notes (news 47132, read 27 Nov 2026), Item Changes. Sol Erda above it cannot be used.",
   "originPerLevel": [[1, 30], [1, 35], [1, 40], [2, 45], [2, 50], [2, 55], [3, 60], [3, 65], [10, 200], [3, 80], [3, 90], [4, 100], [4, 110], [4, 120], [4, 130], [4, 140], [4, 150], [5, 160], [15, 350], [5, 170], [5, 180], [5, 190], [5, 200], [5, 210], [6, 220], [6, 230], [6, 240], [7, 250], [20, 500]],
   "weeklyDefault": {"sol": 9, "frag": 90}
  }
