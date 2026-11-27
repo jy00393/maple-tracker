@@ -1,5 +1,5 @@
 {
- "source": "MapleStory Wiki symbol pages (Arcane Symbol: <area>, Sacred Symbol: <area>), checked 23 Nov 2026. Daily amounts are the Heroic-world values listed there. Arcane weekly quests: Nexon v.272 patch notes (news 47132, read 27 Nov 2026).",
+ "source": "MapleStory Wiki: the Arcane Symbol and Sacred Symbol page for each area, checked 23 Nov 2026. Daily amounts are the Heroic-world values listed there. Arcane weekly quests: Nexon v.272 patch notes (news 47132, read 27 Nov 2026).",
  "relicBonus": {"arcane": 4, "sacred": 3, "until": "2027-02-09T23:59:00Z", "source": "Operation Ultima, Etherion Relics: the first weekly completion adds 4 Arcane and 3 Sacred symbols a day to each area's daily quest, per character, for dailies done after it is active (Nexon v.272 patch notes, news 47132, read 27 Nov 2026)."},
  "arcane": {
   "maxLevel": 20,

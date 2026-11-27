@@ -112,7 +112,7 @@ export function CalendarCard() {
   const feed = new URL('data/calendar.ics', base).href;
   const webcal = feed.replace(/^https?:/, 'webcal:');
   return html`<${Card} title="Reminders on your phone" meta="calendar feed, refreshed by your GitHub job">
-    <p class="note">Subscribe once: your calendar shows each event's last hour (with a reminder the day before), maintenance windows, and the Monday, Wednesday and Thursday resets.</p>
+    <p class="note">Subscribe once: your calendar shows each event's last hour (with a reminder the day before), maintenance windows, Sunny Sundays (a reminder for Star Force ones), dates Nexon has announced, season deadlines, and the Monday, Wednesday and Thursday resets. Cash Shop sales are left out.</p>
     <div class="toolbar">
       <a class="btn primary" href=${webcal}>Subscribe (iPhone, Mac)</a>
       <a class="btn" href=${'https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(webcal)} target="_blank" rel="noopener">Add to Google Calendar</a>

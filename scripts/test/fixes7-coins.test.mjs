@@ -275,7 +275,7 @@ test('Progress, Item Burning: no picks says hunts only and how to count bosses; 
   assert.match(x, /500 crests a week from the 5 weekly hunts\. Solo weekly bosses pay crests too/);
   assert.match(x, /250 for stage 3 · ~1 week of hunts(?! and)/);
   render(null, el);
-  el = await show(t, ProgressPage, (s) => { s.ui.progressView = 'ibp'; s.activeId = 'b'; s.characters[1].world = 'interactive'; });
+  el = await show(t, ProgressPage, (s) => { s.ui.progressView = 'ibp'; s.activeId = 'b'; s.characters[1].world = 'interactive'; s.characters[1].challenger = true; });
   x = text(el);
   assert.match(x, /Interactive: scroll stats raised/, 'the Interactive stage 2 reward for an Interactive character');
   render(null, el);
@@ -299,7 +299,7 @@ test('Coin shop, Bounty: coins to come from the best solo weekly boss of the wor
   assert.match(x, /each of the 11 weeks left/);
   assert.match(x, /Wednesday 09:00 KST/);
   assert.match(x, /What each boss pays/);
-  assert.doesNotMatch(x, /is earned is not listed here/);
+  assert.doesNotMatch(x, /is not listed here/);
   render(null, el);
   // Ticked on Checklist this bounty week: this week's coins are in hand.
   const [item] = itemOf('w-bounty-earn');
@@ -328,7 +328,7 @@ test('Coin shop, Bounty without picks or data says so; Challenger Normal shows t
   assert.match(x, /None of the solo weekly bosses picked on Bosses pays Advanced Bounty Coin/);
   render(null, el);
   el = await show(t, ShopsView, (s) => { s.ui.shopId = 'bounty-coin-shop-basic-bounty-coin'; }, pageData({ bounty: null }));
-  assert.match(text(el), /How Basic Bounty Coin is earned is not listed here/, 'without bounty.json the page falls back');
+  assert.match(text(el), /How to earn Basic Bounty Coin is not listed here/, 'without bounty.json the page falls back');
   render(null, el);
   el = await show(t, ShopsView, (s) => { s.ui.shopId = 'challenger-world-shop-normal'; });
   x = text(el);

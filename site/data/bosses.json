@@ -11,7 +11,7 @@
   "limits": {
   "weeklyPerCharacter": 14,
   "perWorldPerWeek": 180,
-  "note": "Limit of 180 per world per week, 14 weekly crystals per character per week (GMS)."
+  "note": "At most 180 boss crystals per world and 14 weekly crystals per character each week (GMS)."
  },
  "bosses": [
   {

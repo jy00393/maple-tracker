@@ -227,7 +227,10 @@ export function ProgressPage({ data, state }) {
   const now = useClock({ every: 60000 });
   const char = activeCharacter(state);
   if (!char) return html`<${PageHead} title="Progress" /><${Card} title="Add a character first"><p class="note"><a href="#characters">Add your character</a> to track symbols, liberation and 6th job.</p><//>`;
-  const view = state.ui.progressView || 'level';
+  // Item Burning Plus is Challenger World only (Nexon notice 47305): other characters get no tab for it.
+  const ibpOn = Boolean(char.challenger);
+  const saved = state.ui.progressView || 'level';
+  const view = saved === 'ibp' && !ibpOn ? 'level' : saved;
   const part = (name) => `${name}/${encodeURIComponent(char.id)}/@`;
   const setView = (v) => update((s) => { s.ui.progressView = v; });
   let body;
@@ -257,8 +260,8 @@ export function ProgressPage({ data, state }) {
     body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} now=${now} crestsAt=${changedAt(state, part('ibp'), now)} bossState=${(state.bosses || {})[char.id]} />`;
   }
   return html`
-    <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job, Legion Champions and Item Burning.<//>
+    <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job${ibpOn ? ', Legion Champions and Item Burning' : ' and Legion Champions'}.<//>
     <div class="toolbar"><${Seg} label="Progress section" value=${view} onChange=${setView}
-      options=${[['level', 'Level'], ['symbols', 'Symbols'], ['liberation', 'Liberation'], ['sixth', '6th job'], ['champions', 'Champions'], ['ibp', 'Item Burning']]} /></div>
+      options=${[['level', 'Level'], ['symbols', 'Symbols'], ['liberation', 'Liberation'], ['sixth', '6th job'], ['champions', 'Champions'], ...(ibpOn ? [['ibp', 'Item Burning']] : [])]} /></div>
     ${body}`;
 }

@@ -224,6 +224,9 @@ function Outlook({ outlook, entry, target }) {
 function SlotModal({ row, data, char, onClose, cubeRates }) {
   const { slot, entry, target } = row;
   const [flameOpen, setFlameOpen] = useState(Boolean(cleanFlame(entry.flame)));
+  // flames.json noFlameSlots cannot have flames. Weapons keep the form: they can have one (the calculator just
+  // does not model them).
+  const canFlame = slot.id === 'weapon' || !((data.flames && data.flames.noFlameSlots) || []).includes(slot.id);
   const up = withCubeRates(data.upgrades, cubeRates);
   const tiers = data.gear.slotTypes[slot.type].filter(Boolean);
   const set = (patch) => setSlot(char.id, slot.id, patch, data.gear);
@@ -250,7 +253,7 @@ function SlotModal({ row, data, char, onClose, cubeRates }) {
           ${entry.pot ? html`<div class=${'pot-' + entry.pot} style=${{ fontWeight: 700 }}><${PotBadge} tier=${entry.pot} /> Potential: ${POT[entry.pot]}</div>
             ${lines.length ? lines.map((l) => html`<div class=${'pot-line' + (lineKind(slot, l, mainStat) === 'farm' ? ' pot-4' : '')}>${lineLabel(l, mainStat)}</div>`) : html`<div class="small muted">No lines entered yet.</div>`}`
             : html`<div class="small muted">${hasPotential(slot) ? 'No potential' : 'No potential on this slot'}</div>`}
-          ${cleanFlame(entry.flame) ? html`<div class="small" style=${{ color: 'var(--ok)' }}>Flame: ${flameLabel(entry.flame, msLabel)}</div>` : null}
+          ${canFlame && cleanFlame(entry.flame) ? html`<div class="small" style=${{ color: 'var(--ok)' }}>Flame: ${flameLabel(entry.flame, msLabel)}</div>` : null}
         </div>
         <${Outlook} outlook=${outlook} entry=${entry} target=${target} />
       </div>
@@ -278,14 +281,14 @@ function SlotModal({ row, data, char, onClose, cubeRates }) {
             <select class="select" value=${String(entry.bpot || 0)} onChange=${(e) => set({ bpot: Number(e.currentTarget.value) })}>${POT.map((p, i) => html`<option value=${i}>${p}</option>`)}</select></label>` : null}
         </div>
         <${LineEditor} slot=${slot} entry=${entry} set=${set} pot=${data.potential} mainStat=${mainStat} />
-        <details open=${flameOpen} onToggle=${(e) => setFlameOpen(e.currentTarget.open)}>
+        ${!canFlame ? (cleanFlame(entry.flame) ? html`<p class="note">This slot cannot have flames, so the bonus stats typed here earlier are not counted. <button type="button" class="linkbtn" onClick=${() => set({ flame: null })}>Clear them</button></p>` : null) : html`<details open=${flameOpen} onToggle=${(e) => setFlameOpen(e.currentTarget.open)}>
           <summary class="small muted">Bonus stats (flame)${cleanFlame(entry.flame) ? `: ${flameLabel(entry.flame, msLabel)}` : ': none entered'}</summary>
           <div class="form-grid" style=${{ marginTop: '10px' }}>
             ${FLAME_FIELDS.map(([key, label, unit]) => html`<label class="field"><span>${key === 'main' ? msLabel : label}${unit ? ` ${unit}` : ''}</span><${NumberInput} className="input" label=${`Flame ${label}`} value=${(entry.flame || {})[key] ?? null} max=${999} onChange=${(v) => set({ flame: cleanFlame({ ...(entry.flame || {}), [key]: v }) })} /></label>`)}
           </div>
           <p class="note">Copy the green bonus numbers from the item's tooltip. Leave a box empty if the item doesn't have that stat.</p>
           <label class="toggle"><input type="checkbox" checked=${entry.flameAdv !== false} onChange=${(e) => set({ flameAdv: e.currentTarget.checked })} /> Boss item (flame advantage: always 4 lines, higher tiers)</label>
-        </details>
+        </details>`}
         <label class="toggle"><input type="checkbox" checked=${Boolean(entry.temporary)} onChange=${(e) => set({ temporary: e.currentTarget.checked })} /> Temporary item (Item Burning, event or rental)</label>
         ${data.gear.overall && slot.id === data.gear.overall.slot ? html`<label class="toggle"><input type="checkbox" checked=${Boolean(entry.overall)} onChange=${(e) => set({ overall: e.currentTarget.checked })} /> Overall (fills the Bottom slot too, so Bottom is not scored)</label>` : null}
         <details>
@@ -351,7 +354,7 @@ export function GearPage({ data, state }) {
   // Totals count what is worn: a Bottom left under an overall is not.
   const worn = sum.slots.filter((r) => !r.covered).map((r) => r.slot);
   const totals = lineTotals(worn, g, mainStat);
-  const flames = flameTotals(worn, g);
+  const flames = flameTotals(worn, g, (data.flames && data.flames.noFlameSlots) || []);
   const sets = detectSets(data.gearStats.sets, worn, g);
   const stats = g.stats || {};
   const dmgOk = damageEstimateSupported(mainStat);
