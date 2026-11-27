@@ -51,6 +51,9 @@ export function blankState() {
     pitch: {},
     shops: {},
     champions: { slots: [], raid: {} },
+    // Season counters typed in from the game, for the whole account: { pass, supply, defense, ether, core }
+    // (calc/seasoncount.js). A figure not typed yet is absent.
+    season: {},
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},
     ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },

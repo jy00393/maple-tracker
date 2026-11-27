@@ -19,6 +19,7 @@ import { seasonOutlook } from '../calc/season.js';
 import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
 import { levelOutlook, knownLevel } from './level.js';
+import { SeasonCounters, ExpiringSoon } from './seasoncount.js';
 
 // The next symbol levels, soonest first. Each date is fixed on the day the count was typed (symbolPlan), so it
 // does not move until the count is typed again.
@@ -39,7 +40,7 @@ function nextSymbolLevels(data, state, charId, now) {
 }
 
 // Challenger World: what must be claimed, spent or used before the season ends. Ticks are yours; dates are Nexon's.
-function SeasonCard({ season, state, now }) {
+function SeasonCard({ season, state, now, data, char, level }) {
   const o = seasonOutlook(season, state.ui.seasonDone, now);
   if (!o) return null;
   // After the last deadline: what the notice says is left to do with a Challenger World character.
@@ -69,6 +70,7 @@ function SeasonCard({ season, state, now }) {
         <p class="note">${i.detail}</p>
       </div>`)}
     </details>`)}
+    ${data ? html`<${ExpiringSoon} data=${data} state=${state} char=${char} level=${level} now=${now} />` : null}
     <details><summary class="small muted">Good to know (${season.notes.length}) and what Nexon hasn't said yet</summary>
       ${season.notes.map((n) => html`<p class="note"><b>${n.label}.</b> ${n.detail}</p>`)}
       <p class="warnbox">${season.unknown}</p>
@@ -239,5 +241,6 @@ export function TodayPage({ data, state }) {
         <//>` : null}
       </div>
     </div>
-    ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginTop: '2px' }}><${SeasonCard} season=${data.season} state=${state} now=${now} /></div>` : null}`;
+    ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginTop: '2px' }}><${SeasonCard} season=${data.season} state=${state} now=${now} data=${data} char=${char} level=${charLevel} /></div>` : null}
+    <${SeasonCounters} data=${data} state=${state} char=${char} level=${charLevel} now=${now} />`;
 }

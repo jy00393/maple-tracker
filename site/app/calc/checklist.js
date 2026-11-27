@@ -5,6 +5,8 @@
 // - An item with "scope": "account" is ticked once for the whole account.
 // - An item with "only": "challenger" is hidden for characters that are not in Challenger World.
 // - An item with "minLevel" stays locked until the character reaches it.
+// - An item with "seasonCap" (pass, supply, defense or etherion) is done for the season once that season counter
+//   reaches its cap (who.caps).
 // - An item with "gate" (the id of a symbol area in symbols.json) stays locked until that area is unlocked:
 //   either Progress holds a symbol level above 0 for it (who.open lists those areas), which also proves the
 //   level, or the player pressed "Mark unlocked" (a flag, which can be taken back).
@@ -150,6 +152,10 @@ export function itemStatus(item, group, checklistState, now, who) {
   const byHand = !locked && !proven && Boolean(below || item.gate);
   const notForChar = Boolean(item.only === 'challenger' && w.id && !w.challenger);
   const expired = Boolean((item.until && Date.parse(item.until) < now) || notForChar);
+  // "seasonCap": the season counter behind the item has reached its cap (who.caps, see calc/seasoncount.js).
+  if (item.seasonCap && w.caps && w.caps[item.seasonCap] === true) {
+    return { kind, locked: false, tooLow: false, gated: false, byHand: false, expired, done: true, seasonDone: true, ...(item.type === 'count' ? { count: item.target } : {}) };
+  }
   if (item.type === 'count') {
     const r = record(checklistState, item, '', kind, now, w);
     // A whole number from 0 to the target, whatever was saved.

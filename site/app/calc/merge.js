@@ -50,6 +50,7 @@ const GOAL_SEEN = 'mesos/goalOrderSeen';
 //   shops/<shopId>/want/<itemId>        one pick
 //   champions/slot/<index>              one Champion
 //   champions/raid/<YYYY-MM>            one month's score
+//   season/<counter>                    one season counter (Pass level, Supply count...)
 //   ui/<key>, mesos/<key>               one setting (ui/seasonDone/<id> and ui/hiddenEvents/<id>: one entry)
 // Ids inside a path are URI-encoded, so an id containing "/" cannot be split wrongly.
 const blankSlot = () => ({ name: '', rank: 0 });
@@ -148,6 +149,10 @@ export function units(state) {
         for (const f of ['have', 'claims']) if (s[f]) out.set(`shops/${enc(id)}/${f}`, s[f]);
         if (isObj(s.want)) for (const item of keysOf(s.want)) out.set(`shops/${enc(id)}/want/${enc(item)}`, s.want[item]);
       }
+    } else if (key === 'season') {
+      // One unit per counter, so two devices that each typed a different one both keep theirs.
+      if (!isObj(val)) continue;
+      for (const k of keysOf(val)) if (val[k] !== undefined && val[k] !== null) out.set(`season/${enc(k)}`, val[k]);
     } else if (key === 'champions') {
       if (!isObj(val)) continue;
       if (Array.isArray(val.slots)) val.slots.forEach((s, i) => { if (usedSlot(s)) out.set(`champions/slot/${i}`, s); });
@@ -300,6 +305,15 @@ function setUnit(state, path, value) {
     }
     if (value === undefined) delete h[k][id];
     else h[k][id] = structuredClone(value);
+    return;
+  }
+  if (segs[0] === 'season') {
+    if (segs.length < 2) return;
+    const k = dec(segs.slice(1).join('/'));
+    if (!safe(k)) return;
+    if (!isObj(state.season)) state.season = {};
+    if (value === undefined) delete state.season[k];
+    else state.season[k] = structuredClone(value);
     return;
   }
   if (segs[0] === 'champions') {

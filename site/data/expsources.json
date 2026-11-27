@@ -51,5 +51,24 @@
    { "name": "Growth Potion (200 - 269)", "from": 200, "to": 269 },
    { "name": "Growth Potion (200 - 279)", "from": 200, "to": 279 }
   ]
- }
+ },
+ "seasonal": [
+  {
+   "name": "Growth Potion (200 - 279)",
+   "from": 200,
+   "to": 279,
+   "where": "Supply Report level 60",
+   "expires": "2027-02-10T02:00:00Z",
+   "source": "Nexon v.272 patch notes (news id 47132), Supply Report rewards; read 27 Nov 2026."
+  },
+  {
+   "name": "Growth Potion (200 - 269)",
+   "from": 200,
+   "to": 269,
+   "where": "Supply Report levels 25 and 45",
+   "expires": "2027-02-10T02:00:00Z",
+   "source": "Nexon v.272 patch notes (news id 47132), Supply Report rewards; read 27 Nov 2026."
+  }
+ ],
+ "seasonalNote": "A potion gives one full level, and each level needs more EXP than the one before, so it is worth most at the top of its range. These expire, so use them before that date even if you are lower. Nexon does not say whether Beyond Burning adds its extra level when a potion levels you up."
 }
