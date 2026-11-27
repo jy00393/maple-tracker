@@ -7842,7 +7842,8 @@
      "liveDate": "2026-11-22T16:00:00Z",
      "category": "sale",
      "isClassic": false,
-     "url": "https://www.nexon.com/maplestory/news/sale/47555"
+     "url": "https://www.nexon.com/maplestory/news/sale/47555",
+     "mesos": true
     },
     {
      "id": "47555-doorbuster-black-friday-lucky-box-saturday",
@@ -7995,7 +7996,8 @@
      "liveDate": "2026-11-22T16:00:00Z",
      "category": "sale",
      "isClassic": false,
-     "url": "https://www.nexon.com/maplestory/news/sale/47555"
+     "url": "https://www.nexon.com/maplestory/news/sale/47555",
+     "mesos": true
     },
     {
      "id": "47555-red-familiar-cards",

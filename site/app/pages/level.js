@@ -1,7 +1,7 @@
 import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, charSlice } from '../store.js';
 import { Card, NumberInput, Empty, fmtBig, plural } from '../ui.js';
-import { expToNext, expToReach, expRate, erdaCost } from '../calc/upgrades.js';
+import { expToNext, expToReach, expRate, erdaCost, solErdaCap } from '../calc/upgrades.js';
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtDay, fmtKst, kstDays, dayWord, asOf } from '../time.js';
 import { ExpSourcesCard } from './expsources.js';
@@ -223,7 +223,7 @@ export function LevelView({ data, state, char, now }) {
         <span class="small muted">${g.due ? 'log your level' : g.at != null ? dayWord(kstDays(now, g.at)) : ''}</span>
       </div>`) : html`<${Empty}>${last ? 'No gates ahead.' : 'Log your level to see the gates.'}<//>`}
       ${!o.rate && last ? html`<p class="note">${last && last.level < exp.from ? `Gate dates show from Lv. ${exp.from}, where the EXP figures start.` : "Dates show once you've logged your level on two different days."}</p>` : null}
-      <p class="note">${exp.source}</p>
+      <p class="note">${exp.source}${exp.gatesSource ? ` ${exp.gatesSource}` : ''}</p>
     <//>
     <${ExpSourcesCard} data=${data} level=${last ? last.level : null} />
   </div>`;
@@ -237,6 +237,10 @@ export function ErdaCosts({ data, char, entry, template, since = null, now = Dat
   const up = data.upgrades.erda;
   const weekly = { ...up.weeklyDefault, ...(entry.weekly || {}) };
   const costs = entry.costs || {};
+  // The most Sol Erda this character can hold (v.272): its level from Characters.
+  const level = Number(char && char.level);
+  const cap = solErdaCap(level, up.holdCap);
+  const held = entry.solErda || 0;
   const set = (fn) => update((s) => {
     const e = charSlice(s, 'erda', char.id, () => ({ template: erdaTemplateFor(data.erda, char, entry), levels: {}, steps: {} }));
     fn(e);
@@ -269,6 +273,11 @@ export function ErdaCosts({ data, char, entry, template, since = null, now = Dat
         </div>` : null}</div>
       <span class=${'date' + (r.ready ? ' now' : '')}>${!r.known ? '—' : r.ready ? 'Ready now' : r.at === null ? 'add income' : r.at <= now ? 'update what you hold' : `about ${fmtDay(r.at, now)}`}</span>
     </div>`) : html`<${Empty}>Every step in the order is done.<//>`}
+    ${cap ? html`<p class=${held >= cap || held + (weekly.sol || 0) > cap ? 'warnbox' : 'note'}>${held >= cap
+      ? `You hold ${held} Sol Erda, the most a Lv. ${level} character can hold (${cap}). Spend some before more arrives, or it is wasted.`
+      : held + (weekly.sol || 0) > cap
+        ? `A week's Sol Erda would take you past ${cap}, the most a Lv. ${level} character can hold. Spend some first.`
+        : `A Lv. ${level} character can hold up to ${cap} Sol Erda.`} ${up.holdCapSource || ''}</p>` : null}
     <p class="note">${up.source} Dates count every step above in order, from the day you last changed the figures on this page. Sol Erda and Fragments are not added by themselves: retype what you hold now and then.</p>
   <//>`;
 }

@@ -94,6 +94,12 @@ export function dedupeEvents(events) {
   return [...byLoose.values()];
 }
 
+// A Cash Shop sale. An offer in a sale post that is priced in mesos (`mesos`, set by the data job: Heroic cube
+// packs on Black Friday) is an in-game offer and is not hidden with them.
+export function isCashSale(e) {
+  return Boolean(e && e.category === 'sale' && !e.mesos);
+}
+
 // Today's "Ending soon" list: live events ending within the horizon, soonest first. Cash Shop sales and events
 // you dismissed stay out unless asked for; the counts say how many were left out.
 export function endingSoon(live, now, opts = {}) {
@@ -101,7 +107,7 @@ export function endingSoon(live, now, opts = {}) {
   const hidden = opts.hidden || {};
   const within = (live || []).filter((e) => Date.parse(e.end) > now && Date.parse(e.end) - now < horizon);
   const kept = within.filter((e) => !hidden[eventKey(e)]);
-  const sales = kept.filter((e) => e.category === 'sale');
-  const shown = (opts.showSales ? kept : kept.filter((e) => e.category !== 'sale')).sort((a, b) => Date.parse(a.end) - Date.parse(b.end));
+  const sales = kept.filter(isCashSale);
+  const shown = (opts.showSales ? kept : kept.filter((e) => !isCashSale(e))).sort((a, b) => Date.parse(a.end) - Date.parse(b.end));
   return { shown, salesHidden: opts.showSales ? 0 : sales.length, dismissed: within.length - kept.length };
 }

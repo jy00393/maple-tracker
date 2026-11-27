@@ -3,7 +3,7 @@ import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty, useClock } from '../ui.js';
 import { symbolPlan, liberationPlan, liberationCounted, liberationFromBosses, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos, shareKey } from '../calc/income.js';
-import { fmtDate, fmtDay, asOf, kstDays, dayWord, nextReset, DAY } from '../time.js';
+import { fmtDate, fmtDay, fmtKst, asOf, kstDays, dayWord, nextReset, DAY } from '../time.js';
 import { changedAt } from '../calc/asof.js';
 import { LevelView, ErdaCosts } from './level.js';
 import { ChampionsView } from './champions.js';
@@ -50,6 +50,14 @@ function SymbolTable({ kind, kindData, char, entries, now }) {
     <p class="note">Level 0 means not unlocked yet. "Held" is symbols you have but haven't fused. "Per day" starts at the Heroic daily quest amount and "Per week" at the weekly quest amount; both count toward the dates. Change either to match what you really do.</p>
     <p class="note">Dates count from the day you last typed Level or Held, at your per-day amount. The tracker never adds symbols by itself: retype Held after fusing, after a missed day, or when a date has passed.</p>
   <//>`;
+}
+
+// The Etherion Relic's extra daily symbols (an event perk): a hint while it lasts. The defaults are not raised,
+// since the perk ends and only applies once the player has activated it.
+export function relicNote(bonus, now) {
+  const until = bonus ? Date.parse(bonus.until) : NaN;
+  if (!Number.isFinite(until) || now > until) return null;
+  return html`<p class="note">Etherion Relic active? It adds ${bonus.arcane} Arcane and ${bonus.sacred} Sacred symbols a day to each area's daily quest until ${fmtKst(until)}. Add them to "Per day" while it lasts, and take them off after. ${bonus.source}</p>`;
 }
 
 // A plan, not a record: the list says which trace bosses the character clears each week, and the traces are
@@ -209,7 +217,8 @@ export function ProgressPage({ data, state }) {
     body = html`<div class="grid">
       <${SymbolTable} kind="sacred" kindData=${data.symbols.sacred} char=${char} entries=${entries} now=${now} />
       <${SymbolTable} kind="arcane" kindData=${data.symbols.arcane} char=${char} entries=${entries} now=${now} />
-      <p class="note">${data.symbols.source}</p>
+      ${relicNote(data.symbols.relicBonus, now)}
+      <p class="note">${data.symbols.source} Vanishing Journey's "Per week" starts at 0: no source read says whether its weekly pays 240 like the other areas.</p>
     </div>`;
   } else if (view === 'liberation') {
     const lib = state.liberation[char.id] || {};

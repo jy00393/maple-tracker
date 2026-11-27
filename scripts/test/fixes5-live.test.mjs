@@ -197,11 +197,12 @@ test('5 42: Checklist clears yesterday\'s ticks at the reset second, and a tick 
   await setBox(box(el2, 'cl-d-coupon'), true);
   await setBox(box(el2, 'cl-d-ursus'), true);
   clock.t = Date.parse('2026-11-29T00:20:00Z');
-  await setBox(box(el2, 'cl-d-cards'), true);
-  assert.ok(ticked(box(el2, 'cl-d-cards')), 'the new tick is shown');
+  // A third core daily (Training Cards became optional: cards only come with Defense Mission claims).
+  await setBox(box(el2, 'cl-d-sauna'), true);
+  assert.ok(ticked(box(el2, 'cl-d-sauna')), 'the new tick is shown');
   assert.ok(!ticked(box(el2, 'cl-d-coupon')) && !ticked(box(el2, 'cl-d-ursus')), 'yesterday\'s ticks are gone');
   assert.match(textOf(el2), /Core dailies today 1 \/ \d+/);
-  assert.equal(store.getState().checklist.items['main|d-cards'].p, 'daily:2026-11-29');
+  assert.equal(store.getState().checklist.items['main|d-sauna'].p, 'daily:2026-11-29');
   unmount(el2);
 
   // A tab brought back to the front redraws at once, before any timer.
@@ -609,7 +610,7 @@ test('1: with Sync on, a tab that stays on screen picks up the other device\'s t
 
     // A sync for another reason (a tick here) moves the next timed check back.
     gets = gist.gets;
-    await setBox(box(el, 'cl-d-cards'), true);
+    await setBox(box(el, 'cl-d-sauna'), true);
     await advance(10 * SEC);
     assert.equal(gist.gets, gets + 1, 'the tick was sent 4 s later');
     await advance(sync.POLL_MS - 30 * SEC);

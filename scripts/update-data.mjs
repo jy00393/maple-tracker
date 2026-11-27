@@ -29,7 +29,7 @@ const DAY = 86400000;
 const MAX_DETAIL_FETCHES = 30;
 const NEWS_KEEP = 150;
 // Raise this when the parser learns something new, so cached posts are read again (a few per run).
-const PARSER_VERSION = 5;
+const PARSER_VERSION = 6;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
