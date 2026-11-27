@@ -51,7 +51,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: .005em; }
 
 /* ---------- header ---------- */
 .topbar { position: sticky; top: 0; z-index: 20; background: rgba(22, 28, 17, .9); backdrop-filter: blur(10px); border-bottom: 1px solid #2E3628; }
-.topbar-inner { max-width: 1260px; margin: 0 auto; padding: 12px 18px 0; display: grid; gap: 10px; }
+/* env(safe-area-inset-*): an installed iPhone app draws under the status bar and, sideways, beside the notch
+   (index.html: viewport-fit=cover, black-translucent). Everywhere else they are 0. */
+.topbar-inner { max-width: 1260px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top, 0px)) max(18px, env(safe-area-inset-right, 0px)) 0 max(18px, env(safe-area-inset-left, 0px)); display: grid; gap: 10px; }
 .brand-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
 .logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(160deg, #FFC164, #E8892A); display: grid; place-items: center; box-shadow: 0 4px 14px rgba(254, 172, 66, .25); }
@@ -253,7 +255,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
 /* ---------- modal ---------- */
 .modal-back { position: fixed; inset: 0; z-index: 60; background: rgba(12, 16, 9, .74); display: grid; place-items: center; padding: 16px; }
-.modal { width: min(940px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--panel); border: 1px solid #3C3C3C; border-radius: 22px; box-shadow: 0 30px 90px rgba(0, 0, 0, .6); }
+/* dvh: on phones 100vh is the height with the address bar hidden, so the footer could sit below the screen. */
+.modal { width: min(940px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: auto; background: var(--panel); border: 1px solid #3C3C3C; border-radius: 22px; box-shadow: 0 30px 90px rgba(0, 0, 0, .6); }
 .modal-h { padding: 20px 24px 6px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .modal-h h3 { margin: 0; font-size: 26px; font-weight: 900; }
 .modal-b { padding: 10px 24px 18px; display: grid; gap: 18px; grid-template-columns: 290px 1fr; align-items: start; }
@@ -291,9 +294,12 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .page-head h2 { font-size: 26px; }
 }
 @media (max-width: 560px) {
-  main { padding: 16px 12px 64px; }
-  .clocks { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  main { padding: 16px max(12px, env(safe-area-inset-right, 0px)) 64px max(12px, env(safe-area-inset-left, 0px)); }
+  /* Every reset clock stays on screen: the pills wrap instead of scrolling sideways, and the clock time drops its
+     UTC half (the resets themselves are the point here). */
+  .clocks { flex-wrap: wrap; overflow: visible; }
   .clocks span { white-space: nowrap; }
+  .clocks .utc { display: none; }
   .row { grid-template-columns: 22px 1fr; }
   .row .right { grid-column: 2 / -1; justify-content: flex-start; }
   .goal { grid-template-columns: 1fr auto; }
@@ -350,7 +356,7 @@ details > summary { cursor: pointer; padding: 6px 0; }
   .tabs { display: none; }
   .topbar-inner { padding-bottom: 10px; }
   main { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
-  .bottomnav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgba(22, 28, 17, .97); backdrop-filter: blur(10px); border-top: 1px solid #2E3628; padding: 5px 6px calc(5px + env(safe-area-inset-bottom)); }
+  .bottomnav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgba(22, 28, 17, .97); backdrop-filter: blur(10px); border-top: 1px solid #2E3628; padding: 5px max(6px, env(safe-area-inset-right, 0px)) calc(5px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
   .bn { position: relative; display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 54px; border: 0; background: none; border-radius: 12px; color: var(--muted); text-decoration: none; font-family: var(--font-display); font-weight: 800; font-size: 11.5px; cursor: pointer; }
   .bn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
   .bn[aria-current="page"] { color: var(--accent); background: rgba(254, 172, 66, .1); }
@@ -438,3 +444,14 @@ details.fold > summary:hover h3 { color: var(--accent); }
   .wslot .pic .txt { -webkit-line-clamp: 1; }
 }
 .cp-no { color: var(--warn); font-weight: 600; }
+
+/* ---------- Phones: no zoom on focus, finger-sized counters ---------- */
+/* iPhone Safari zooms the page in when a box under 16px gets the focus. Every text box, number box and dropdown is
+   16px on phones; the class selectors are needed to beat .input.sm / .select.sm above. */
+@media (max-width: 760px) {
+  input, select, textarea, .input, .select, .input.sm, .select.sm, .char-pick select, .tbl .select.sm { font-size: 16px; }
+}
+/* The − / + of the daily counters (Today, Checklist) are tapped every day. */
+@media (max-width: 900px) {
+  .counter .iconbtn { width: 38px; height: 38px; font-size: 18px; flex: none; }
+}
