@@ -7,6 +7,7 @@ import { Card, Left, plural } from '../ui.js';
 import { fmtKst, kstDays, periodKey } from '../time.js';
 import { bulkTargets, weeklyTargets, seasonFold, notesShown } from '../calc/daily.js';
 import { seasonOutlook } from '../calc/season.js';
+import { expiringSoon } from '../calc/seasoncount.js';
 import { undoable } from '../undo.js';
 import { toggleClear } from './bosses.js';
 import { streakInfo } from './session.js';
@@ -80,15 +81,30 @@ export function RowNote({ note, label }) {
 }
 
 // Today: the Challenger season card, folded to one line (days left, next deadline) until 14 days before its first
-// deadline. One press opens the whole card. `Full` is the whole card (Today's SeasonCard).
-export function SeasonFold({ Full, season, state, now }) {
+// deadline. One press opens the whole card. `Full` is the whole card (Today's SeasonCard); `data`, `char` and
+// `level` are passed on to it (its "Use it or lose it" list). The one line names the soonest thing that expires
+// in the next 3 weeks, if any, so the fold never hides it.
+export function SeasonFold({ Full, season, state, now, data, char, level }) {
   const [open, setOpen] = useState(false);
   const o = seasonOutlook(season, state.ui.seasonDone, now);
   const fold = open ? null : seasonFold(o, now);
-  if (!fold) return html`<${Full} season=${season} state=${state} now=${now} />`;
+  if (!fold) return html`<${Full} season=${season} state=${state} now=${now} data=${data} char=${char} level=${level} />`;
   const d = kstDays(now, o.ends);
+  const exp = expiringLine(data, state, char, level, now);
   return html`<${Card} className="span2 season-mini" bodyClass="card-b">
-    <p class="season-line"><b>${season.name}</b>: ${d} days left. Next deadline ${fmtKst(fold.at, false)} (<${Left} until=${fold.at} after=" left" done="passed" />, ${fold.open} ${plural(fold.open, 'step')} open).${' '}
+    <p class="season-line"><b>${season.name}</b>: ${d} days left. Next deadline ${fmtKst(fold.at, false)} (<${Left} until=${fold.at} after=" left" done="passed" />, ${fold.open} ${plural(fold.open, 'step')} open).${exp ? ` ${exp}` : ''}${' '}
       <button type="button" class="linkbtn" aria-expanded="false" onClick=${() => setOpen(true)}>Show all ${o.total} steps</button></p>
   <//>`;
+}
+
+// "Expiring soon: X on 5 Dec (and 2 more)." for the folded season line, or null when nothing expires in 3 weeks.
+export function expiringLine(data, state, char, level, now) {
+  if (!data || !char) return null;
+  let groups;
+  try { groups = expiringSoon(data, state.shops, { level, challenger: Boolean(char.challenger), world: char.world || 'heroic' }, now); } catch { return null; }
+  if (!groups || !groups.length) return null;
+  const names = groups.flatMap((g) => [...g.hand.map((h) => h.label), ...g.picks.map((p) => p.item.name), ...g.shops.map((x) => `items from ${x.name}`)]);
+  if (!names.length) return null;
+  const more = names.length - 1;
+  return `Expiring soon: ${names[0]} on ${fmtKst(groups[0].at, false)}${more ? ` (and ${more} more)` : ''}.`;
 }

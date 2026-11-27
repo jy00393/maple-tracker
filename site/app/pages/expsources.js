@@ -2,6 +2,7 @@ import { html } from '../../vendor/htm-preact.mjs';
 import { Card, Empty, fmtBig } from '../ui.js';
 import { expSourcesAt } from '../calc/expsources.js';
 import { expToNext } from '../calc/upgrades.js';
+import { SeasonalPotions } from './seasoncount.js';
 
 const pct = (share) => (share >= 0.1 ? (share * 100).toFixed(1) : (share * 100).toFixed(2)) + '%';
 
@@ -25,6 +26,7 @@ export function ExpSourcesCard({ data, level }) {
     </div>
     ${o.dungeons.length > 1 ? html`<p class="note">Dungeons for your level: ${o.dungeons.map((d) => `${d.name} ${fmtBig(d.exp)}${d.needs ? ` (${d.needs})` : ''}`).join(' · ')}.</p>` : p && p.best.needs ? html`<p class="note">${p.best.name} needs: ${p.best.needs}.</p>` : null}
     ${o.potions.length ? html`<p class="note">Usable now: ${o.potions.map((x) => x.name).join(', ')}. ${src.potions.note}</p>` : null}
+    <${SeasonalPotions} data=${data} level=${o.level} />
     <p class="note">${mp.note}${!toNext && o.level < data.upgrades.exp.from ? ` Shares of a level are shown from Lv. ${data.upgrades.exp.from}, where the EXP table starts.` : ''}</p>
     <p class="note">${src.note} ${src.source}</p>
   <//>`;

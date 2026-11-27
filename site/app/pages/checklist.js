@@ -9,6 +9,7 @@ import { toggleClear } from './bosses.js';
 import { sealNoteFor } from './challenger.js';
 import { undoable } from '../undo.js';
 import { AllDone, StreakLine, NotesToggle, RowNote } from './daily.js';
+import { seasonCaps } from '../calc/seasoncount.js';
 
 export { itemStatus, resetOf, recordKey };
 
@@ -23,7 +24,7 @@ export function whoFor(data, state, c) {
   if (!c) return {};
   const bosses = data.bosses && data.bossById ? { data: data.bosses, byId: data.bossById, all: state.bosses || {}, char: c, chars: state.characters || [] } : null;
   // open: the symbol areas Progress already holds a level for, so their dailies are never shown as locked.
-  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]), sealNote: () => sealNoteFor(data, state, c) };
+  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]), sealNote: () => sealNoteFor(data, state, c), caps: seasonCaps(data, state.season) };
 }
 
 const DAY_NAMES = { mon: ['Mon', 'Monday'], wed: ['Wed', 'Wednesday'], thu: ['Thu', 'Thursday'] };
@@ -91,7 +92,10 @@ export function Item({ item, group, cs, now, who }) {
   let left;
   let right = [];
   const accountPill = item.scope === 'account' ? html`<span class="pill" title="Ticked once for the whole account">account</span>` : null;
-  if (item.type === 'count') {
+  if (st.seasonDone) {
+    left = html`<span class="mark on" aria-hidden="true"></span>`;
+    right.push(html`<span class="pill" title="The season count on Today has reached its cap">done for the season</span>`);
+  } else if (item.type === 'count') {
     left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
     right.push(html`<${Counter} value=${st.count} target=${item.target} label=${item.label}
       disabled=${st.locked} onStep=${(d) => bumpCount(item, group, who, d)} />`);
@@ -131,7 +135,7 @@ export function Item({ item, group, cs, now, who }) {
   const chips = st.rows && !st.prompt && item.type !== 'link' ? st.rows : null;
   const label = st.prompt
     ? html`<span class="lbl"><a href=${item.href || '#bosses'}>${item.empty || item.label}</a></span>`
-    : st.rows || (item.type && item.type !== 'check')
+    : st.seasonDone || st.rows || (item.type && item.type !== 'check')
       ? html`<span class="lbl">${item.label}</span>`
       : html`<label class="lbl" for=${id}>${item.label}</label>`;
   return html`<div class=${cls}>

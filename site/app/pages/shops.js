@@ -2,7 +2,8 @@ import { html, useState } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
 import { Card, Fold, NumberInput, Stepper, Empty, plural } from '../ui.js';
 import { shopPlan, itemCap, limitText, weeksLeft } from '../calc/shops.js';
-import { fmtKst, kstDays, asOf } from '../time.js';
+import { fmtKst, fmtDay, kstDays, asOf } from '../time.js';
+import { ExpiryWarning } from './seasoncount.js';
 import { changedAt } from '../calc/asof.js';
 import { resetOf, itemStatus } from '../calc/checklist.js';
 import { worldKey } from '../calc/income.js';
@@ -96,6 +97,7 @@ function Shop({ shop, state, char, now, resetKind, data = {} }) {
       </div>
       ${shop.note ? html`<p class="warnbox">${shop.note}</p>` : null}
       ${plan.short ? html`<p class="warnbox">Your picks cost ${num(plan.short)} ${coin} more than you can reach. Drop a pick, or lower a number.</p>` : null}
+      <${ExpiryWarning} shop=${shop} plan=${plan} now=${now} resetKind=${resetKind} weekly=${income || undefined} />
       <div class="toolbar">
         <label class="small"><input type="checkbox" checked=${onlyPicked} onChange=${(e) => setOnlyPicked(e.currentTarget.checked)} /> Only my picks</label>
         ${plan.picked ? html`<button type="button" class="btn ghost" onClick=${() => set((x) => { x.want = {}; })}>Clear picks</button>` : null}
@@ -105,7 +107,7 @@ function Shop({ shop, state, char, now, resetKind, data = {} }) {
         <tbody>
           ${rows.length === 0 ? html`<tr><td colspan="3"><span class="small muted">No picks yet.</span></td></tr>` : rows.map(({ item, want, cost }) => html`<tr class=${want ? '' : 'off'}>
             <td>${item.name}
-              <div class="small muted">${num(item.cost)} each · limit ${limitText(item)}${item.note ? ' · ' + item.note : ''}${item.notChallenger && char && char.challenger ? ' · not sold in Challenger World' : ''}</div></td>
+              <div class="small muted">${num(item.cost)} each · limit ${limitText(item)}${item.expires ? ` · expires ${fmtDay(Date.parse(item.expires), now)}` : ''}${item.note ? ' · ' + item.note : ''}${item.notChallenger && char && char.challenger ? ' · not sold in Challenger World' : ''}</div></td>
             <td><${Stepper} label=${'Still to buy: ' + item.name} value=${want} max=${itemCap(item) ?? 9999} onChange=${(v) => set((x) => { if (v) x.want[item.id] = v; else delete x.want[item.id]; })} /></td>
             <td class="num">${want ? num(cost) : '—'}</td>
           </tr>`)}

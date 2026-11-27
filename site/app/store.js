@@ -53,6 +53,9 @@ export function blankState() {
     // challenger[charId] = { done: { missionId: t }, target? }: Challenger World boss and seasonal missions done.
     challenger: {},
     champions: { slots: [], raid: {} },
+    // Season counters typed in from the game, for the whole account: { pass, supply, defense, ether, core }
+    // (calc/seasoncount.js). A figure not typed yet is absent.
+    season: {},
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},
     // showNotes: Checklist notes on this device (null = shown above 760px wide, behind an (i) below); never synced.

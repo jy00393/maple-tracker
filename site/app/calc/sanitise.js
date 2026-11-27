@@ -3,6 +3,7 @@
 // are dropped or reset. Unknown extra fields are kept, so a newer version's data survives an older one.
 import { cleanDrops, isDay } from './pitched.js';
 import { cleanChampions } from './champions.js';
+import { cleanSeason } from './seasoncount.js';
 
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const obj = (v) => (isObj(v) ? v : {});
@@ -253,6 +254,7 @@ export function sanitiseState(raw, base) {
   out.shops = mapOf(raw.shops, shopOf);
   out.challenger = mapOf(raw.challenger, challengerOf);
   out.champions = cleanChampions(raw.champions);
+  out.season = cleanSeason(raw.season);
   out.incomeHistory = mapOf(raw.incomeHistory, (h) => ({ ...h, earned: num(h.earned, 0, 0), planned: num(h.planned, 0, 0) }));
 
   out.updatedAt = num(raw.updatedAt, 0, 0);

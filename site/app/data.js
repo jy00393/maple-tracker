@@ -26,9 +26,10 @@ const FILES = {
   bossCp: 'data/bosscp.json',
   classes: 'data/classes.json',
   bounty: 'data/bounty.json',
-  challenger: 'data/challenger.json'
+  challenger: 'data/challenger.json',
+  etherion: 'data/etherion.json'
 };
-const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season', 'bounty', 'challenger']);
+const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season', 'bounty', 'challenger', 'etherion']);
 // The files the 6-hourly job rewrites. An open page reads these again (refreshData); the rest only change with a
 // new version of the site.
 const LIVE = ['events', 'news', 'nexonCharacters', 'shops'];

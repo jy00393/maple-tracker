@@ -379,7 +379,7 @@ test('Season card: one line until 14 days before its first deadline, whole after
   assert.equal(seasonFold(seasonOutlook(season, {}, first - 13 * DAY), first - 13 * DAY), null);
   let el = await show(TodayPage);
   let text = squash(el.text);
-  assert.match(text, new RegExp(`${season.name}: \\d+ days left\\. Next deadline .+? \\(.+? left, \\d+ steps? open\\)\\. Show all ${season.actions.length} steps`));
+  assert.match(text, new RegExp(`${season.name}: \\d+ days left\\. Next deadline .+? \\(.+? left, \\d+ steps? open\\)\\.(?: Expiring soon: .+?\\.)? Show all ${season.actions.length} steps`));
   assert.doesNotMatch(text, /end-of-season steps still open/);
   button(el, /^Show all \d+ steps$/).fire('click');
   await until(() => /end-of-season steps still open/.test(squash(el.text)), 'the whole card');
