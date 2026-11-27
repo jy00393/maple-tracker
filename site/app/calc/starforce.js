@@ -124,10 +124,33 @@ function rng(seed) {
 
 // Spread of outcomes from simulated runs: median, 75th, 90th and 95th percentile cost.
 export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, runs = 3000, seed = 7) {
+  const costs = starCosts(sf, itemLevel, from, to, opts, replaceCost, runs, seed);
+  if (costs === null) return null;
+  if (!costs.length) return { p50: 0, p75: 0, p90: 0, p95: 0 };
+  const q = (p) => costs[Math.min(costs.length - 1, Math.floor(p * costs.length))];
+  return { p50: q(0.5), p75: q(0.75), p90: q(0.9), p95: q(0.95) };
+}
+
+// The cost of every simulated run, cheapest first ([] when there is nothing to do, null when a run never got
+// there). The same inputs and seed always give the same runs, so the spread and the chance read from one draw.
+// Kept, since the page asks for the same item on every redraw. The list is shared: never change it.
+const runCache = new WeakMap();
+export function starCosts(sf, itemLevel, from, to, opts = {}, replaceCost = 0, runs = 3000, seed = 7) {
   from = Math.max(0, Math.floor(Number(from) || 0));
   to = Math.max(0, Math.floor(Number(to) || 0));
   const target = Math.min(to, maxStarsFor(sf, itemLevel));
-  if (from >= target) return { p50: 0, p75: 0, p90: 0, p95: 0 };
+  if (from >= target) return [];
+  const id = JSON.stringify([itemLevel, from, target, Boolean(opts.discount), Boolean(opts.lessBoom), Boolean(opts.safeguard), opts.mvp || 'none', replaceCost, runs, seed]);
+  let hit = runCache.get(sf);
+  if (!hit) runCache.set(sf, (hit = new Map()));
+  if (!hit.has(id)) {
+    if (hit.size > 40) hit.clear();
+    hit.set(id, simulate(sf, itemLevel, from, target, opts, replaceCost, runs, seed));
+  }
+  return hit.get(id);
+}
+
+function simulate(sf, itemLevel, from, target, opts, replaceCost, runs, seed) {
   const { at } = table(sf, itemLevel, from, target, opts);
   const rand = rng(seed);
   const costs = [];
@@ -149,6 +172,5 @@ export function starSpread(sf, itemLevel, from, to, opts = {}, replaceCost = 0, 
     costs.push(cost);
   }
   costs.sort((a, b) => a - b);
-  const q = (p) => costs[Math.min(costs.length - 1, Math.floor(p * costs.length))];
-  return { p50: q(0.5), p75: q(0.75), p90: q(0.9), p95: q(0.95) };
+  return Object.freeze(costs);
 }

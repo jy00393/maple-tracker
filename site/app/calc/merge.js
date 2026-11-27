@@ -65,7 +65,8 @@ const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared', 'asOf']
 // The same goes for which tab of a page is showing, for the news read marker the Events page sets itself, and
 // for Checklist's "Show notes" switch (a phone and a desktop each keep their own).
 // cwHigherCounts (whether a harder Challenger boss clear completes the easier mission) is set per device too.
-const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews', 'cwHigherCounts', 'showNotes']);
+// budget: mesos typed on Mesos for one "What your mesos buy" calculation, kept on this device only.
+const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews', 'cwHigherCounts', 'showNotes', 'budget']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
 // Typed figures (symbols held, traces) carry the day they were typed as `at`. Figures saved before that are
 // dated by each device on its own first load (store.js), with no change time moved. So two copies can hold the
