@@ -19,6 +19,7 @@ import { seasonOutlook } from '../calc/season.js';
 import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
 import { levelOutlook, knownLevel } from './level.js';
+import { ChallengerToday } from './challenger.js';
 
 // The next symbol levels, soonest first. Each date is fixed on the day the count was typed (symbolPlan), so it
 // does not move until the count is typed again.
@@ -233,6 +234,7 @@ export function TodayPage({ data, state }) {
         <//>` : null}
         ${char ? html`<${Card} title="Next up">
           ${symbols.length ? html`<div><b>Symbols</b>${symbols.map((s) => html`<div class="small">${s.name} Lv. ${s.level} → ${s.level + 1} ${s.affordable ? 'ready now' : s.nextDue ? html`should be ready: <a href="#progress">update your count</a>` : `ready about ${fmtDay(s.nextAt, now)}`} · ${fmtMesos(s.nextMesos)} mesos</div>`)}</div>` : html`<p class="note">Enter your symbol levels on <a href="#progress">Progress</a> to see level-up dates.</p>`}
+          ${char.challenger ? html`<${ChallengerToday} data=${data} state=${state} char=${char} now=${now} />` : null}
           ${erdaNext.length ? html`<div><b>6th job</b>${erdaNext.map((s) => html`<div class="small">${s.label}</div>`)}</div>` : null}
           ${gearGap && !best ? html`<div><b>Gear</b><div class="small">${gearGap.slot.name}: ${gearGap.gaps.slice(0, 2).join(', ')}</div></div>` : null}
           ${genesis && !genesis.done && Number.isFinite(genesis.weeks) ? html`<div><b>Genesis</b><div class="small">${genesis.remaining.toLocaleString()} ${plural(genesis.remaining, 'trace')} left ${asOf(genesis.at, now)} · ${genesis.due ? html`should be done: <a href="#progress">update your traces</a>` : `done around ${fmtDate(genesis.eta)}`}</div></div>` : null}

@@ -6,6 +6,7 @@ import { StreakRecorder, StreakCard } from './session.js';
 import { itemStatus, resetOf, recordKey, moveResetDay, RESET_CYCLE, openAreas, setUnlocked, listedItems } from '../calc/checklist.js';
 import { knownLevel } from './level.js';
 import { toggleClear } from './bosses.js';
+import { sealNoteFor } from './challenger.js';
 
 export { itemStatus, resetOf, recordKey };
 
@@ -20,7 +21,7 @@ export function whoFor(data, state, c) {
   if (!c) return {};
   const bosses = data.bosses && data.bossById ? { data: data.bosses, byId: data.bossById, all: state.bosses || {}, char: c, chars: state.characters || [] } : null;
   // open: the symbol areas Progress already holds a level for, so their dailies are never shown as locked.
-  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]) };
+  return { id: c.id, name: c.name, level: knownLevel(data, state, c), challenger: Boolean(c.challenger), bosses, open: openAreas((state.symbols || {})[c.id]), sealNote: () => sealNoteFor(data, state, c) };
 }
 
 const DAY_NAMES = { mon: ['Mon', 'Monday'], wed: ['Wed', 'Wednesday'], thu: ['Thu', 'Thursday'] };
@@ -133,6 +134,7 @@ export function Item({ item, group, cs, now, who }) {
     ${chips ? html`<div class="chips">${chips.map((r) => html`<button type="button" class="chip" id=${`${id}-${r.bossId}`} aria-pressed=${String(r.on)} disabled=${st.locked}
       onClick=${() => toggleClear(who.id, r.boss, r.line, !r.on)}>${r.boss.difficulty} ${r.boss.boss}</button>`)}</div>` : null}
     ${item.note && !st.prompt ? html`<p class="note">${item.note}</p>` : null}
+    ${item.id === 'd-seal' && who.sealNote ? html`<p class="note">${who.sealNote()}</p>` : null}
   </div>`;
 }
 

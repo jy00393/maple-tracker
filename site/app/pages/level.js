@@ -119,7 +119,7 @@ function project(exp, from, target, perDay, burnUntil, now = -Infinity) {
     l += 1;
     if (Math.max(t, now) < burnUntil && l < 280) l += 1;
   }
-  return { need, at: perDay > 0 ? t : null };
+  return { need, at: perDay > 0 ? t : null, level: l };
 }
 
 export function levelOutlook(data, state, char, now) {
@@ -148,6 +148,28 @@ export function levelOutlook(data, state, char, now) {
     return { level: lvl, what: parts.join(', '), need: p.need, days, at: p.at, due: p.at != null && p.at <= now };
   }) : [];
   return { readings, last, rate, gates, beyond, burnUntil: Number.isFinite(burnUntil) ? burnUntil : null };
+}
+
+// Each level the planner expects the character to reach before `until`, at the EXP rate of levelOutlook:
+// [{ level, at }], ascending (Beyond Burning can skip a level). Empty without a rate. `o`: a levelOutlook already
+// worked out, to save doing it twice.
+export function levelPath(data, state, char, now, until, o = levelOutlook(data, state, char, now)) {
+  const exp = data.upgrades.exp;
+  if (!o.last || !o.rate || !(o.rate.perDay > 0)) return [];
+  const burnUntil = o.burnUntil == null ? (o.beyond ? Infinity : -Infinity) : o.burnUntil;
+  const out = [];
+  let reached = o.last.level;
+  for (let target = o.last.level + 1; target <= 300; target++) {
+    if (target <= reached) continue;
+    const p = project(exp, o.last, target, o.rate.perDay, burnUntil, now);
+    if (p.at == null || !Number.isFinite(p.need)) break;
+    const at = Math.max(p.at, now);
+    if (at > until) break;
+    // A Beyond Burning level-up lands one past the target: p.level is the level actually reached.
+    out.push({ level: p.level, at });
+    reached = p.level;
+  }
+  return out;
 }
 
 function setChar(char, patch) {

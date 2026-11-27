@@ -8,6 +8,7 @@ import { fmtDate, fmtDay, fmtKst, asOf, kstDays, dayWord, nextReset, DAY } from 
 import { changedAt } from '../calc/asof.js';
 import { LevelView, ErdaCosts, knownLevel } from './level.js';
 import { ChampionsView } from './champions.js';
+import { ChallengerView } from './challenger.js';
 
 function SymbolTable({ kind, kindData, char, entries, now }) {
   // Typing a level or a held count dates the entry: its dates count from that moment (calc/progress.js).
@@ -231,7 +232,8 @@ export function ProgressPage({ data, state }) {
   // Item Burning Plus is Challenger World only (Nexon notice 47305): other characters get no tab for it.
   const ibpOn = Boolean(char.challenger);
   const saved = state.ui.progressView || 'level';
-  const view = saved === 'ibp' && !ibpOn ? 'level' : saved;
+  const cwOn = ibpOn && Boolean(data.challenger);
+  const view = (saved === 'ibp' && !ibpOn) || (saved === 'challenger' && !cwOn) ? 'level' : saved;
   const part = (name) => `${name}/${encodeURIComponent(char.id)}/@`;
   const setView = (v) => update((s) => { s.ui.progressView = v; });
   let body;
@@ -253,6 +255,8 @@ export function ProgressPage({ data, state }) {
       <${Liberation} which="destiny" def=${data.liberation.destiny} char=${char} entry=${lib.destiny || {}} bossById=${data.bossById} bossPicks=${bossPicks} now=${now} />
       <p class="note span2">${data.liberation.source}</p>
     </div>`;
+  } else if (view === 'challenger') {
+    body = html`<${ChallengerView} data=${data} state=${state} char=${char} now=${now} />`;
   } else if (view === 'champions') {
     body = html`<${ChampionsView} data=${data} state=${state} />`;
   } else if (view === 'sixth') {
@@ -263,6 +267,6 @@ export function ProgressPage({ data, state }) {
   return html`
     <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job${ibpOn ? ', Legion Champions and Item Burning' : ' and Legion Champions'}.<//>
     <div class="toolbar"><${Seg} label="Progress section" value=${view} onChange=${setView}
-      options=${[['level', 'Level'], ['symbols', 'Symbols'], ['liberation', 'Liberation'], ['sixth', '6th job'], ['champions', 'Champions'], ...(ibpOn ? [['ibp', 'Item Burning']] : [])]} /></div>
+      options=${[['level', 'Level'], ...(cwOn ? [['challenger', 'Challenger']] : []), ['symbols', 'Symbols'], ['liberation', 'Liberation'], ['sixth', '6th job'], ['champions', 'Champions'], ...(ibpOn ? [['ibp', 'Item Burning']] : [])]} /></div>
     ${body}`;
 }
