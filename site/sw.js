@@ -148,6 +148,17 @@ function within(promise, ms) {
 }
 
 const slowPages = new Map(); // page id -> when one of its requests fell back to the stored copy
+// Page id -> when its page itself came from the network. Such a page waits for the network for every file (with
+// the stored copy only when a request fails outright), so a slow file does not swap in an older stored copy
+// next to new ones. A failed request can still do that; index.html then says to reload.
+const freshPages = new Map();
+function isFresh(id) {
+  const at = id ? freshPages.get(id) : 0;
+  if (!at) return false;
+  if (Date.now() - at < SLOW_FOR_MS) return true;
+  freshPages.delete(id);
+  return false;
+}
 function isSlow(id) {
   const at = id ? slowPages.get(id) : 0;
   if (!at) return false;
@@ -191,9 +202,14 @@ self.addEventListener('fetch', (event) => {
     if (hit) {
       // A page whose earlier file already came from the stored copy takes the rest from there too.
       if (isSlow(pageId)) { keepGoing(); return hit; }
+      // A page that came from the network takes its files from there too, however slow.
+      if (req.mode !== 'navigate' && isFresh(pageId)) {
+        try { const res = await net; return good(res) ? res : hit; } catch (err) { return hit; }
+      }
       try {
         const res = await within(net, WAIT_MS);
         // A server error (GitHub Pages mid-deploy, a 503) is worse than the last good copy.
+        if (good(res) && req.mode === 'navigate' && pageId) freshPages.set(pageId, Date.now());
         return good(res) ? res : hit;
       } catch (err) {
         // No connection, or one too slow to answer: the stored copy now; a late answer is stored when it comes.
@@ -210,6 +226,7 @@ self.addEventListener('fetch', (event) => {
     // fails to start.
     try {
       const res = await net;
+      if (good(res) && req.mode === 'navigate' && pageId) freshPages.set(pageId, Date.now());
       if (good(res)) return res;
       if (req.mode === 'navigate') { const shell = await caches.match('./index.html'); if (shell) return shell; }
       return res;

@@ -223,12 +223,13 @@ export function Fold({ title, meta, children, className = '', bodyClass = 'card-
 // At a limit a button is greyed and marked aria-disabled, not truly disabled: a press still reaches the owner, who
 // decides from the current value (so a count drawn just before a reset can never lock the + button), and the
 // keyboard focus stays on the button.
-export function Counter({ value, target, onChange, onStep, label }) {
-  const step = (d) => (onStep ? onStep(d) : onChange(Math.max(0, Math.min(target, value + d))));
+// `disabled`: the item is locked (level or quest); the count is shown and cannot be changed.
+export function Counter({ value, target, onChange, onStep, label, disabled }) {
+  const step = (d) => { if (disabled) return; if (onStep) onStep(d); else onChange(Math.max(0, Math.min(target, value + d))); };
   return html`<div class="counter">
-    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} aria-disabled=${String(value <= 0)} onClick=${() => step(-1)}>−</button>
+    <button type="button" class="iconbtn" aria-label=${'One fewer: ' + label} aria-disabled=${String(Boolean(disabled) || value <= 0)} disabled=${Boolean(disabled)} onClick=${() => step(-1)}>−</button>
     <span class=${'val' + (value >= target ? ' full' : '')} aria-live="polite">${value} / ${target}</span>
-    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} aria-disabled=${String(value >= target)} onClick=${() => step(1)}>+</button>
+    <button type="button" class="iconbtn" aria-label=${'One more: ' + label} aria-disabled=${String(Boolean(disabled) || value >= target)} disabled=${Boolean(disabled)} onClick=${() => step(1)}>+</button>
   </div>`;
 }
 

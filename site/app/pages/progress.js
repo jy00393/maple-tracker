@@ -6,7 +6,7 @@ import { symbolPlan, liberationPlan, liberationCounted, liberationFromBosses, er
 import { fmtMesos, shareKey } from '../calc/income.js';
 import { fmtDate, fmtDay, fmtKst, asOf, kstDays, dayWord, nextReset, DAY } from '../time.js';
 import { changedAt } from '../calc/asof.js';
-import { LevelView, ErdaCosts } from './level.js';
+import { LevelView, ErdaCosts, knownLevel } from './level.js';
 import { ChampionsView } from './champions.js';
 
 function SymbolTable({ kind, kindData, char, entries, now }) {
@@ -164,7 +164,7 @@ function SixthJob({ data, char, entry, now, since }) {
   </div>`;
 }
 
-function ItemBurning({ data, char, entry, now, crestsAt, bossState }) {
+function ItemBurning({ data, char, entry, now, crestsAt, bossState, level }) {
   const done = entry.done || {};
   const crests = entry.crests || 0;
   const set = (fn) => update((s) => {
@@ -176,7 +176,8 @@ function ItemBurning({ data, char, entry, now, crestsAt, bossState }) {
   const nextNeed = data.ibp.stages.find((st) => !done[st.id] && st.crests > crests);
   // Crests a week: the 5 hunts plus the Boss Defeat Mission crests of the solo weekly bosses picked on Bosses.
   const hunts = Number(data.ibp.weeklyCrests) || 0;
-  const fromBosses = bossCrests(data.ibp, bossState, data.bossById || {});
+  // A pick above the character's level pays nothing until it opens.
+  const fromBosses = bossCrests(data.ibp, bossState, data.bossById || {}, { level: level ?? char.level, challenger: Boolean(char.challenger) });
   const perWeek = hunts + fromBosses.total;
   const weeks = nextNeed ? crestWeeks(nextNeed.crests - crests, perWeek) : 0;
   const what = fromBosses.total ? 'of hunts and boss crests' : 'of hunts';
@@ -257,7 +258,7 @@ export function ProgressPage({ data, state }) {
   } else if (view === 'sixth') {
     body = html`<${SixthJob} data=${data} char=${char} entry=${state.erda[char.id] || {}} now=${now} since=${changedAt(state, part('erda'), now)} />`;
   } else {
-    body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} now=${now} crestsAt=${changedAt(state, part('ibp'), now)} bossState=${(state.bosses || {})[char.id]} />`;
+    body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} now=${now} crestsAt=${changedAt(state, part('ibp'), now)} bossState=${(state.bosses || {})[char.id]} level=${knownLevel(data, state, char)} />`;
   }
   return html`
     <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job${ibpOn ? ', Legion Champions and Item Burning' : ' and Legion Champions'}.<//>

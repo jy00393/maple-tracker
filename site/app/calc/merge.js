@@ -633,7 +633,9 @@ export function mergeStates(a, b, now = Date.now()) {
     const p = `characters/${id}`;
     if (ua.has(p) === ub.has(p)) continue;
     const [src, read] = ub.has(p) ? [ub, rb] : [ua, ra];
-    const t = Math.max(ra(p), rb(p));
+    // Only a real removal on the other side lifts the parts (a side that never had the character, such as a new
+    // device, keeps each part's own time, which "as of" dates read).
+    const t = (ub.has(p) ? ra(p) : rb(p)) ? Math.max(ra(p), rb(p)) : 0;
     for (const [path, value] of src) {
       if (!ownedBy(path, id)) continue;
       setUnit(out, path, value);

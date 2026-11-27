@@ -185,6 +185,7 @@
     },
     {
      "id": "w-etherion",
+     "optional": true,
      "label": "Etherion Relics: 10,000 solo kills",
      "note": "Shared by the account. Kills count only while solo. One more completion opens every Wednesday 09:00 KST, up to 12, and they can all be used at once, so a skipped week is not lost. The first one also adds 4 Arcane and 3 Sacred symbols a day to each area's daily quest (Nexon v.272 patch notes, news 47132, read 27 Nov 2026).",
      "until": "2027-02-09T23:59:00Z",

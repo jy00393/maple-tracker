@@ -1,32 +1,36 @@
 // What weekly boss clears pay besides crystals: Item Burning Plus crests (ibp.json `bossCrests`) and Shadow
 // Bounties coins (bounty.json). Both count only solo clears, so both read the solo weekly picks on Bosses.
 // Pure maths, no DOM.
-import { shareKey } from './income.js';
+import { shareKey, entryBlock } from './income.js';
 
 const RANK = { easy: 1, normal: 2, hard: 3, chaos: 4, extreme: 5 };
 const rankOf = (boss) => RANK[String(boss.difficulty || '').toLowerCase()] || 0;
 const isSolo = (pick) => !(pick && Number(pick.party) > 1);
 
-// The weekly bosses a character picked on Bosses, split into solo and party picks.
-export function weeklyPicks(bossState, bossById) {
+// The weekly bosses a character picked on Bosses, split into solo and party picks. With `who` ({ level,
+// challenger }), a pick the character cannot enter yet (entryBlock) pays nothing and goes to `locked`; an
+// unknown level never locks.
+export function weeklyPicks(bossState, bossById, who) {
   const picks = (bossState && bossState.picks) || {};
   const solo = [];
   const party = [];
+  const locked = [];
   for (const [id, pick] of Object.entries(picks)) {
     const boss = bossById && bossById[id];
     if (!boss || boss.reset !== 'weekly') continue;
+    if (who && entryBlock(boss, who)) { locked.push(boss); continue; }
     (isSolo(pick) ? solo : party).push(boss);
   }
-  return { solo, party };
+  return { solo, party, locked };
 }
 
 // Challenge Crests a week from the character's solo weekly picks. Difficulties of one boss share one clear, so
 // each boss counts once, at the best-paying picked difficulty. A picked difficulty that Nexon's table does not
 // list (Extreme Lotus, Hard Mayrin) is not counted and comes back in `unlisted`; party picks pay nothing and come
 // back in `party` when that boss pays crests solo.
-export function bossCrests(ibp, bossState, bossById) {
+export function bossCrests(ibp, bossState, bossById, who) {
   const table = (ibp && ibp.bossCrests) || {};
-  const { solo, party } = weeklyPicks(bossState, bossById);
+  const { solo, party, locked } = weeklyPicks(bossState, bossById, who);
   const groups = new Map();
   for (const boss of solo) {
     const k = shareKey(boss);
@@ -43,7 +47,7 @@ export function bossCrests(ibp, bossState, bossById) {
   rows.sort((a, b) => b.crests - a.crests || (a.boss.id < b.boss.id ? -1 : 1));
   const soloBosses = new Set(solo.map((b) => b.boss));
   const partyPaying = party.filter((b) => !soloBosses.has(b.boss) && Object.keys(table).some((id) => bossById[id] && bossById[id].boss === b.boss));
-  return { rows, total: rows.reduce((a, r) => a + r.crests, 0), unlisted, party: partyPaying };
+  return { rows, total: rows.reduce((a, r) => a + r.crests, 0), unlisted, party: partyPaying, locked: locked.filter((b) => table[b.id] > 0) };
 }
 
 // Weeks of hunts and boss crests to reach `need` more crests. 0 when nothing is needed; Infinity when nothing
@@ -70,13 +74,14 @@ export function bountyRange(row, coin) {
 
 // Bounty Coins a week from the solo weekly picks of the given characters (pass the characters of one world: the
 // caps are per world). Only the best boss of the week pays, so each coin is the highest figure among the picks
-// (the low end of a range), never a sum, then capped. `best[coin]` is the boss that sets it.
-export function bountyWeek(bounty, bossStates, bossById) {
+// (the low end of a range), never a sum, then capped. `best[coin]` is the boss that sets it. `whos[i]` is the
+// character of `bossStates[i]`: a boss that character cannot enter yet is not counted.
+export function bountyWeek(bounty, bossStates, bossById, whos = []) {
   const out = { basic: 0, intermediate: 0, advanced: 0, best: {}, ranged: {} };
   if (!bounty || !bounty.bosses) return out;
   const caps = bounty.caps || {};
-  for (const st of bossStates || []) {
-    for (const boss of weeklyPicks(st, bossById).solo) {
+  (bossStates || []).forEach((st, i) => {
+    for (const boss of weeklyPicks(st, bossById, whos[i]).solo) {
       const row = bounty.bosses[boss.id];
       if (!row) continue;
       for (const coin of BOUNTY_COINS) {
@@ -89,7 +94,7 @@ export function bountyWeek(bounty, bossStates, bossById) {
         }
       }
     }
-  }
+  });
   for (const coin of BOUNTY_COINS) if (caps[coin] > 0) out[coin] = Math.min(out[coin], caps[coin]);
   return out;
 }

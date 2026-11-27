@@ -40,7 +40,8 @@ export function bountyIncome(data, state, char, shop, now) {
   if (!coin || !char || !data || !data.bounty || !data.bounty.bosses) return null;
   const chars = (state.characters || []).filter((c) => c && worldKey(c) === worldKey(char));
   if (!chars.some((c) => c.id === char.id)) chars.push(char);
-  const week = bountyWeek(data.bounty, chars.map((c) => (state.bosses || {})[c.id]), data.bossById || {});
+  const whoOf = (c) => ({ level: knownLevel(data, state, c) ?? c.level, challenger: Boolean(c.challenger) });
+  const week = bountyWeek(data.bounty, chars.map((c) => (state.bosses || {})[c.id]), data.bossById || {}, chars.map(whoOf));
   const found = findItem(data.checklist, shop.bounty.checklistItem);
   const thisWeekDone = Boolean(found && state.checklist && itemStatus(found.item, found.group, state.checklist, now, { id: char.id, level: char.level, challenger: Boolean(char.challenger) }).done);
   const caps = data.bounty.caps || {};
