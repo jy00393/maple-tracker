@@ -59,8 +59,9 @@ const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
 // "cleared" belongs to one browser's storage (see store.js) and is never part of the entries.
 // "asOf" (see liveAsOf) is change-time bookkeeping like the stamps: not an entry, merged on its own.
 const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared', 'asOf']);
-// The same goes for which tab of a page is showing, and for the news read marker the Events page sets itself.
-const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews']);
+// The same goes for which tab of a page is showing, for the news read marker the Events page sets itself, and
+// for Checklist's "Show notes" switch (a phone and a desktop each keep their own).
+const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews', 'showNotes']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
 // Typed figures (symbols held, traces) carry the day they were typed as `at`. Figures saved before that are
 // dated by each device on its own first load (store.js), with no change time moved. So two copies can hold the

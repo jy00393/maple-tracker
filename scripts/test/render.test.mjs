@@ -214,9 +214,10 @@ test('every page renders when optional data files are missing', async () => {
 
 test('Today shows the right things for the right character', async () => {
   store.replaceState(richState(), true);
-  // The season card only shows before the season's last deadline, so this uses a season that is still running.
+  // The season card only shows before the season's last deadline, so this uses a season that is still running,
+  // 10 days from its end (it shows whole from 14 days before the first deadline; earlier it is one line).
   const season = load('season');
-  const running = loadData({ season: shiftDates(season, Date.now() + 30 * 86400000 - Date.parse(season.ends)) });
+  const running = loadData({ season: shiftDates(season, Date.now() + 10 * 86400000 - Date.parse(season.ends)) });
   let el = await show('today', running);
   let text = el.text.replace(/\s+/g, ' ');
   assert.match(text, /Today · Main/);

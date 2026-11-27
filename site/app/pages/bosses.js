@@ -7,6 +7,8 @@ import { dayKey } from '../time.js';
 import { PitchedCard } from './pitched.js';
 import { CombatPowerCard } from './bosscp.js';
 import { reach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
+import { undoable } from '../undo.js';
+import { AllCleared } from './daily.js';
 
 // Saves this crystal week's totals (all characters, after caps) for the Mesos > Income history chart: what was
 // earned, and as `planned` the week's target on the same basis (earned plus what was still open). Mounted
@@ -53,7 +55,7 @@ function blankBosses() {
 // `want` is what the box was moved to (true = ticked). An untick never adds a mark: a box drawn ticked before a
 // reset and clicked just after it leaves the new period empty. Without `want` the current period is toggled.
 export function toggleClear(charId, boss, line, want) {
-  update((s) => {
+  undoable(() => `${want === false ? 'Unticked' : 'Cleared'} ${boss.difficulty} ${boss.boss}`, () => update((s) => {
     const t = Date.now();
     const b = charSlice(s, 'bosses', charId, blankBosses);
     const key = clearKey(boss, t);
@@ -66,7 +68,7 @@ export function toggleClear(charId, boss, line, want) {
     // keep only recent marks
     const keys = Object.keys(marks).sort();
     while (keys.length > 12) delete marks[keys.shift()];
-  });
+  }));
 }
 
 function setPick(charId, bossId, pick) {
@@ -178,7 +180,7 @@ export function BossesPage({ data, state }) {
     </div>
     <div class="grid two">
       <${CombatPowerCard} data=${data} state=${state} char=${char} who=${who} />
-      <${Card} title="This week" meta="Ticks reset with each boss's own reset"><${ThisWeek} char=${char} income=${income} data=${data} who=${who} /><//>
+      <${Card} title="This week" meta=${html`Ticks reset with each boss's own reset <${AllCleared} char=${char} lines=${mine.lines} who=${who} />`}><${ThisWeek} char=${char} income=${income} data=${data} who=${who} /><//>
       <section class="card">
         <div class="card-h"><h3>Bosses you run</h3><span class="meta">Values for ${char.world === 'interactive' ? 'Interactive' : 'Heroic'}</span></div>
         <${Picker} char=${char} data=${data} picks=${picks} margin=${marginOf(data.bossCp, state.ui.bossMargin)} who=${who} />

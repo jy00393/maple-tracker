@@ -53,7 +53,8 @@ export function blankState() {
     champions: { slots: [], raid: {} },
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},
-    ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },
+    // showNotes: Checklist notes on this device (null = shown above 760px wide, behind an (i) below); never synced.
+    ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {}, showNotes: null },
     // When each part last changed, so sync can merge two devices part by part (see calc/merge.js).
     stamps: {},
     // Parts changed only by an import or a restore since: when they were really last changed, for "as of" dates
