@@ -4,560 +4,19 @@ PRODID:-//Maple Tracker//GMS events//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 X-WR-CALNAME:MapleStory GMS events
-X-WR-CALDESC:Event ends\, maintenance and weekly resets from Nexon's news (
- Maple Tracker)
+X-WR-CALDESC:Event ends\, maintenance\, Sunny Sundays\, season deadlines an
+ d weekly resets from Nexon's news (Maple Tracker)
 REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-wednesday-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261126T065900Z
-DTEND:20261126T075900Z
-SUMMARY:Ends: Doorbuster: Black Friday Lucky Box (Wednesday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Doorbuster: Black Friday Lucky Box (Wednesday) ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-dark-musician-permanent-outfit-package-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261126T065900Z
-DTEND:20261126T075900Z
-SUMMARY:Ends: Dark Musician Permanent Outfit Package
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Dark Musician Permanent Outfit Package ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-commander-with-cattertons-face-box-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261126T065900Z
-DTEND:20261126T075900Z
-SUMMARY:Ends: Commander With Cattertons Face Box
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Commander With Cattertons Face Box ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-thursday-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T065900Z
-DTEND:20261127T075900Z
-SUMMARY:Ends: Doorbuster: Black Friday Lucky Box (Thursday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Doorbuster: Black Friday Lucky Box (Thursday) ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-burn-camellia-s-sword-permanent-outfit-package-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T065900Z
-DTEND:20261127T075900Z
-SUMMARY:Ends: Burn! Camellia's Sword Permanent Outfit Package
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Burn! Camellia's Sword Permanent Outfit Package ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-all-star-choice-coupons-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T065900Z
-DTEND:20261127T075900Z
-SUMMARY:Ends: All-Star Choice Coupons
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:All-Star Choice Coupons ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-friday-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T065900Z
-DTEND:20261128T075900Z
-SUMMARY:Ends: Doorbuster: Black Friday Lucky Box (Friday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Doorbuster: Black Friday Lucky Box (Friday) ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-friday-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T080000Z
+UID:47132-cash-shop-transfer-start@maple-tracker
+DTSTAMP:20261110T153000Z
+DTSTART:20261209T000000Z
 DURATION:PT30M
-SUMMARY:Starts: Doorbuster: Black Friday Lucky Box (Friday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-dark-force-permanent-outfit-packages-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T065900Z
-DTEND:20261128T075900Z
-SUMMARY:Ends: Dark Force Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Dark Force Permanent Outfit Packages ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-dark-force-permanent-outfit-packages-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Dark Force Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-radiant-glowing-brilliant-bright-and-dazzling-bonus-glowing--end@
- maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T065900Z
-DTEND:20261128T075900Z
-SUMMARY:Ends: Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glowi
- ng Cube Packs
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glowing
-  Cube Packs ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-radiant-glowing-brilliant-bright-and-dazzling-bonus-glowing--star
- t@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glo
- wing Cube Packs
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-glowing-and-bright-cubes-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T065900Z
-DTEND:20261128T075900Z
-SUMMARY:Ends: Glowing and Bright Cubes
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Glowing and Bright Cubes ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-glowing-and-bright-cubes-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261127T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Glowing and Bright Cubes
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-saturday-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261129T065900Z
-DTEND:20261129T075900Z
-SUMMARY:Ends: Doorbuster: Black Friday Lucky Box (Saturday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Doorbuster: Black Friday Lucky Box (Saturday) ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-saturday-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Doorbuster: Black Friday Lucky Box (Saturday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-fried-chicken-god-permanent-outfit-packages-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261129T065900Z
-DTEND:20261129T075900Z
-SUMMARY:Ends: Fried Chicken God Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Fried Chicken God Permanent Outfit Packages ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-fried-chicken-god-permanent-outfit-packages-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Fried Chicken God Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-beauty-salon-slot-expansions-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261129T065900Z
-DTEND:20261129T075900Z
-SUMMARY:Ends: Beauty Salon Slot Expansions
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Beauty Salon Slot Expansions ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-beauty-salon-slot-expansions-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Beauty Salon Slot Expansions
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-weekend-daily-deals-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T065900Z
-DTEND:20261130T075900Z
-SUMMARY:Ends: Weekend Daily Deals
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Weekend Daily Deals ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-weekend-daily-deals-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261128T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Weekend Daily Deals
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-sunday-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T065900Z
-DTEND:20261130T075900Z
-SUMMARY:Ends: Doorbuster: Black Friday Lucky Box (Sunday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Doorbuster: Black Friday Lucky Box (Sunday) ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-doorbuster-black-friday-lucky-box-sunday-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261129T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Doorbuster: Black Friday Lucky Box (Sunday)
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-executor-permanent-outfit-packages-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T065900Z
-DTEND:20261130T075900Z
-SUMMARY:Ends: Executor Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Executor Permanent Outfit Packages ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-executor-permanent-outfit-packages-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261129T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Executor Permanent Outfit Packages
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-anniversary-surprise-style-box-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T065900Z
-DTEND:20261130T075900Z
-SUMMARY:Ends: Anniversary Surprise Style Box
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Anniversary Surprise Style Box ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-anniversary-surprise-style-box-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261129T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Anniversary Surprise Style Box
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-radiant-glowing-brilliant-bright-and-dazzling-bonus-glowing--2-en
- d@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261201T065900Z
-DTEND:20261201T075900Z
-SUMMARY:Ends: Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glowi
- ng Cube Packs
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glowing
-  Cube Packs ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-radiant-glowing-brilliant-bright-and-dazzling-bonus-glowing--2-st
- art@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Radiant Glowing\, Brilliant Bright\, and Dazzling Bonus Glo
- wing Cube Packs
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-glowing-and-bright-cubes-2-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261201T065900Z
-DTEND:20261201T075900Z
-SUMMARY:Ends: Glowing and Bright Cubes
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Glowing and Bright Cubes ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-glowing-and-bright-cubes-2-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Glowing and Bright Cubes
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-red-familiar-cards-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261201T065900Z
-DTEND:20261201T075900Z
-SUMMARY:Ends: Red Familiar Cards
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Red Familiar Cards ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-red-familiar-cards-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Red Familiar Cards
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-transparent-equipment-sale-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261201T065900Z
-DTEND:20261201T075900Z
-SUMMARY:Ends: Transparent Equipment Sale
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Transparent Equipment Sale ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-transparent-equipment-sale-start@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261130T080000Z
-DURATION:PT30M
-SUMMARY:Starts: Transparent Equipment Sale
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-gachapon-update-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20261202T065900Z
-DTEND:20261202T075900Z
-SUMMARY:Ends: Gachapon Update
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
- hop Update: Nov. 4\; MapleStory Cash Shop Update: Nov. 11)\nhttps://www.ne
- xon.com/maplestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Gachapon Update ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-black-friday-surprise-style-box-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261207T065900Z
-DTEND:20261207T075900Z
-SUMMARY:Ends: Black Friday Surprise Style Box
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Black Friday Surprise Style Box ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47555-black-friday-royal-style-coupons-end@maple-tracker
-DTSTAMP:20261122T160000Z
-DTSTART:20261207T065900Z
-DTEND:20261207T075900Z
-SUMMARY:Ends: Black Friday Royal Style Coupons
-DESCRIPTION:Black Friday 2026!\nhttps://www.nexon.com/maplestory/news/sale/
- 47555
-URL:https://www.nexon.com/maplestory/news/sale/47555
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Black Friday Royal Style Coupons ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-premium-ssb-update-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20261209T065900Z
-DTEND:20261209T075900Z
-SUMMARY:Ends: Premium SSB Update
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
- hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Premium SSB Update ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-royal-styles-update-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20261209T065900Z
-DTEND:20261209T075900Z
-SUMMARY:Ends: Royal Styles Update
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18\nhttps://www.nexon.com/map
- lestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Royal Styles Update ends tomorrow
-TRIGGER:-P1D
-END:VALARM
+SUMMARY:Starts: Cash Shop Transfer
+DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
+ ory/news/update/47132
+URL:https://www.nexon.com/maplestory/news/update/47132
 END:VEVENT
 BEGIN:VEVENT
 UID:49021-the-maplestory-collection-end@maple-tracker
@@ -575,32 +34,17 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47132-shadow-supplies-end@maple-tracker
+UID:post-47132-20261215T235900Z-end@maple-tracker
 DTSTAMP:20261110T153000Z
 DTSTART:20261215T225900Z
 DTEND:20261215T235900Z
-SUMMARY:Ends: Shadow Supplies
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
+SUMMARY:Ends: 2 things from v.272 - Maplayer One Patch Notes
+DESCRIPTION:Shadow Supplies\nSpecter Blast\n\nv.272 - Maplayer One Patch No
+ tes\nhttps://www.nexon.com/maplestory/news/update/47132
 URL:https://www.nexon.com/maplestory/news/update/47132
 BEGIN:VALARM
 ACTION:DISPLAY
-DESCRIPTION:Shadow Supplies ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-specter-blast-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20261215T225900Z
-DTEND:20261215T235900Z
-SUMMARY:Ends: Specter Blast
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Specter Blast ends tomorrow
+DESCRIPTION:2 things from v.272 - Maplayer One Patch Notes end tomorrow
 TRIGGER:-P1D
 END:VALARM
 END:VEVENT
@@ -620,355 +64,41 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47132-cash-shop-transfer-start@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20261209T000000Z
-DURATION:PT30M
-SUMMARY:Starts: Cash Shop Transfer
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-genesis-passes-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20270215T225900Z
-DTEND:20270215T235900Z
-SUMMARY:Ends: Genesis Passes
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
- hop Update: Nov. 11\; v.272 - Maplayer One Patch Notes)\nhttps://www.nexon
- .com/maplestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Genesis Passes ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-operation-ultima-events-end@maple-tracker
+UID:post-47132-20270209T235900Z-end@maple-tracker
 DTSTAMP:20261110T153000Z
 DTSTART:20270209T225900Z
 DTEND:20270209T235900Z
-SUMMARY:Ends: OPERATION ULTIMA EVENTS
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
+SUMMARY:Ends: 11 things from v.272 - Maplayer One Patch Notes
+DESCRIPTION:OPERATION ULTIMA EVENTS\nOperation Ultima: Chapter 1\nUltima Re
+ port\nEtherion Relics\nShadow Bounties\nBounty Coin Shop\nAlliance Credit 
+ Shop\nOperation Ultima Meso Shop\nArthur’s Equipment Rental\nGenesis Pas
+ s Plus\nCharacter Creation Guide\n\nv.272 - Maplayer One Patch Notes\nhttp
+ s://www.nexon.com/maplestory/news/update/47132
 URL:https://www.nexon.com/maplestory/news/update/47132
 BEGIN:VALARM
 ACTION:DISPLAY
-DESCRIPTION:OPERATION ULTIMA EVENTS ends tomorrow
+DESCRIPTION:11 things from v.272 - Maplayer One Patch Notes end tomorrow
 TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47132-operation-ultima-chapter-1-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Operation Ultima: Chapter 1
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Operation Ultima: Chapter 1 ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-ultima-report-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Ultima Report
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Ultima Report ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-etherion-relics-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Etherion Relics
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Etherion Relics ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-shadow-bounties-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Shadow Bounties
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Shadow Bounties ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-bounty-coin-shop-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Bounty Coin Shop
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Bounty Coin Shop ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-alliance-credit-shop-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Alliance Credit Shop
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Alliance Credit Shop ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-operation-ultima-meso-shop-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Operation Ultima Meso Shop
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Operation Ultima Meso Shop ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-challenger-world-end@maple-tracker
+UID:post-47305-20270209T235900Z-end@maple-tracker
 DTSTAMP:20261111T110001Z
 DTSTART:20270209T225900Z
 DTEND:20270209T235900Z
-SUMMARY:Ends: Challenger World
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
+SUMMARY:Ends: 12 things from Maplayer One Challenger World and Burning Even
+ ts!
+DESCRIPTION:Challenger World\nChallenger World Shop\nNew Season Boss: Mayri
+ n\nDefeat Mayrin Event\nReturning Boss: Kai\nSol Janus Skill Support\nChal
+ lenger Pass\nArcane Seal\nHyper Burning MAX\nHyper Blink\nBeyond Burning\n
+ Item Burning Plus\n\nMaplayer One Challenger World and Burning Events! (al
+ so in v.272 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/
+ news/events/47305
 URL:https://www.nexon.com/maplestory/news/events/47305
 BEGIN:VALARM
 ACTION:DISPLAY
-DESCRIPTION:Challenger World ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-challenger-world-shop-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Challenger World Shop
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Challenger World Shop ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-new-season-boss-mayrin-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: New Season Boss: Mayrin
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:New Season Boss: Mayrin ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-defeat-mayrin-event-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Defeat Mayrin Event
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Defeat Mayrin Event ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-returning-boss-kai-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Returning Boss: Kai
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Returning Boss: Kai ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-sol-janus-skill-support-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Sol Janus Skill Support
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Sol Janus Skill Support ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-challenger-pass-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Challenger Pass
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Challenger Pass ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-arcane-seal-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Arcane Seal
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Arcane Seal ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-hyper-burning-max-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Hyper Burning MAX
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Hyper Burning MAX ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-hyper-blink-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Hyper Blink
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Hyper Blink ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-beyond-burning-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Beyond Burning
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Beyond Burning ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47305-item-burning-plus-end@maple-tracker
-DTSTAMP:20261111T110001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Item Burning Plus
-DESCRIPTION:Maplayer One Challenger World and Burning Events! (also in v.27
- 2 - Maplayer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/event
- s/47305
-URL:https://www.nexon.com/maplestory/news/events/47305
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Item Burning Plus ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-arthur-s-equipment-rental-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Arthur’s Equipment Rental
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Arthur’s Equipment Rental ends tomorrow
+DESCRIPTION:12 things from Maplayer One Challenger World and Burning Events
+ ! end tomorrow
 TRIGGER:-P1D
 END:VALARM
 END:VEVENT
@@ -988,51 +118,6 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47132-genesis-pass-plus-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Genesis Pass Plus
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Genesis Pass Plus ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47132-character-creation-guide-end@maple-tracker
-DTSTAMP:20261110T153000Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Character Creation Guide
-DESCRIPTION:v.272 - Maplayer One Patch Notes\nhttps://www.nexon.com/maplest
- ory/news/update/47132
-URL:https://www.nexon.com/maplestory/news/update/47132
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Character Creation Guide ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-challenger-exp-and-premium-passes-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20270209T225900Z
-DTEND:20270209T235900Z
-SUMMARY:Ends: Challenger EXP and Premium Passes
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
- hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Challenger EXP and Premium Passes ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
 UID:47304-quanah-maple-point-shop-end@maple-tracker
 DTSTAMP:20261111T110002Z
 DTSTART:20270308T225900Z
@@ -1048,137 +133,19 @@ TRIGGER:-P1D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
-UID:47304-event-world-quanah-end@maple-tracker
+UID:post-47304-20270309T235900Z-end@maple-tracker
 DTSTAMP:20261111T110002Z
 DTSTART:20270309T225900Z
 DTEND:20270309T235900Z
-SUMMARY:Ends: EVENT WORLD: QUANAH
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
+SUMMARY:Ends: 7 things from Adventure in Event World: Quanah!
+DESCRIPTION:EVENT WORLD: QUANAH\nQuanah World\nDimensional Skills and Missi
+ ons\nProving Fields\nInfinite Dungeon: Battlesim\nHealing Tree Infirmary\n
+ Quanah Meso Shop\n\nAdventure in Event World: Quanah! (also in v.272 - Map
+ layer One Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
 URL:https://www.nexon.com/maplestory/news/events/47304
 BEGIN:VALARM
 ACTION:DISPLAY
-DESCRIPTION:EVENT WORLD: QUANAH ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47304-quanah-world-end@maple-tracker
-DTSTAMP:20261111T110002Z
-DTSTART:20270309T225900Z
-DTEND:20270309T235900Z
-SUMMARY:Ends: Quanah World
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
-URL:https://www.nexon.com/maplestory/news/events/47304
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Quanah World ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47304-dimensional-skills-and-missions-end@maple-tracker
-DTSTAMP:20261111T110002Z
-DTSTART:20270309T225900Z
-DTEND:20270309T235900Z
-SUMMARY:Ends: Dimensional Skills and Missions
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
-URL:https://www.nexon.com/maplestory/news/events/47304
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Dimensional Skills and Missions ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47304-proving-fields-end@maple-tracker
-DTSTAMP:20261111T110002Z
-DTSTART:20270309T225900Z
-DTEND:20270309T235900Z
-SUMMARY:Ends: Proving Fields
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
-URL:https://www.nexon.com/maplestory/news/events/47304
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Proving Fields ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47304-infinite-dungeon-battlesim-end@maple-tracker
-DTSTAMP:20261111T110002Z
-DTSTART:20270309T225900Z
-DTEND:20270309T235900Z
-SUMMARY:Ends: Infinite Dungeon: Battlesim
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
-URL:https://www.nexon.com/maplestory/news/events/47304
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Infinite Dungeon: Battlesim ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47304-healing-tree-infirmary-end@maple-tracker
-DTSTAMP:20261111T110002Z
-DTSTART:20270309T225900Z
-DTEND:20270309T235900Z
-SUMMARY:Ends: Healing Tree Infirmary
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
-URL:https://www.nexon.com/maplestory/news/events/47304
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Healing Tree Infirmary ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47304-quanah-meso-shop-end@maple-tracker
-DTSTAMP:20261111T110002Z
-DTSTART:20270309T225900Z
-DTEND:20270309T235900Z
-SUMMARY:Ends: Quanah Meso Shop
-DESCRIPTION:Adventure in Event World: Quanah! (also in v.272 - Maplayer One
-  Patch Notes)\nhttps://www.nexon.com/maplestory/news/events/47304
-URL:https://www.nexon.com/maplestory/news/events/47304
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Quanah Meso Shop ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-star-stamp-shop-season-4-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20270526T065900Z
-DTEND:20270526T075900Z
-SUMMARY:Ends: Star Stamp Shop Season 4
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
- hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Star Stamp Shop Season 4 ends tomorrow
-TRIGGER:-P1D
-END:VALARM
-END:VEVENT
-BEGIN:VEVENT
-UID:47292-mythic-star-style-box-end@maple-tracker
-DTSTAMP:20261117T160001Z
-DTSTART:20270526T065900Z
-DTEND:20270526T075900Z
-SUMMARY:Ends: Mythic Star Style Box
-DESCRIPTION:MapleStory Cash Shop Update: Nov. 18 (also in MapleStory Cash S
- hop Update: Nov. 11)\nhttps://www.nexon.com/maplestory/news/sale/47292
-URL:https://www.nexon.com/maplestory/news/sale/47292
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Mythic Star Style Box ends tomorrow
+DESCRIPTION:7 things from Adventure in Event World: Quanah! end tomorrow
 TRIGGER:-P1D
 END:VALARM
 END:VEVENT
@@ -1195,6 +162,230 @@ BEGIN:VALARM
 ACTION:DISPLAY
 DESCRIPTION:Luxe Sauna ends tomorrow
 TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:sunny-2026-11-29@maple-tracker
+DTSTAMP:20261129T000000Z
+DTSTART:20261129T000000Z
+DTEND:20261130T000000Z
+SUMMARY:Sunny Sunday
+DESCRIPTION:50% off Ability resets\nTreasure Hunter EXP x3\n50% off Spell T
+ race Enhancements\n1+1 Star Force upon a successful enhancement at 10-Star
+  or below.\nCan reach up to 12 Stars. Excludes Superior Equipment.\n+250% 
+ Monster Park Clear EXP\nDoes not apply to the Extreme Monster Parker quest
+ .\n[HEXA Matrix] When Main Stat is Lv. 5+\, the enhancement chance is incr
+ eased 20%.\nMultiplied by the existing enhancement chance.\n5x chance to g
+ et Magnificent Soul from Soul Shards\n+100% chance to register a new monst
+ er in Monster Collection\nMysterious Monsterbloom (x3): Untradable\, Perma
+ nent .\nCan be claimed 1 time per account.\nSelect ‘Special Sunny Sunday
+  Gifts for All’ from the Event List and click ‘Participate’ to claim
+ . Can be claimed until November 29\, 2026 at 11:59 PM UTC.\nCannot be clai
+ med in Challenger World.\nElite monster appearance increase\nElite Monster
+ s summoned by a Rune of Darkness or when an Elite Boss appears are not aff
+ ected.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:sunny-2026-12-06@maple-tracker
+DTSTAMP:20261206T000000Z
+DTSTART:20261206T000000Z
+DTEND:20261207T000000Z
+SUMMARY:Sunny Sunday: 30% off Star Force enhancements
+DESCRIPTION:Shining Star Force Time\n30% off Star Force enhancements\nMesos
+  used to safeguard are not eligible for the 30% discount.\n30% reduced cha
+ nce of item destruction when enhancing items at 21 Stars or below\n2x Sol 
+ Erda when hunting\nSol Erda obtained through other methods is not increase
+ d.\n+250% Monster Park Clear EXP\nDoes not apply to the Extreme Monster Pa
+ rker quest.
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Sunny Sunday: 30% off Star Force enhancements: tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:sunny-2026-12-13@maple-tracker
+DTSTAMP:20261213T000000Z
+DTSTART:20261213T000000Z
+DTEND:20261214T000000Z
+SUMMARY:Sunny Sunday
+DESCRIPTION:Treasure Hunter EXP x3\nRune Appearance Cooldown reduction\n+10
+ 0% Rune EXP buff effect\nCombo Kill EXP +300%\n+250% Monster Park Clear EX
+ P\nDoes not apply to the Extreme Monster Parker quest.\n2x Sol Erda when h
+ unting\nSol Erda obtained through other methods is not increased.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-reset-scrolls@maple-tracker
+DTSTAMP:20261216T020000Z
+DTSTART:20261216T020000Z
+DURATION:PT30M
+SUMMARY:HEXA Matrix and Erda Link Reset Scrolls expire
+DESCRIPTION:If you hold one\, use it before then.\nhttps://www.nexon.com/ma
+ plestory/news/update/47132
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:HEXA Matrix and Erda Link Reset Scrolls expire: tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-part-2@maple-tracker
+DTSTAMP:20261216T000000Z
+DTSTART;VALUE=DATE:20261216
+DTEND;VALUE=DATE:20261217
+SUMMARY:Maplayer One Part 2: a third set of HEXA Skill Nodes
+DESCRIPTION:Nexon has announced no cost changes and nothing for Erda Link. 
+ Arrives with that day's maintenance.\nhttps://www.nexon.com/maplestory/new
+ s/update/47132
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Maplayer One Part 2: a third set of HEXA Skill Nodes: tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-world-leap-1@maple-tracker
+DTSTAMP:20261216T000000Z
+DTSTART;VALUE=DATE:20261216
+DTEND;VALUE=DATE:20261217
+SUMMARY:First World Leap window opens
+DESCRIPTION:After maintenance\, until Wed 10 Feb 2027\, 08:59 KST.\nhttps:/
+ /www.nexon.com/maplestory/news/update/47132
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:First World Leap window opens: tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-gpp-seren@maple-tracker
+DTSTAMP:20261217T000000Z
+DTSTART:20261217T000000Z
+DURATION:PT30M
+SUMMARY:Genesis Pass Plus mission: Chosen Seren (Normal or higher)
+DESCRIPTION:Only with a Genesis Pass Plus\, after Genesis liberation.\nhttp
+ s://www.nexon.com/maplestory/news/update/47132
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-gpp-kalos@maple-tracker
+DTSTAMP:20261224T000000Z
+DTSTART:20261224T000000Z
+DURATION:PT30M
+SUMMARY:Genesis Pass Plus mission: Kalos the Guardian (Easy or higher)
+DESCRIPTION:Only with a Genesis Pass Plus\, after Genesis liberation.\nhttp
+ s://www.nexon.com/maplestory/news/update/47132
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-gpp-adversary@maple-tracker
+DTSTAMP:20261231T000000Z
+DTSTART:20261231T000000Z
+DURATION:PT30M
+SUMMARY:Genesis Pass Plus mission: First Adversary (Easy or higher)
+DESCRIPTION:Only with a Genesis Pass Plus\, after Genesis liberation.\nhttp
+ s://www.nexon.com/maplestory/news/update/47132
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-gpp-kaling@maple-tracker
+DTSTAMP:20270107T000000Z
+DTSTART:20270107T000000Z
+DURATION:PT30M
+SUMMARY:Genesis Pass Plus mission: Kaling (Easy or higher)
+DESCRIPTION:Only with a Genesis Pass Plus\, after Genesis liberation.\nhttp
+ s://www.nexon.com/maplestory/news/update/47132
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-gpp-bellona@maple-tracker
+DTSTAMP:20270114T000000Z
+DTSTART:20270114T000000Z
+DURATION:PT30M
+SUMMARY:Genesis Pass Plus mission: Bellona (Easy or higher)
+DESCRIPTION:The first dated mention of the new boss Bellona in Nexon's note
+ s.\nhttps://www.nexon.com/maplestory/news/update/47132
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-season-end@maple-tracker
+DTSTAMP:20270209T235900Z
+DTSTART:20270209T235900Z
+DURATION:PT30M
+SUMMARY:Event shops close
+DESCRIPTION:Unspent event coins are lost. The Challenger World season finis
+ hes at the same time.\nhttps://www.nexon.com/maplestory/news/update/47132
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Event shops close: tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:upcoming-world-leap-final@maple-tracker
+DTSTAMP:20270210T000000Z
+DTSTART;VALUE=DATE:20270210
+DTEND;VALUE=DATE:20270211
+SUMMARY:Final World Leap window opens
+DESCRIPTION:After maintenance\, until Wed 24 Feb 2027\, 08:59 KST.\nhttps:/
+ /www.nexon.com/maplestory/news/update/47132
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Final World Leap window opens: tomorrow
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:season-20270209T235900Z@maple-tracker
+DTSTAMP:20270209T235900Z
+DTSTART:20270209T225900Z
+DTEND:20270209T235900Z
+SUMMARY:Deadline: 9 steps for Challenger World Season 4
+DESCRIPTION:Claim every Challenger tier reward\nSpend all Challenger Coins 
+ and Advanced Challenger Coins\nClaim all Challenger Pass rewards\nReach ta
+ rget Challenger Points tier before the season ends\nClaim Defeat Mayrin Ev
+ ent rewards inside Challenger World\nFinish Item Burning Plus stage missio
+ ns before World Leaping\nPrepare replacement gear for the Challenger Equip
+ ment set\nClaim Beyond Burning level rewards and use them\nOpen Tera Burni
+ ng Gift boxes and use the title coupon\n\nhttps://www.nexon.com/maplestory
+ /news/events/47305
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Deadline: 9 steps for Challenger World Season 4 (3 days left)
+TRIGGER:-P3D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:season-20270210T020000Z@maple-tracker
+DTSTAMP:20270210T020000Z
+DTSTART:20270210T010000Z
+DTEND:20270210T020000Z
+SUMMARY:Deadline: 5 steps for Challenger World Season 4
+DESCRIPTION:Use time-limited shop items before they expire\nUse claimed Cha
+ llenger Pass rewards\nUse Mayrin reward coupons before they expire\nTurn i
+ n Fragments of Altered Fate (10 per Eternal armor piece)\nUse Hyper Burnin
+ g MAX reward boxes and coupons\n\nhttps://www.nexon.com/maplestory/news/ev
+ ents/47305
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Deadline: 5 steps for Challenger World Season 4 (3 days left)
+TRIGGER:-P3D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:season-20270223T235900Z@maple-tracker
+DTSTAMP:20270223T235900Z
+DTSTART:20270223T225900Z
+DTEND:20270223T235900Z
+SUMMARY:Deadline: World Leap the character out of Challenger World
+DESCRIPTION:World Leap the character out of Challenger World\n\nhttps://www
+ .nexon.com/maplestory/news/events/47305
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Deadline: World Leap the character out of Challenger World (3 d
+ ays left)
+TRIGGER:-P3D
 END:VALARM
 END:VEVENT
 BEGIN:VEVENT
