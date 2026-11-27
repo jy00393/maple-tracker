@@ -50,6 +50,8 @@ export function blankState() {
     level: {},
     pitch: {},
     shops: {},
+    // challenger[charId] = { done: { missionId: t }, target? }: Challenger World boss and seasonal missions done.
+    challenger: {},
     champions: { slots: [], raid: {} },
     mesos: { held: 0, goals: [], ursus: null, ursusRuns: 1, farmPerHour: null, farmHours: null, other: null },
     incomeHistory: {},

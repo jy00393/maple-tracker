@@ -53,7 +53,8 @@ export function coinsToCome(shop, claims, now, resetKind, weekly) {
   return Math.min(left, weeks * earn.perWeek) * earn.perClaim;
 }
 
-export function shopPlan(shop, saved, char, now, resetKind, weekly) {
+// `once`: coins still to come once each, on top of the weekly ones (Challenger World missions not done yet).
+export function shopPlan(shop, saved, char, now, resetKind, weekly, once = 0) {
   const s = saved || {};
   const want = s.want || {};
   const rows = shopItems(shop, char).map((item) => {
@@ -63,7 +64,7 @@ export function shopPlan(shop, saved, char, now, resetKind, weekly) {
   });
   const need = rows.reduce((a, r) => a + r.cost, 0);
   const have = n(s.have);
-  const toCome = coinsToCome(shop, s.claims, now, resetKind, weekly);
+  const toCome = coinsToCome(shop, s.claims, now, resetKind, weekly) + (Date.parse(shop.end) > now ? n(once) : 0);
   const open = Date.parse(shop.end) > now;
   return {
     rows, need, have, toCome, open,

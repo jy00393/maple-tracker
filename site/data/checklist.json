@@ -107,7 +107,7 @@
      "id": "d-seal",
      "label": "Use Arcane Seal wands",
      "min": "2 min",
-     "note": "3 wands arrive every day at 09:00 KST, even when you are offline, and up to 20 are kept. Use them at least every 6 days so none are lost (Nexon v.272 patch notes, news 47132, read 27 Nov 2026).",
+     "note": "3 wands arrive every day at 09:00 KST, even when you are offline, and up to 20 are kept, so 6 days' worth at most. Your tier sets the barrier: Stage 2 from Gold, 3 from Emerald, 4 from Sapphire, 5 from Diamond, each with better cores (Nexon v.272 patch notes, news 47132, and notice 47305, read 27 Nov 2026).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
     },

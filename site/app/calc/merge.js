@@ -30,6 +30,8 @@ const SPLIT = {
   level: { lists: { log: 't' } },
   erda: { maps: ['levels', 'steps', 'costs'] },
   ibp: { maps: ['done'] },
+  // challenger/<charId>/done/<missionId>: one Challenger World mission; the target tier travels in "@".
+  challenger: { maps: ['done'] },
   symbols: { entries: true },
   liberation: { entries: true }
 };
@@ -60,7 +62,8 @@ const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
 // "asOf" (see liveAsOf) is change-time bookkeeping like the stamps: not an entry, merged on its own.
 const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared', 'asOf']);
 // The same goes for which tab of a page is showing, and for the news read marker the Events page sets itself.
-const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews']);
+// cwHigherCounts (whether a harder Challenger boss clear completes the easier mission) is set per device too.
+const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews', 'cwHigherCounts']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
 // Typed figures (symbols held, traces) carry the day they were typed as `at`. Figures saved before that are
 // dated by each device on its own first load (store.js), with no change time moved. So two copies can hold the
@@ -71,7 +74,7 @@ const TYPED = new Set(['symbols', 'liberation']);
 const typedDay = (v) => (typeof v.at === 'number' && Number.isFinite(v.at) ? v.at : Infinity);
 const sameButDay = (x, y) => isObj(x) && isObj(y) && canon({ ...x, at: 0 }) === canon({ ...y, at: 0 });
 // Per-character parts: when a character is gone after a merge, so is its data.
-const PER_CHAR = ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch'];
+const PER_CHAR = ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch', 'challenger'];
 const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const DAY = 86400000;
 const enc = (s) => encodeURIComponent(String(s));

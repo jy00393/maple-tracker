@@ -167,6 +167,16 @@ function shopOf(s) {
   return { ...s, have: num(s.have, 0, 0, 1e9), claims: num(s.claims, 0, 0, 1e4), want: counts(s.want, 1e5) };
 }
 
+// Challenger World missions done: { missionId: when it was ticked }, and the target tier (an id from
+// challenger.json; an unknown id is left for the page to ignore).
+function challengerOf(c) {
+  const done = {};
+  for (const [k, t] of Object.entries(obj(c.done))) if (safeKey(k) && num(t, null, 1, TIME_MAX) !== null) done[k] = Math.floor(t);
+  const out = { ...c, done };
+  if ('target' in out && !(typeof out.target === 'string' && out.target.length <= 40)) delete out.target;
+  return out;
+}
+
 // One tick record: { p: period, c: count, d: 1 when done, t: when it was ticked }. A count is a whole number
 // from 0 up (the page caps it at the item's target); a count or a mark of the wrong kind is dropped.
 function tickOf(r) {
@@ -219,6 +229,7 @@ export function sanitiseState(raw, base) {
     if (c) out.ui[k] = c; else delete out.ui[k];
   }
   if ('bossMargin' in out.ui && ![1, 1.5, 2, 3].includes(out.ui.bossMargin)) delete out.ui.bossMargin;
+  if ('cwHigherCounts' in out.ui && typeof out.ui.cwHigherCounts !== 'boolean') delete out.ui.cwHigherCounts;
 
   const m = obj(raw.mesos);
   out.mesos = { ...base.mesos, ...m, held: num(m.held, 0, 0, 1e15), ursusRuns: num(m.ursusRuns, 1, 0, 3) };
@@ -240,6 +251,7 @@ export function sanitiseState(raw, base) {
   out.level = mapOf(raw.level, levelOf);
   out.pitch = mapOf(raw.pitch, (p) => ({ ...p, drops: cleanDrops(p.drops) }));
   out.shops = mapOf(raw.shops, shopOf);
+  out.challenger = mapOf(raw.challenger, challengerOf);
   out.champions = cleanChampions(raw.champions);
   out.incomeHistory = mapOf(raw.incomeHistory, (h) => ({ ...h, earned: num(h.earned, 0, 0), planned: num(h.planned, 0, 0) }));
 

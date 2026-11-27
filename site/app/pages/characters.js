@@ -75,7 +75,7 @@ export function CharactersPage({ data, state }) {
               ${confirmDelete === c.id
                 ? html`<button type="button" class="btn danger" onClick=${() => { update((s) => {
                     s.characters = s.characters.filter((x) => x.id !== c.id);
-                    for (const k of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch']) delete s[k][c.id];
+                    for (const k of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch', 'challenger']) if (s[k]) delete s[k][c.id];
                     // Its checklist ticks and unlock flags go too.
                     for (const part of ['items', 'flags']) for (const k of Object.keys(s.checklist[part])) if (k.startsWith(`${c.id}|`)) delete s.checklist[part][k];
                     // Ticks and unlocks saved before they were per character belong to the owner: they go with it,
