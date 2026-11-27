@@ -95,6 +95,10 @@ These change only with big patches. Each file says where it came from:
 cd site && python3 -m http.server 8000   # then open http://localhost:8000
 node scripts/update-data.mjs            # refresh data by hand
 node --test scripts/test/*.test.mjs     # tests
+node scripts/precache.mjs               # after adding a module, data file or icon: update the offline list in sw.js
+node scripts/make-icons.mjs             # rebuild the iPhone and small Android icons from icon-maskable-512.png
 ```
+
+The offline worker (`site/sw.js`) stores every file the app needs when it is installed, so the app opens offline after one online visit. A test fails when its list is out of step with the code.
 
 Not affiliated with Nexon. MapleStory and its game names belong to Nexon. Preact and htm are MIT-licensed (see `site/vendor/`).

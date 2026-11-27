@@ -2,7 +2,8 @@ import { html, useState, useEffect } from '../../vendor/htm-preact.mjs';
 import { syncConfig, syncStatus, onSyncStatus, connect, disconnect, pull, pairLink, pendingPair, setPendingPair, onPendingPair, setTokenExpiry } from '../sync.js';
 import { qrEncode, qrPath } from '../calc/qr.js';
 import { appStatus } from '../calc/status.js';
-import { getState, replaceState, resetState, isStorageOk, listBackups, restoreBackup, snapshotNow } from '../store.js';
+import { getState, replaceState, resetState, useStorageOk, listBackups, restoreBackup, snapshotNow } from '../store.js';
+import { storageKept } from '../persist.js';
 import { describeBackup } from '../calc/backups.js';
 import { Card, Fold, PageHead, useClock } from '../ui.js';
 import { fmtKst } from '../time.js';
@@ -87,8 +88,12 @@ function StatusCard({ data }) {
   const now = useClock({ every: 60000 });
   const [sync, setSync] = useState(syncStatus());
   useEffect(() => { const off = onSyncStatus(setSync); setSync(syncStatus()); return off; }, []);
-  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires, refresh: data.refresh });
-  const names = { sync: 'Your devices', token: 'Sync token', nexon: 'Nexon events and news', tables: 'Game tables' };
+  const storageOk = useStorageOk();
+  // What the browser says about keeping the entries (null: it can't tell, or hasn't answered yet).
+  const [kept, setKept] = useState(null);
+  useEffect(() => { let live = true; storageKept().then((k) => { if (live) setKept(k); }, () => {}); return () => { live = false; }; }, []);
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires, refresh: data.refresh, storageOk, storageKept: kept });
+  const names = { storage: 'Saving in this browser', sync: 'Your devices', token: 'Sync token', nexon: 'Nexon events and news', tables: 'Game tables' };
   return html`<${Card} title="Status" meta=${st.label} className="span2">
     ${st.parts.map((p) => html`<p class=${p.level === 'error' || p.level === 'warn' ? 'warnbox' : 'note'}><b>${names[p.key]}:</b> ${p.text}${p.url ? html` <a href=${p.url} target="_blank" rel="noopener">Open the post</a>` : null}</p>`)}
     <p class="note">Events and news refresh from Nexon every 6 hours, and this page picks up the new copy by itself while it stays open. The game tables were copied by hand from the sources below and only change with a patch, so they are checked, not refreshed.</p>
@@ -130,7 +135,8 @@ function InstallCard() {
     ${done ? html`<p class="okbox">Running as an installed app.</p>` : prompt
       ? html`<button type="button" class="btn primary" onClick=${async () => { prompt.prompt(); await prompt.userChoice; setPrompt(null); }}>Install Maple Tracker</button>`
       : null}
-    <p class="note"><b>iPhone (Safari):</b> open your tracker link, tap Share, then Add to Home Screen. <b>Android (Chrome):</b> menu ⋮ → Add to Home screen (or Install app). It opens full screen and works offline with the last data it saw.</p>
+    <p class="note"><b>iPhone (Safari):</b> open your tracker link, tap Share, then Add to Home Screen. <b>Android (Chrome):</b> menu ⋮ → Add to Home screen (or Install app). It opens full screen and, once it has been opened online, works offline with the last data it saw.</p>
+    <p class="note"><b>iPhone:</b> the home-screen app keeps its own saved entries, separate from Safari, so it starts empty. Connect Sync there (or import a backup) to bring your entries over.</p>
   <//>`;
 }
 
@@ -140,7 +146,6 @@ export function SettingsPage({ data }) {
   const meta = data.meta;
   return html`
     <${PageHead} title="Settings">Your ticks and entries are saved in this browser only. Export a backup to move them to another device.<//>
-    ${!isStorageOk() ? html`<p class="warnbox">This browser isn't letting the page save. Changes will be lost when you close the tab.</p>` : null}
     <div class="grid two">
       <${StatusCard} data=${data} />
       <${SyncCard} />

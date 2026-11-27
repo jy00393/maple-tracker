@@ -10,6 +10,17 @@ import { dateTyped } from './calc/progress.js';
 const KEY = 'maple-tracker:v1';
 const listeners = new Set();
 let storageOk = true;
+// Told when the browser starts or stops refusing to save (every page then shows or hides its warning).
+const storageListeners = new Set();
+function setStorageOk(ok) {
+  if (ok === storageOk) return;
+  storageOk = ok;
+  storageListeners.forEach((fn) => { try { fn(ok); } catch { /* one listener must not stop the rest */ } });
+}
+export function onStorageStatus(fn) {
+  storageListeners.add(fn);
+  return () => storageListeners.delete(fn);
+}
 // The stored text this tab last read or wrote. When storage holds something else, another tab has saved since.
 let lastWritten = null;
 // When "Clear all data" was last pressed in this browser (0: never). It is saved next to the entries as "cleared"
@@ -163,13 +174,30 @@ function writeNow() {
     // (After "Clear all data" in this tab, what another tab saved before that is ignored: see takeStored.)
     if (typeof stored === 'string' && stored !== lastWritten) changed = takeStored(stored).changed;
     const text = JSON.stringify({ ...state, cleared: clearedAt });
-    localStorage.setItem(KEY, text);
+    setItemMakingRoom(KEY, text);
     lastWritten = text;
-    storageOk = true;
+    setStorageOk(true);
   } catch {
-    storageOk = false;
+    setStorageOk(false);
   }
   if (changed) listeners.forEach((fn) => fn(state));
+}
+
+// The entries come before the daily safety copies: when the browser is out of room, the older copies are given up
+// (keeping the newest, then none) so the entries themselves can still be saved. Throws when even that fails.
+function setItemMakingRoom(key, text) {
+  try { localStorage.setItem(key, text); return; } catch (err) {
+    // (Storage that cannot even be read is blocked, not full: then this throws too, and nothing is removed.)
+    const held = localStorage.getItem(BACKUPS_KEY);
+    if (held === null) throw err;
+    let copies = null;
+    try { copies = JSON.parse(held); } catch { /* unreadable copies are removed below */ }
+    if (Array.isArray(copies) && copies.length > 1) {
+      try { localStorage.setItem(BACKUPS_KEY, JSON.stringify(copies.slice(-1))); localStorage.setItem(key, text); return; } catch { /* still no room */ }
+    }
+    localStorage.removeItem(BACKUPS_KEY);
+    localStorage.setItem(key, text);
+  }
 }
 
 function save() {
@@ -202,6 +230,17 @@ export function getState() {
 }
 
 export function isStorageOk() {
+  return storageOk;
+}
+
+// For a component: whether the browser is saving, redrawn when that changes.
+export function useStorageOk() {
+  const [, force] = useReducer((x) => x + 1, 0);
+  const drawn = storageOk;
+  useEffect(() => {
+    if (storageOk !== drawn) force();
+    return onStorageStatus(() => force());
+  }, []);
   return storageOk;
 }
 
@@ -273,9 +312,9 @@ export function resetState() {
     const text = JSON.stringify({ ...state, cleared: clearedAt });
     localStorage.setItem(KEY, text);
     lastWritten = text;
-    storageOk = true;
+    setStorageOk(true);
   } catch {
-    storageOk = false;
+    setStorageOk(false);
   }
   listeners.forEach((fn) => fn(state));
 }
