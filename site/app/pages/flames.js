@@ -4,6 +4,7 @@ import { Card, Fold, Seg, NumberInput, fmtBig, plural } from '../ui.js';
 import { scoreDist, chanceAtLeast, flamesNeeded, chanceWithin, flameScore, flameWeights, flamesSupported, bestScore, bandValue, SECONDARY_DEFAULT } from '../calc/flames.js';
 import { itemLevel } from '../calc/advice.js';
 import { mainStatLabel } from '../calc/upgrades.js';
+import { FlameChance } from './chance.js';
 
 // Very small chances read as "1 in N" rather than in exponent form (2.1e-11%).
 const pct = (p) => (p >= 0.1 ? (p * 100).toFixed(1) + '%' : p >= 0.001 ? (p * 100).toFixed(2) + '%' : p >= 1e-6 ? (p * 100).toPrecision(2) + '%' : p > 0 ? `1 in ${count(1 / p)}` : '0%');
@@ -12,7 +13,7 @@ const count = (n) => Math.round(n).toLocaleString('en-US');
 const flames = (n) => `${count(n)} ${plural(Math.round(n), 'flame')}`;
 
 // Mesos > Flames: flames and mesos to reach a flame score on one armour or accessory item.
-export function Flames({ data, state }) {
+export function Flames({ data, state, now = Date.now() }) {
   const fl = data.flames;
   const char = activeCharacter(state);
   const mainStat = (char && char.mainStat) || 'STR';
@@ -85,12 +86,13 @@ export function Flames({ data, state }) {
         <button type="button" class="btn ghost" onClick=${() => set({ weights: null, secondary: null })}>Reset to the defaults</button>
       </details>
     <//>
+    <div class="grid"><${FlameChance} state=${state} now=${now} type=${type} perFlame=${need ? need.chance : 0} target=${o.target} temp=${temp} />
     <${Fold} title="How it's worked out" meta="tap to open">
       <p class="note">Flame score = ${mainStatLabel(mainStat)} + ATT × ${weights.att} + All Stats % × ${weights.allstat}${mainStat === 'XENON' ? '' : ` + ${secondary} × ${weights.secondary}`}. ${fl.weightsNote}</p>
       <p class="note">At item level ${o.level}, each tier gives ${single} of one stat, or ${double} of each on a two-stat line. ${fl.oddsNote} ${fl.lineCountNote}</p>
       <p class="note">${fl.linesNote} The chance is exact: every mix of lines and tiers is counted.</p>
       <p class="note">${fl.noFlameNote}</p>
       <p class="note">${fl.source}</p>
-    <//>
+    <//></div>
   </div>`;
 }

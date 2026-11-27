@@ -60,7 +60,8 @@ const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
 // "asOf" (see liveAsOf) is change-time bookkeeping like the stamps: not an entry, merged on its own.
 const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared', 'asOf']);
 // The same goes for which tab of a page is showing, and for the news read marker the Events page sets itself.
-const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews']);
+// budget: mesos typed on Mesos for one "What your mesos buy" calculation, kept on this device only.
+const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews', 'budget']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
 // Typed figures (symbols held, traces) carry the day they were typed as `at`. Figures saved before that are
 // dated by each device on its own first load (store.js), with no change time moved. So two copies can hold the

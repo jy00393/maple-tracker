@@ -161,6 +161,14 @@ function calcOf(v, fields) {
 }
 const SF_CALC = [['level', 'int', 0, 300], ['from', 'int', 0, 30], ['to', 'int', 0, 30], ['discount', 'bool'], ['lessBoom', 'bool'], ['safeguard', 'bool'], ['mvp', 'enum', ['none', 'silver', 'gold', 'diamond']], ['spare', 'num', 0, 1e15]];
 const CUBE_CALC = [['from', 'enum', [1, 2, 3]], ['to', 'enum', [2, 3, 4]]];
+// "What your mesos buy" (pages/chance.js): mesos typed for that calculation only (null = the planner's figure) and
+// the item picked on Star Force (sf) and Cubes (cubes). Anything else is dropped.
+function budgetOf(v) {
+  const b = obj(v);
+  const out = { mesos: num(b.mesos, null, 0, 1e15) };
+  for (const k of ['sf', 'cubes']) if (typeof b[k] === 'string' && b[k].length <= 60 && safeKey(b[k])) out[k] = b[k];
+  return out;
+}
 const FLAME_CALC = [['slot', 'str'], ['level', 'int', 0, 300], ['adv', 'bool'], ['type', 'str'], ['target', 'num', 0, 99999], ['have', 'intOrNull', 0, 1e7], ['weights', 'weights'], ['secondary', 'enum', ['STR', 'DEX', 'INT', 'LUK', null]]];
 
 function shopOf(s) {
@@ -211,7 +219,7 @@ export function sanitiseState(raw, base) {
   };
 
   const ui = obj(raw.ui);
-  out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone) };
+  out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone), budget: budgetOf(ui.budget) };
   if ('sessionMins' in out.ui && ![30, 60, 90].includes(out.ui.sessionMins)) delete out.ui.sessionMins;
   for (const [k, fields] of [['sfCalc', SF_CALC], ['cubeCalc', CUBE_CALC], ['flameCalc', FLAME_CALC]]) {
     if (!(k in out.ui)) continue;
