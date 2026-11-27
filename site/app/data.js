@@ -24,9 +24,10 @@ const FILES = {
   expSources: 'data/expsources.json',
   upcoming: 'data/upcoming.json',
   bossCp: 'data/bosscp.json',
-  classes: 'data/classes.json'
+  classes: 'data/classes.json',
+  bounty: 'data/bounty.json'
 };
-const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season']);
+const OPTIONAL = new Set(['meta', 'events', 'news', 'nexonCharacters', 'tables', 'season', 'bounty']);
 // The files the 6-hourly job rewrites. An open page reads these again (refreshData); the rest only change with a
 // new version of the site.
 const LIVE = ['events', 'news', 'nexonCharacters', 'shops'];

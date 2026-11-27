@@ -36,17 +36,24 @@ export function weeksLeft(end, now, resetKind) {
 }
 
 // Coins still earnable before the shop closes: missions left, at most perWeek for each week that remains.
-export function coinsToCome(shop, claims, now, resetKind) {
-  const earn = shop.earn;
-  if (!earn) return 0;
+// A shop paid by a weekly amount instead (`shop.bounty`: Shadow Bounties) takes `weekly` = { perWeek,
+// thisWeekDone }: that amount for every week left, less the running week when its coins are already in hand.
+export function coinsToCome(shop, claims, now, resetKind, weekly) {
   const end = Date.parse(shop.end);
   if (!(end > now)) return 0;
+  if (shop.bounty) {
+    const per = weekly ? n(weekly.perWeek) : 0;
+    const weeks = Math.max(0, weeksLeft(end, now, resetKind) - (weekly && weekly.thisWeekDone ? 1 : 0));
+    return weeks * per;
+  }
+  const earn = shop.earn;
+  if (!earn) return 0;
   const weeks = weeksLeft(end, now, resetKind);
   const left = Math.max(0, earn.max - n(claims));
   return Math.min(left, weeks * earn.perWeek) * earn.perClaim;
 }
 
-export function shopPlan(shop, saved, char, now, resetKind) {
+export function shopPlan(shop, saved, char, now, resetKind, weekly) {
   const s = saved || {};
   const want = s.want || {};
   const rows = shopItems(shop, char).map((item) => {
@@ -56,7 +63,7 @@ export function shopPlan(shop, saved, char, now, resetKind) {
   });
   const need = rows.reduce((a, r) => a + r.cost, 0);
   const have = n(s.have);
-  const toCome = coinsToCome(shop, s.claims, now, resetKind);
+  const toCome = coinsToCome(shop, s.claims, now, resetKind, weekly);
   const open = Date.parse(shop.end) > now;
   return {
     rows, need, have, toCome, open,

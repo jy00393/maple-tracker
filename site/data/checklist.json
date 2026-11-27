@@ -162,9 +162,16 @@
     {
      "id": "w-cwprog",
      "label": "Challenger World weekly progression missions",
-     "note": "Progress resets every Wednesday at 00:00 UTC (Nexon's Challenger World notice).",
+     "note": "One of the three is enough: 5,000 monsters near your level, Monster Park 6 times, or 12 Symbol daily quests, then press Complete. 1,500 Challenger Coins a week at most, even with all three. Progress resets every Wednesday at 00:00 UTC (Nexon's Challenger World notice, read 27 Nov 2026).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
+    },
+    {
+     "id": "w-bounty-earn",
+     "label": "Shadow Bounties: beat one weekly boss solo",
+     "note": "1-person party; Practice Mode counts. Only your best boss of the bounty week pays, so solo your hardest one. Up to 3,000 Basic, 2,000 Intermediate and 100 Advanced coins a week per world. The bounty week ends Wednesday 09:00 KST, a day before the boss reset (v.272 notes, read 27 Nov 2026).",
+     "minLevel": 101,
+     "until": "2027-02-09T23:59:00Z"
     },
     {
      "id": "w-specter",
@@ -201,7 +208,7 @@
      "label": "Item Burning Plus hunt: 2,000 kills for 100 crests",
      "type": "count",
      "target": 5,
-     "note": "Monsters within 20 levels. Resets Thursday 00:00 UTC (Nexon).",
+     "note": "Monsters within 20 levels. Solo weekly boss clears pay crests too (Practice Mode counts): see Progress, Item Burning. Resets Thursday 00:00 UTC (Nexon).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
     },
