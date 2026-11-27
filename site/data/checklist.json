@@ -120,7 +120,13 @@
     {
      "id": "d-gollux",
      "label": "Gollux",
-     "note": "Long-term source of Superior Gollux accessories."
+     "note": "Long-term source of Superior Gollux accessories. One clear a day on any difficulty: the same tick as Gollux on Bosses.",
+     "boss": [
+      "gollux-easy",
+      "gollux-normal",
+      "gollux-hard",
+      "gollux-hell"
+     ]
     },
     {
      "id": "d-mp",

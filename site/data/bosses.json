@@ -619,7 +619,48 @@
    "only": "challenger",
    "minLevel": 280,
    "note": "No crystal; drops Golden Meso Pouches. Lv. 280+, once a week per account."
+  },
+  {
+   "id": "gollux-easy",
+   "boss": "Gollux",
+   "difficulty": "Easy",
+   "reset": "daily",
+   "price": 0,
+   "noCrystal": true,
+   "minLevel": 180,
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+  },
+  {
+   "id": "gollux-normal",
+   "boss": "Gollux",
+   "difficulty": "Normal",
+   "reset": "daily",
+   "price": 0,
+   "noCrystal": true,
+   "minLevel": 180,
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+  },
+  {
+   "id": "gollux-hard",
+   "boss": "Gollux",
+   "difficulty": "Hard",
+   "reset": "daily",
+   "price": 0,
+   "noCrystal": true,
+   "minLevel": 180,
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+  },
+  {
+   "id": "gollux-hell",
+   "boss": "Gollux",
+   "difficulty": "Hell",
+   "reset": "daily",
+   "price": 0,
+   "noCrystal": true,
+   "minLevel": 180,
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
   }
  ],
+ "noCrystalNote": "The list is built from the Intense Power Crystal table, so a boss that drops no crystal is only here when added by hand, each with its source in its note: Kai and Mayrin (Nexon, news id 47305) and Gollux (MapleStory Wiki). Other bosses without a crystal are not listed yet.",
  "entryNote": "Entry fields: \"only\": \"challenger\" = offered only to Challenger World characters; \"minLevel\" = locked below that level. They restate rules this tracker's data already held, nothing new: Kai is Challenger World only (its note; Nexon, news id 47305); Mayrin is the Challenger World season boss from Lv. 270 (checklist.json w-mayrin, from the same notice); Hard Mayrin from Lv. 280 (its note). Added 2026-11-26."
 }
