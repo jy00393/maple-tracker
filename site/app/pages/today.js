@@ -20,6 +20,9 @@ import { symbolPlan, liberationPlan, gearSummary, erdaNextSteps, erdaTemplateFor
 import { SessionPlanner, StreakRecorder, streakInfo } from './session.js';
 import { levelOutlook, knownLevel } from './level.js';
 import { ChallengerToday } from './challenger.js';
+import { AllDone, AllCleared, SeasonFold } from './daily.js';
+import { clearedLast } from '../calc/daily.js';
+import { undoable } from '../undo.js';
 
 // The next symbol levels, soonest first. Each date is fixed on the day the count was typed (symbolPlan), so it
 // does not move until the count is typed again.
@@ -55,7 +58,7 @@ function SeasonCard({ season, state, now }) {
   }
   // Korean calendar days, the same count the coin shop uses for the same deadline.
   const d = kstDays(now, o.ends);
-  const toggle = (id, on) => update((s) => { s.ui.seasonDone = { ...(s.ui.seasonDone || {}), [id]: on }; if (!on) delete s.ui.seasonDone[id]; });
+  const toggle = (id, on) => undoable(`${on ? 'Ticked' : 'Unticked'} a season step`, () => update((s) => { s.ui.seasonDone = { ...(s.ui.seasonDone || {}), [id]: on }; if (!on) delete s.ui.seasonDone[id]; }));
   const notTicked = (g) => g.items.filter((i) => !i.done).length;
   return html`<${Card} title=${o.ended ? `${season.name} has ended` : `${season.name} ends`} meta=${o.ended ? 'season over: last deadlines' : d <= 1 ? `ends ${dayWord(d)}` : `${d} days left`} className="span2">
     <div class="insight"><span class="k">${o.ended ? 'Season ended' : 'Season ends'}</span><span class="big accent">${fmtKst(o.ends)}</span>
@@ -110,16 +113,16 @@ function TodoCard({ data, state, now, who, char, lines, prog }) {
     if (shown && st.rows) for (const r of st.rows) onChips.add(shareKey(r.boss));
     return shown;
   });
-  const listed = lines.filter((l) => !onChips.has(shareKey(l.boss)));
+  const listed = clearedLast(lines.filter((l) => !onChips.has(shareKey(l.boss))));
   // A boss cleared on another difficulty is done too: the difficulties share one clear.
   // The count covers every picked boss, the daily ones on the chips included (one per shared clear).
   const counted = lines.filter((l) => !l.spare);
   const cleared = counted.filter((l) => l.clearedNow || l.doneAs).length;
   const hint = bossResetHint(listed);
   return html`<${Card} title="Do today" meta=${`${prog.done} / ${prog.total} dailies${counted.length ? ` · ${cleared} / ${counted.length} ${plural(counted.length, 'boss', 'bosses')}` : ''}`} bodyClass="card-b tight todo">
-    <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><a class="small" href="#checklist">Full checklist</a></div>
+    <div class="group-h"><h4>Core dailies <span class="hint">reset 09:00 KST</span></h4><${AllDone} group=${group} items=${items} cs=${cs} now=${now} who=${who} what="core dailies" /><a class="small" href="#checklist">Full checklist</a></div>
     ${items.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`)}
-    ${char ? html`<div class="group-h"><h4>Bosses${hint ? html` <span class="hint">${hint}</span>` : null}</h4><a class="small" href="#bosses">Pick bosses</a></div>
+    ${char ? html`<div class="group-h"><h4>Bosses${hint ? html` <span class="hint">${hint}</span>` : null}</h4><${AllCleared} char=${char} lines=${listed} who=${who} /><a class="small" href="#bosses">Pick bosses</a></div>
       ${listed.length ? listed.map((l) => {
         const id = `today-boss-${l.bossId}`;
         return html`<div class=${'row' + (l.clearedNow || l.doneAs ? ' done' : '')}>
@@ -241,5 +244,5 @@ export function TodayPage({ data, state }) {
         <//>` : null}
       </div>
     </div>
-    ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginTop: '2px' }}><${SeasonCard} season=${data.season} state=${state} now=${now} /></div>` : null}`;
+    ${char && char.challenger && data.season ? html`<div class="grid two" style=${{ marginTop: '2px' }}><${SeasonFold} Full=${SeasonCard} season=${data.season} state=${state} now=${now} /></div>` : null}`;
 }

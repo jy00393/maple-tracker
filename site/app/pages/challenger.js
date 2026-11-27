@@ -12,6 +12,7 @@ import {
   missionState, seasonalFor, levelAtTime, nextLevelMission, levelPoints
 } from '../calc/challenger.js';
 import { knownLevel, levelOutlook, levelPath } from './level.js';
+import { undoable } from '../undo.js';
 
 const num = (n) => Math.round(n).toLocaleString('en-US');
 const named = (m) => `${m.boss.difficulty} ${m.boss.boss}`;
@@ -77,12 +78,13 @@ function stateText(m, s, path, ctx, now) {
   return 'no Combat Power figure for it: check in game';
 }
 
-const setTick = (charId, id, on) => update((s) => {
+// Mission ticks go through the Undo bar like every other tick.
+const setTick = (charId, id, on, label = 'a Challenger mission') => undoable(`${on ? 'Ticked' : 'Unticked'} ${label}`, () => update((s) => {
   const c = charSlice(s, 'challenger', charId, () => ({ done: {} }));
   if (!c.done || typeof c.done !== 'object') c.done = {};
   if (on) c.done[id] = Date.now();
   else delete c.done[id];
-});
+}));
 
 function MissionRow({ id, label, right, note, done, implied, onChange }) {
   return html`<div class=${'row' + (done ? ' done' : '')}>
@@ -211,7 +213,7 @@ export function ChallengerView({ data, state, char, now }) {
         const implied = !ticked && st.set.has(m.id);
         return html`<${MissionRow} key=${m.id} id=${m.id} label=${named(m)} right=${`+${num(m.points)} · ${num(m.coins)} coins${m.adv ? ` + ${m.adv} advanced` : ''}`}
           note=${implied ? 'done by your harder clear' : s.status === 'done' ? null : stateText(m, s, path, ctx, now)} done=${s.status === 'done'} implied=${implied}
-          onChange=${(v) => setTick(char.id, m.id, v)} />`;
+          onChange=${(v) => setTick(char.id, m.id, v, named(m))} />`;
       })}
     <//>
     <div class="grid">
@@ -224,7 +226,7 @@ export function ChallengerView({ data, state, char, now }) {
       <${Fold} title="Seasonal coin missions" meta=${`${seasonal.filter((x) => st.set.has(x.id)).length} of ${seasonal.length} done · coins only`}>
         <p class="note">${cw.seasonalNote} Ticks here feed "still to earn" in Events → Coin shop.</p>
         ${seasonal.map((x) => html`<${MissionRow} key=${x.id} id=${x.id} label=${x.text} right=${`${num(x.coins)} coins`} note=${x.hexa && ctx.erdaLink ? 'May not apply to Erda Link: not counted.' : null}
-          done=${st.set.has(x.id)} implied=${false} onChange=${(v) => setTick(char.id, x.id, v)} />`)}
+          done=${st.set.has(x.id)} implied=${false} onChange=${(v) => setTick(char.id, x.id, v, x.text)} />`)}
         ${ctx.erdaLink ? html`<p class="note">${cw.hexaNote}</p>` : null}
       <//>
       <${Fold} title="Tier rewards" meta=${`${tiers.length} tiers`}>

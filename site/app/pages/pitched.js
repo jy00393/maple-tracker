@@ -3,6 +3,7 @@ import { update, charSlice, newId } from '../store.js';
 import { Card } from '../ui.js';
 import { pitchedSummary, kstDay, isDay } from '../calc/pitched.js';
 import { fmtDate } from '../time.js';
+import { undoable } from '../undo.js';
 
 const showDay = (d) => fmtDate(Date.parse(d + 'T00:00:00Z'));
 
@@ -16,16 +17,17 @@ export function PitchedCard({ data, state, char, now }) {
   const sum = pitchedSummary(data.pitched, state.pitch[char.id]);
   const useDay = isDay(picked) && picked <= today ? picked : today;
   const day = picked || today;
-  const log = (itemId) => update((s) => {
+  const nameOf = (itemId) => (data.pitched.items || []).concat(...(data.pitched.sets || []).map((x) => x.items || [])).find((x) => x && x.id === itemId)?.name || 'a drop';
+  const log = (itemId) => undoable(`Logged ${nameOf(itemId)}, ${showDay(useDay)}`, () => update((s) => {
     const p = charSlice(s, 'pitch', char.id, () => ({ drops: [] }));
     p.drops.push({ id: newId(), item: itemId, d: useDay });
-  });
+  }));
   const remove = (id) => {
     setAsking(null);
-    update((s) => {
+    undoable('Removed a drop', () => update((s) => {
       const p = s.pitch[char.id];
       if (p) p.drops = p.drops.filter((x) => x.id !== id);
-    });
+    }));
   };
   const meta = sum.sets.map((s) => `${s.owned} of ${s.total} ${s.id === 'pitched' ? 'Pitched' : 'Brilliant'}`).join(' · ');
   return html`<${Card} title="Pitched and Brilliant drops" meta=${meta} className="span2">

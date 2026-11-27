@@ -7,6 +7,7 @@ import { reclassifyLines } from '../calc/potential.js';
 import { mainStatOnClassChange } from '../calc/upgrades.js';
 import { fmtKst } from '../time.js';
 import { hasSharedTicks } from '../calc/checklist.js';
+import { undoable } from '../undo.js';
 
 export const CLASSES = ['Hero', 'Paladin', 'Dark Knight', 'Bowmaster', 'Marksman', 'Pathfinder', 'Fire/Poison Mage', 'Ice/Lightning Mage', 'Bishop',
   'Night Lord', 'Shadower', 'Dual Blade', 'Buccaneer', 'Corsair', 'Cannoneer', 'Dawn Warrior', 'Blaze Wizard', 'Wind Archer', 'Night Walker',
@@ -73,7 +74,7 @@ export function CharactersPage({ data, state }) {
             <div class="right">
               <button type="button" class="btn" onClick=${() => setEditing(c.id)}>Edit</button>
               ${confirmDelete === c.id
-                ? html`<button type="button" class="btn danger" onClick=${() => { update((s) => {
+                ? html`<button type="button" class="btn danger" onClick=${() => { undoable(`Deleted ${c.name}`, () => update((s) => {
                     s.characters = s.characters.filter((x) => x.id !== c.id);
                     for (const k of ['bosses', 'symbols', 'liberation', 'ibp', 'erda', 'gear', 'level', 'pitch', 'challenger']) if (s[k]) delete s[k][c.id];
                     // Its checklist ticks and unlock flags go too.
@@ -88,7 +89,7 @@ export function CharactersPage({ data, state }) {
                       s.checklist.owner = null;
                     }
                     if (s.activeId === c.id) s.activeId = s.characters[0]?.id ?? null;
-                  }); setConfirmDelete(null); }}>Delete for good</button>
+                  })); setConfirmDelete(null); }}>Delete for good</button>
                   <button type="button" class="btn" onClick=${() => setConfirmDelete(null)}>Keep</button>`
                 : html`<button type="button" class="btn" onClick=${() => setConfirmDelete(c.id)}>Delete</button>`}
             </div>

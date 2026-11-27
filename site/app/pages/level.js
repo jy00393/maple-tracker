@@ -5,6 +5,7 @@ import { expToNext, expToReach, expRate, erdaCost, solErdaCap } from '../calc/up
 import { erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { DAY, fmtDate, fmtDay, fmtKst, kstDays, dayWord, asOf } from '../time.js';
 import { ExpSourcesCard } from './expsources.js';
+import { undoable } from '../undo.js';
 
 // Your own readings that still stand, oldest first. Levels never go down, so readings whose levels go down over
 // time cannot all be right. The longest run of readings that never goes down stands and the rest are ignored: one
@@ -226,7 +227,7 @@ export function LevelView({ data, state, char, now }) {
       <label class="toggle"><input type="checkbox" checked=${Boolean(char.beyondBurning)} onChange=${(e) => setChar(char, { beyondBurning: e.currentTarget.checked })} /> Beyond Burning (an extra level each level-up until 280)</label>
       ${log.length ? html`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Logged</th><th class="num">Level</th><th class="num">EXP %</th><th></th></tr></thead>
         <tbody>${shown.slice().reverse().map((r) => html`<tr><td>${fmtKst(r.t)}${standing.has(r) ? '' : html`<div class="small muted">Ignored: the level does not fit your other readings. If this one is right, delete the wrong ones.</div>`}</td><td class="num">${r.level}</td><td class="num">${Number(r.pct).toFixed(3)}%</td>
-          <td class="num"><button type="button" class="iconbtn" aria-label="Delete this reading" onClick=${() => update((s) => {
+          <td class="num"><button type="button" class="iconbtn" aria-label="Delete this reading" onClick=${() => undoable('Deleted a level reading', () => update((s) => {
             const l = s.level[char.id];
             if (!l || !Array.isArray(l.log)) return;
             const before = l.log;
@@ -235,7 +236,7 @@ export function LevelView({ data, state, char, now }) {
             const c = s.characters.find((x) => x.id === char.id);
             if (c) c.level = levelAfterDelete(before, r, levelReadings(data, s, c), c.level);
             passOnWas(l.log, r);
-          })}>×</button></td></tr>`)}</tbody></table></div>
+          }))}>×</button></td></tr>`)}</tbody></table></div>
         ${log.length > shown.length || showAll ? html`<button type="button" class="btn ghost" onClick=${() => setShowAll(!showAll)}>${showAll ? 'Show the last 6 only' : `Show all ${log.length} readings`}</button>` : null}` : null}
       <p class="note">Log your level and EXP % (shown under the EXP bar) once a day or so. If the character is listed in config/characters.json, the GitHub job also records it from Nexon's rankings every 6 hours. ${exp.beyondBurningNote}</p>
     <//>

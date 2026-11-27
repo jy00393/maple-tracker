@@ -2,6 +2,7 @@ import { html } from '../../vendor/htm-preact.mjs';
 import { update, charSlice } from '../store.js';
 import { Card, MesoInput } from '../ui.js';
 import { fmtMesos, entryBlock, entryBlockText } from '../calc/income.js';
+import { undoable } from '../undo.js';
 import { suggestBosses, picksOutOfReach, minCpFor, marginOf, fmtCp } from '../calc/bosscp.js';
 
 // Bosses: which weekly bosses the character's Combat Power is enough for, and a one-press way to pick them.
@@ -31,11 +32,11 @@ export function CombatPowerCard({ data, state, char, who }) {
   const setCp = (v) => update((s) => { const c = s.characters.find((x) => x.id === char.id); if (c) c.cp = v || null; });
   // Replaces the weekly solo picks that have a figure. Party picks, bosses with no figure, and daily and
   // monthly bosses are left as they are.
-  const usePicks = () => update((s) => {
+  const usePicks = () => undoable('Weekly boss list replaced', () => update((s) => {
     const b = charSlice(s, 'bosses', char.id, () => ({ picks: {}, clears: {} }));
     for (const id of soloWeekly) if (!sug.ids.includes(id)) delete b.picks[id];
     for (const id of sug.ids) if (!b.picks[id]) b.picks[id] = { party: 1 };
-  });
+  }));
   return html`<${Card} title="What your Combat Power can enter" meta="solo, weekly bosses" className="span2">
     <div class="form-grid">
       <label class="field"><span>Your Combat Power</span><${MesoInput} label="Combat Power" placeholder="e.g. 45M" value=${cp || null} onChange=${setCp} /></label>

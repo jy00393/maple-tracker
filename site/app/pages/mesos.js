@@ -10,6 +10,7 @@ import { withCubeRates } from '../calc/advice.js';
 import { DAY, dayKey, fmtDate, kstDays, dayWord, asOf } from '../time.js';
 import { changedAt } from '../calc/asof.js';
 import { Flames } from './flames.js';
+import { undoable } from '../undo.js';
 
 const POT = ['None', 'Rare', 'Epic', 'Unique', 'Legendary'];
 const setM = (fn) => update((s) => fn(s.mesos));
@@ -66,7 +67,7 @@ function Planner({ data, state, now }) {
   // A cost above the most the tracker holds would be reset on load, so it is never saved (nor offered below).
   // Any goal action takes down an earlier "can't read that" message: it was about a different try.
   const addGoal = (name, cost) => { setGoalErr(''); if (cost > 0 && cost <= MESO_MAX) setM((x) => { x.goals.push({ id: newId(), name, cost: Math.round(cost) }); }); };
-  const removeGoal = (i) => { setGoalErr(''); setM((x) => { x.goals.splice(i, 1); }); };
+  const removeGoal = (i) => { setGoalErr(''); undoable(`Removed the goal ${(m.goals[i] && m.goals[i].name) || ''}`.trim(), () => setM((x) => { x.goals.splice(i, 1); })); };
   const move = (i, d) => { setGoalErr(''); moveGoal(i, d); };
   const moveGoal = (i, d) => setM((x) => { const j = i + d; if (j < 0 || j >= x.goals.length) return; [x.goals[i], x.goals[j]] = [x.goals[j], x.goals[i]]; });
   // One suggestion of each kind: the first one a goal can hold. One above the limit is passed over, not the end of the search.

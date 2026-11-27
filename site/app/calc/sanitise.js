@@ -221,7 +221,7 @@ export function sanitiseState(raw, base) {
   };
 
   const ui = obj(raw.ui);
-  out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone) };
+  out.ui = { ...base.ui, ...ui, hideClassic: ui.hideClassic !== false, todaySales: bool(ui.todaySales), lastSeenNews: num(ui.lastSeenNews, 0, 0), eventsView: str(ui.eventsView, 'timeline'), hiddenEvents: obj(ui.hiddenEvents), seasonDone: obj(ui.seasonDone), showNotes: typeof ui.showNotes === 'boolean' ? ui.showNotes : null };
   if ('sessionMins' in out.ui && ![30, 60, 90].includes(out.ui.sessionMins)) delete out.ui.sessionMins;
   for (const [k, fields] of [['sfCalc', SF_CALC], ['cubeCalc', CUBE_CALC], ['flameCalc', FLAME_CALC]]) {
     if (!(k in out.ui)) continue;

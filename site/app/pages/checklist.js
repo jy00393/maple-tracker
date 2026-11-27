@@ -7,6 +7,8 @@ import { itemStatus, resetOf, recordKey, moveResetDay, RESET_CYCLE, openAreas, s
 import { knownLevel } from './level.js';
 import { toggleClear } from './bosses.js';
 import { sealNoteFor } from './challenger.js';
+import { undoable } from '../undo.js';
+import { AllDone, StreakLine, NotesToggle, RowNote } from './daily.js';
 
 export { itemStatus, resetOf, recordKey };
 
@@ -53,19 +55,22 @@ export function setRecord(id, kind, rec) {
 // One step on a counter, applied to the count that is current at the click. The page can be a few seconds
 // behind a reset, so the count it drew may belong to the period that has just ended.
 export function bumpCount(item, group, who, step) {
-  update((s) => {
+  undoable(() => `${item.label}: ${step > 0 ? 'one more' : 'one less'}`, () => update((s) => {
     const now = Date.now();
     const cur = itemStatus(item, group, s.checklist, now, who);
     const c = Math.max(0, Math.min(item.target, cur.count + step));
     if (c === cur.count) return;
     s.checklist.items[recordKey(item, who)] = { p: periodKey(cur.kind, now), t: now, c, d: c >= item.target ? 1 : 0 };
-  });
+  }));
 }
 
 // A tick on a plain item. An item that stands for a boss clear (`st.clear`) writes the Bosses tick instead, on
 // the difficulty that is picked. Unticking also takes away a clear on another character when the item is
 // account-wide, and a tick left from when the row was a checklist tick of its own.
 export function tickItem(item, st, who, checked) {
+  return undoable(`${checked ? 'Ticked' : 'Unticked'} ${item.label}`, () => tickItemNow(item, st, who, checked));
+}
+function tickItemNow(item, st, who, checked) {
   if (!st.clear) return setRecord(recordKey(item, who), st.kind, { d: checked ? 1 : 0 });
   const c = st.clear;
   if (checked || c.own) toggleClear(who.id, c.boss, { shared: c.shared }, checked);
@@ -81,6 +86,8 @@ export function Item({ item, group, cs, now, who }) {
   if (st.expired) return null;
   const cls = 'row' + (st.done ? ' done' : '') + (item.optional || group.optional ? ' optional' : '') + (st.locked ? ' locked' : '');
   const id = 'cl-' + item.id;
+  // The Arcane Seal advice (Challenger tiers): behind an (i) on phones like every other row note.
+  const seal = item.id === 'd-seal' && who.sealNote ? who.sealNote() : null;
   let left;
   let right = [];
   const accountPill = item.scope === 'account' ? html`<span class="pill" title="Ticked once for the whole account">account</span>` : null;
@@ -130,11 +137,11 @@ export function Item({ item, group, cs, now, who }) {
   return html`<div class=${cls}>
     ${left}${label}<div class="right">${right}</div>
     ${item.type === 'chips' ? html`<div class="chips">${item.chips.map(([cid, text], i) => html`<button type="button" class="chip" aria-pressed=${String(st.on[i])}
-      onClick=${() => setRecord(recordKey(item, who, `_${cid}`), st.kind, { d: st.on[i] ? 0 : 1 })}>${text}</button>`)}</div>` : null}
+      onClick=${() => undoable(`${st.on[i] ? 'Unticked' : 'Ticked'} ${text}`, () => setRecord(recordKey(item, who, `_${cid}`), st.kind, { d: st.on[i] ? 0 : 1 }))}>${text}</button>`)}</div>` : null}
     ${chips ? html`<div class="chips">${chips.map((r) => html`<button type="button" class="chip" id=${`${id}-${r.bossId}`} aria-pressed=${String(r.on)} disabled=${st.locked}
       onClick=${() => toggleClear(who.id, r.boss, r.line, !r.on)}>${r.boss.difficulty} ${r.boss.boss}</button>`)}</div>` : null}
-    ${item.note && !st.prompt ? html`<p class="note">${item.note}</p>` : null}
-    ${item.id === 'd-seal' && who.sealNote ? html`<p class="note">${who.sealNote()}</p>` : null}
+    ${item.note && !st.prompt ? html`<${RowNote} note=${item.note} label=${item.label} />` : null}
+    ${seal ? html`<${RowNote} note=${seal} label=${`${item.label} advice`} />` : null}
   </div>`;
 }
 
@@ -148,17 +155,19 @@ export function ChecklistPage({ data, state }) {
   return html`
     <${PageHead} title=${who.name ? `Checklist · ${who.name}` : 'Checklist'}>${state.characters.length > 1 ? 'Each character has its own ticks; items marked “account” are shared. ' : ''}Ticks clear themselves at each reset: dailies at 09:00 KST, weeklies on their own day. Event items disappear once the event ends.<//>
     <div class="tiles">
-      <div class="tile"><span class="k">Core dailies today</span><span class="v">${prog.done} / ${prog.total}</span><${Bar} pct=${prog.total ? prog.done / prog.total : 0} /></div>
+      <div class="tile"><span class="k">Core dailies today</span><span class="v">${prog.done} / ${prog.total}</span><${Bar} pct=${prog.total ? prog.done / prog.total : 0} /><${StreakLine} state=${state} now=${now} /></div>
     </div>
+    <div class="notes-bar"><${NotesToggle} state=${state} /></div>
     <${StreakRecorder} data=${data} state=${state} now=${now} />
     <div class="grid two">
-      <${StreakCard} state=${state} now=${now} />
       ${data.checklist.groups.map((group) => {
         // A group whose items have all ended (or are not for this character) is left out, heading included.
         if (group.items.every((item) => itemStatus(item, group, cs, now, who).expired)) return null;
-        const items = listedItems(group, cs, now, who).map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`);
-        return html`<${Card} title=${group.title} meta=${group.hint} bodyClass="card-b tight">${items}<//>`;
+        const listed = listedItems(group, cs, now, who);
+        const items = listed.map((item) => html`<${Item} key=${item.id} item=${item} group=${group} cs=${cs} now=${now} who=${who} />`);
+        return html`<${Card} title=${group.title} meta=${html`${group.hint} <${AllDone} group=${group} items=${listed} cs=${cs} now=${now} who=${who} />`} bodyClass="card-b tight">${items}<//>`;
       })}
+      <${StreakCard} state=${state} now=${now} />
     </div>
     <p class="note">${data.checklist.source}</p>`;
 }
