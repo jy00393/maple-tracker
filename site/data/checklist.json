@@ -201,17 +201,19 @@
      "label": "Item Burning Plus hunt: 2,000 kills for 100 crests",
      "type": "count",
      "target": 5,
-     "note": "Monsters within 20 levels. Resets Thursday 00:00 UTC (Nexon).",
+     "note": "Monsters within 20 levels. Resets Thursday 00:00 UTC. Solo clears of Lotus, Damien, Guardian Angel Slime, Lucid, Will, Gloom, Darknell, Verus Hilla, Kai and Mayrin also give 50-200 crests each; Practice Mode counts (Nexon, news id 47305).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
     },
     {
      "id": "w-kai",
-     "label": "Normal Kai",
+     "label": "Normal Kai (mission clear)",
+     "optional": true,
+     "minLevel": 235,
      "boss": [
       "kai-normal"
      ],
-     "note": "Challenger World only, solo. No crystal. The same tick as Kai on Bosses.",
+     "note": "Needed for Item Burning Plus Stage 4 and the Challenger World mission; a solo clear also gives 50 Challenge Crests. No crystal, and it does not use a weekly boss clear. Nexon lets in only characters who have not finished those missions, so it may close once both are done: check in game. Lv. 235+, solo. The same tick as Kai on Bosses (Nexon, news id 47305).",
      "until": "2027-02-09T23:59:00Z",
      "only": "challenger"
     },

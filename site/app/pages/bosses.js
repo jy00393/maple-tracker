@@ -177,7 +177,7 @@ export function BossesPage({ data, state }) {
       <${Tile} k="Price basis" v=${char.world === 'interactive' ? 'Interactive' : 'Heroic ×5'} s="from the GMS v.272 crystal table" />
     </div>
     <div class="grid two">
-      <${CombatPowerCard} data=${data} state=${state} char=${char} />
+      <${CombatPowerCard} data=${data} state=${state} char=${char} who=${who} />
       <${Card} title="This week" meta="Ticks reset with each boss's own reset"><${ThisWeek} char=${char} income=${income} data=${data} who=${who} /><//>
       <section class="card">
         <div class="card-h"><h3>Bosses you run</h3><span class="meta">Values for ${char.world === 'interactive' ? 'Interactive' : 'Heroic'}</span></div>
