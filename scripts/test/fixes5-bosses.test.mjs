@@ -326,10 +326,12 @@ test('Kai ticked on Today leaves no "Normal Kai" in the Thursday warning', () =>
   const lines = characterLines(main, state.bosses.a, bosses, bossById, now);
   const thu = resetWarnings(checklist, cs, lines, now, { who: whoFor(DATA, state, main), weeklyCap: 14 }).find((w) => w.kind === 'thu');
   assert.ok(thu, 'other Thursday items are still open');
-  assert.equal(thu.items.includes('Normal Kai'), false);
+  assert.equal(thu.items.some((l) => /Kai/.test(l)), false);
   state.bosses.a.clears = {};
   const open = resetWarnings(checklist, cs, characterLines(main, state.bosses.a, bosses, bossById, now), now, { who: whoFor(DATA, state, main), weeklyCap: 14 }).find((w) => w.kind === 'thu');
-  assert.equal(open.items.includes('Normal Kai'), true, 'named while it is open');
+  // fixes7: Kai is a mission clear Nexon may close once the missions are done (news 47305), so the Checklist
+  // row is optional and, like every optional row, is not named in the reset warning even while open.
+  assert.equal(open.items.some((l) => /Kai/.test(l)), false, 'an optional mission clear is not a reset warning');
 });
 
 test('an old Checklist tick for Kai can be taken back, and the session planner writes the boss tick', async (t) => {
@@ -472,11 +474,14 @@ test('entry rules are data on the boss, and follow the character', () => {
   assert.ok(bossById['mayrin-hard'].minLevel > bossById['mayrin-normal'].minLevel);
   assert.ok(bosses.entryNote, 'the fields say where their rules come from');
   assert.equal(entryBlock(bossById['kai-normal'], { challenger: false, level: 210 }), 'challenger');
-  assert.equal(entryBlock(bossById['kai-normal'], { challenger: true, level: 210 }), null);
+  // fixes7: Kai opens at Lv. 235 (Nexon, news 47305).
+  assert.equal(entryBlock(bossById['kai-normal'], { challenger: true, level: 210 }), 'level');
+  assert.equal(entryBlock(bossById['kai-normal'], { challenger: true, level: 235 }), null);
   assert.equal(entryBlock(bossById['mayrin-normal'], { challenger: true, level: 264 }), 'level');
   assert.equal(entryBlock(bossById['mayrin-normal'], { challenger: true, level: 270 }), null);
   assert.equal(entryBlock(bossById['mayrin-normal'], { challenger: true, level: undefined }), null, 'an unknown level never locks');
-  assert.equal(entryBlock(bossById['lucid-hard'], { challenger: false, level: 10 }), null, 'a boss with no entry fields is always offered');
+  // fixes7: Lucid now has its wiki entry level, so a boss the wiki gives no level for stands in.
+  assert.equal(entryBlock(bossById['yakuza-boss-normal'], { challenger: false, level: 10 }), null, 'a boss with no entry fields is always offered');
 });
 
 test('Bosses: Kai and Mayrin are not offered to a character that cannot enter', async (t) => {

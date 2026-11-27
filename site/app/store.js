@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from '../vendor/htm-preact.mjs';
-import { mergeStates, sameEntries, sameStamps, seedStamps, stampEdit, units } from './calc/merge.js';
+import { mergeStates, sameEntries, sameStamps, seedStamps, stampEdit, units, liveAsOf } from './calc/merge.js';
+import { carryAsOf } from './calc/asof.js';
 import { addBackup } from './calc/backups.js';
 import { hasSharedTicks } from './calc/checklist.js';
 import { dayKey } from './time.js';
@@ -44,6 +45,9 @@ export function blankState() {
     ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },
     // When each part last changed, so sync can merge two devices part by part (see calc/merge.js).
     stamps: {},
+    // Parts changed only by an import or a restore since: when they were really last changed, for "as of" dates
+    // (see liveAsOf in calc/merge.js and changedAt in calc/asof.js). Synced, so every device shows the same date.
+    asOf: {},
     updatedAt: 0
   };
 }
@@ -68,7 +72,15 @@ function normalise(raw) {
   if (dateTyped(out, Date.now())) datedOnLoad = true;
   // Copies saved before sync merged part by part have no stamps: date every part by the copy's own updatedAt.
   out.stamps = { ...seedStamps(out) };
+  // Only the "as of" times that still match their part's stamp stand (a copy written by the live version before
+  // this field existed has none).
+  out.asOf = liveAsOf(out.asOf, out.stamps);
   return out;
+}
+
+// Drops "as of" times an edit has made stale, so the map never outgrows the parts it is for.
+function pruneAsOf(s, now) {
+  if (s.asOf && Object.keys(s.asOf).length) s.asOf = liveAsOf(s.asOf, s.stamps, now);
 }
 
 function load() {
@@ -220,6 +232,7 @@ export function update(mutator) {
   mutator(next);
   const now = Date.now();
   stampEdit(next.stamps, state, next, now);
+  pruneAsOf(next, now);
   next.updatedAt = laterThan(state.updatedAt, now);
   state = next;
   save();
@@ -233,6 +246,7 @@ export function touch(path) {
   const next = structuredClone(state);
   const now = Date.now();
   stampEdit(next.stamps, state, next, now, new Set([path]));
+  pruneAsOf(next, now);
   next.updatedAt = laterThan(state.updatedAt, now);
   state = next;
   save();
@@ -244,9 +258,13 @@ export function replaceState(raw, keepTime = false) {
   const before = state;
   state = normalise(raw);
   if (!keepTime || !state.updatedAt) {
-    // An import or a reset replaces everything, so every part (kept, changed or removed) is stamped now.
+    // An import or a reset replaces everything, so every part (kept, changed or removed) is stamped now: the
+    // import then wins over other devices. The figures with an "as of" date keep the time the copy itself had
+    // for them (carryAsOf), so taking a backup back in does not make old figures look freshly typed.
     const now = Date.now();
-    state.stamps = stampEdit({}, before, state, now, new Set([...units(before).keys(), ...units(state).keys()]));
+    const copy = state;
+    const stamps = stampEdit({}, before, state, now, new Set([...units(before).keys(), ...units(state).keys()]));
+    state = { ...state, stamps, asOf: carryAsOf(copy, stamps, now) };
     state.updatedAt = laterThan(before.updatedAt, now);
   }
   save();

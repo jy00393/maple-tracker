@@ -248,5 +248,11 @@ export function sanitiseState(raw, base) {
     out.stamps = {};
     for (const [k, v] of Object.entries(raw.stamps)) if (num(v, null, 0) !== null) out.stamps[k] = v;
   } else delete out.stamps;
+  // "As of" times kept through an import (store.js): { t, s } per part, both real times. store.js then keeps only
+  // those that still match their part's stamp.
+  out.asOf = {};
+  for (const [k, v] of Object.entries(obj(raw.asOf))) {
+    if (safeKey(k) && isObj(v) && num(v.t, null, 1) !== null && num(v.s, null, 1) !== null) out.asOf[k] = { t: v.t, s: v.s };
+  }
   return out;
 }

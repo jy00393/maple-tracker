@@ -16,6 +16,7 @@
  "bosses": [
   {
    "id": "zakum-easy",
+   "minLevel": 50,
    "boss": "Zakum",
    "difficulty": "Easy",
    "reset": "daily",
@@ -23,6 +24,7 @@
   },
   {
    "id": "zakum-normal",
+   "minLevel": 90,
    "boss": "Zakum",
    "difficulty": "Normal",
    "reset": "daily",
@@ -30,6 +32,7 @@
   },
   {
    "id": "papulatus-easy",
+   "minLevel": 115,
    "boss": "Papulatus",
    "difficulty": "Easy",
    "reset": "daily",
@@ -37,6 +40,7 @@
   },
   {
    "id": "magnus-easy",
+   "minLevel": 115,
    "boss": "Magnus",
    "difficulty": "Easy",
    "reset": "daily",
@@ -51,6 +55,7 @@
   },
   {
    "id": "hilla-normal",
+   "minLevel": 85,
    "boss": "Hilla",
    "difficulty": "Normal",
    "reset": "daily",
@@ -58,6 +63,7 @@
   },
   {
    "id": "mori-ranmaru-normal",
+   "minLevel": 120,
    "boss": "Mori Ranmaru",
    "difficulty": "Normal",
    "reset": "daily",
@@ -65,6 +71,7 @@
   },
   {
    "id": "horntail-easy",
+   "minLevel": 130,
    "boss": "Horntail",
    "difficulty": "Easy",
    "reset": "daily",
@@ -79,6 +86,7 @@
   },
   {
    "id": "pierre-normal",
+   "minLevel": 125,
    "boss": "Pierre",
    "difficulty": "Normal",
    "reset": "daily",
@@ -86,6 +94,7 @@
   },
   {
    "id": "von-bon-normal",
+   "minLevel": 125,
    "boss": "Von Bon",
    "difficulty": "Normal",
    "reset": "daily",
@@ -93,6 +102,7 @@
   },
   {
    "id": "crimson-queen-normal",
+   "minLevel": 125,
    "boss": "Crimson Queen",
    "difficulty": "Normal",
    "reset": "daily",
@@ -100,6 +110,7 @@
   },
   {
    "id": "vellum-normal",
+   "minLevel": 125,
    "boss": "Vellum",
    "difficulty": "Normal",
    "reset": "daily",
@@ -107,6 +118,7 @@
   },
   {
    "id": "horntail-normal",
+   "minLevel": 130,
    "boss": "Horntail",
    "difficulty": "Normal",
    "reset": "daily",
@@ -114,6 +126,7 @@
   },
   {
    "id": "von-leon-easy",
+   "minLevel": 125,
    "boss": "Von Leon",
    "difficulty": "Easy",
    "reset": "daily",
@@ -121,6 +134,7 @@
   },
   {
    "id": "arkarium-easy",
+   "minLevel": 140,
    "boss": "Arkarium",
    "difficulty": "Easy",
    "reset": "daily",
@@ -135,6 +149,7 @@
   },
   {
    "id": "omni-cln-normal",
+   "minLevel": 180,
    "boss": "OMNI-CLN",
    "difficulty": "Normal",
    "reset": "daily",
@@ -142,6 +157,7 @@
   },
   {
    "id": "horntail-chaos",
+   "minLevel": 135,
    "boss": "Horntail",
    "difficulty": "Chaos",
    "reset": "daily",
@@ -149,6 +165,7 @@
   },
   {
    "id": "pink-bean-normal",
+   "minLevel": 140,
    "boss": "Pink Bean",
    "difficulty": "Normal",
    "reset": "daily",
@@ -156,6 +173,7 @@
   },
   {
    "id": "von-leon-normal",
+   "minLevel": 125,
    "boss": "Von Leon",
    "difficulty": "Normal",
    "reset": "daily",
@@ -163,6 +181,7 @@
   },
   {
    "id": "von-leon-hard",
+   "minLevel": 125,
    "boss": "Von Leon",
    "difficulty": "Hard",
    "reset": "daily",
@@ -170,6 +189,7 @@
   },
   {
    "id": "arkarium-normal",
+   "minLevel": 140,
    "boss": "Arkarium",
    "difficulty": "Normal",
    "reset": "daily",
@@ -177,6 +197,7 @@
   },
   {
    "id": "magnus-normal",
+   "minLevel": 155,
    "boss": "Magnus",
    "difficulty": "Normal",
    "reset": "daily",
@@ -184,6 +205,7 @@
   },
   {
    "id": "papulatus-normal",
+   "minLevel": 155,
    "boss": "Papulatus",
    "difficulty": "Normal",
    "reset": "daily",
@@ -191,6 +213,7 @@
   },
   {
    "id": "hilla-hard",
+   "minLevel": 170,
    "boss": "Hilla",
    "difficulty": "Hard",
    "reset": "daily",
@@ -198,6 +221,7 @@
   },
   {
    "id": "pink-bean-chaos",
+   "minLevel": 170,
    "boss": "Pink Bean",
    "difficulty": "Chaos",
    "reset": "daily",
@@ -205,6 +229,7 @@
   },
   {
    "id": "mori-ranmaru-hard",
+   "minLevel": 180,
    "boss": "Mori Ranmaru",
    "difficulty": "Hard",
    "reset": "daily",
@@ -212,6 +237,7 @@
   },
   {
    "id": "cygnus-normal",
+   "minLevel": 165,
    "boss": "Cygnus",
    "difficulty": "Normal",
    "reset": "daily",
@@ -219,6 +245,7 @@
   },
   {
    "id": "zakum-chaos",
+   "minLevel": 90,
    "boss": "Zakum",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -226,6 +253,7 @@
   },
   {
    "id": "pierre-chaos",
+   "minLevel": 180,
    "boss": "Pierre",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -233,6 +261,7 @@
   },
   {
    "id": "von-bon-chaos",
+   "minLevel": 180,
    "boss": "Von Bon",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -240,6 +269,7 @@
   },
   {
    "id": "crimson-queen-chaos",
+   "minLevel": 180,
    "boss": "Crimson Queen",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -247,6 +277,7 @@
   },
   {
    "id": "princess-no-normal",
+   "minLevel": 180,
    "boss": "Princess No",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -254,6 +285,7 @@
   },
   {
    "id": "magnus-hard",
+   "minLevel": 175,
    "boss": "Magnus",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -261,6 +293,7 @@
   },
   {
    "id": "vellum-chaos",
+   "minLevel": 180,
    "boss": "Vellum",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -268,6 +301,7 @@
   },
   {
    "id": "papulatus-chaos",
+   "minLevel": 190,
    "boss": "Papulatus",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -275,6 +309,7 @@
   },
   {
    "id": "akechi-mitsuhide-normal",
+   "minLevel": 200,
    "boss": "Akechi Mitsuhide",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -282,6 +317,7 @@
   },
   {
    "id": "lotus-normal",
+   "minLevel": 190,
    "boss": "Lotus",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -289,6 +325,7 @@
   },
   {
    "id": "damien-normal",
+   "minLevel": 190,
    "boss": "Damien",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -296,6 +333,7 @@
   },
   {
    "id": "guardian-angel-slime-normal",
+   "minLevel": 210,
    "boss": "Guardian Angel Slime",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -303,6 +341,7 @@
   },
   {
    "id": "lucid-easy",
+   "minLevel": 220,
    "boss": "Lucid",
    "difficulty": "Easy",
    "reset": "weekly",
@@ -310,6 +349,7 @@
   },
   {
    "id": "will-easy",
+   "minLevel": 235,
    "boss": "Will",
    "difficulty": "Easy",
    "reset": "weekly",
@@ -317,6 +357,7 @@
   },
   {
    "id": "lucid-normal",
+   "minLevel": 220,
    "boss": "Lucid",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -324,6 +365,7 @@
   },
   {
    "id": "will-normal",
+   "minLevel": 235,
    "boss": "Will",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -331,6 +373,7 @@
   },
   {
    "id": "gloom-normal",
+   "minLevel": 245,
    "boss": "Gloom",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -338,6 +381,7 @@
   },
   {
    "id": "darknell-normal",
+   "minLevel": 255,
    "boss": "Darknell",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -345,6 +389,7 @@
   },
   {
    "id": "damien-hard",
+   "minLevel": 190,
    "boss": "Damien",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -352,6 +397,7 @@
   },
   {
    "id": "lotus-hard",
+   "minLevel": 190,
    "boss": "Lotus",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -359,6 +405,7 @@
   },
   {
    "id": "lucid-hard",
+   "minLevel": 220,
    "boss": "Lucid",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -366,6 +413,7 @@
   },
   {
    "id": "gloom-chaos",
+   "minLevel": 245,
    "boss": "Gloom",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -373,6 +421,7 @@
   },
   {
    "id": "verus-hilla-normal",
+   "minLevel": 250,
    "boss": "Verus Hilla",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -380,6 +429,7 @@
   },
   {
    "id": "guardian-angel-slime-chaos",
+   "minLevel": 210,
    "boss": "Guardian Angel Slime",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -387,6 +437,7 @@
   },
   {
    "id": "will-hard",
+   "minLevel": 235,
    "boss": "Will",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -394,6 +445,7 @@
   },
   {
    "id": "darknell-hard",
+   "minLevel": 255,
    "boss": "Darknell",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -401,6 +453,7 @@
   },
   {
    "id": "verus-hilla-hard",
+   "minLevel": 250,
    "boss": "Verus Hilla",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -408,6 +461,7 @@
   },
   {
    "id": "chosen-seren-normal",
+   "minLevel": 260,
    "boss": "Chosen Seren",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -415,6 +469,7 @@
   },
   {
    "id": "kalos-the-guardian-easy",
+   "minLevel": 265,
    "boss": "Kalos the Guardian",
    "difficulty": "Easy",
    "reset": "weekly",
@@ -422,6 +477,7 @@
   },
   {
    "id": "first-adversary-easy",
+   "minLevel": 270,
    "boss": "First Adversary",
    "difficulty": "Easy",
    "reset": "weekly",
@@ -429,6 +485,7 @@
   },
   {
    "id": "kaling-easy",
+   "minLevel": 275,
    "boss": "Kaling",
    "difficulty": "Easy",
    "reset": "weekly",
@@ -436,6 +493,7 @@
   },
   {
    "id": "chosen-seren-hard",
+   "minLevel": 260,
    "boss": "Chosen Seren",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -443,6 +501,7 @@
   },
   {
    "id": "kalos-the-guardian-normal",
+   "minLevel": 265,
    "boss": "Kalos the Guardian",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -450,6 +509,7 @@
   },
   {
    "id": "first-adversary-normal",
+   "minLevel": 270,
    "boss": "First Adversary",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -457,6 +517,7 @@
   },
   {
    "id": "lotus-extreme",
+   "minLevel": 190,
    "boss": "Lotus",
    "difficulty": "Extreme",
    "reset": "weekly",
@@ -464,6 +525,7 @@
   },
   {
    "id": "malefic-star-normal",
+   "minLevel": 280,
    "boss": "Malefic Star",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -471,6 +533,7 @@
   },
   {
    "id": "kaling-normal",
+   "minLevel": 275,
    "boss": "Kaling",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -478,6 +541,7 @@
   },
   {
    "id": "limbo-normal",
+   "minLevel": 285,
    "boss": "Limbo",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -485,6 +549,7 @@
   },
   {
    "id": "kalos-the-guardian-chaos",
+   "minLevel": 265,
    "boss": "Kalos the Guardian",
    "difficulty": "Chaos",
    "reset": "weekly",
@@ -492,6 +557,7 @@
   },
   {
    "id": "baldrix-normal",
+   "minLevel": 290,
    "boss": "Baldrix",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -499,6 +565,7 @@
   },
   {
    "id": "first-adversary-hard",
+   "minLevel": 270,
    "boss": "First Adversary",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -506,6 +573,7 @@
   },
   {
    "id": "jupiter-normal",
+   "minLevel": 295,
    "boss": "Jupiter",
    "difficulty": "Normal",
    "reset": "weekly",
@@ -513,6 +581,7 @@
   },
   {
    "id": "kaling-hard",
+   "minLevel": 275,
    "boss": "Kaling",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -520,6 +589,7 @@
   },
   {
    "id": "limbo-hard",
+   "minLevel": 285,
    "boss": "Limbo",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -527,6 +597,7 @@
   },
   {
    "id": "malefic-star-hard",
+   "minLevel": 280,
    "boss": "Malefic Star",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -534,6 +605,7 @@
   },
   {
    "id": "baldrix-hard",
+   "minLevel": 290,
    "boss": "Baldrix",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -541,6 +613,7 @@
   },
   {
    "id": "chosen-seren-extreme",
+   "minLevel": 260,
    "boss": "Chosen Seren",
    "difficulty": "Extreme",
    "reset": "weekly",
@@ -548,6 +621,7 @@
   },
   {
    "id": "black-mage-hard",
+   "minLevel": 255,
    "boss": "Black Mage",
    "difficulty": "Hard",
    "reset": "monthly",
@@ -555,6 +629,7 @@
   },
   {
    "id": "kalos-the-guardian-extreme",
+   "minLevel": 265,
    "boss": "Kalos the Guardian",
    "difficulty": "Extreme",
    "reset": "weekly",
@@ -562,6 +637,7 @@
   },
   {
    "id": "first-adversary-extreme",
+   "minLevel": 270,
    "boss": "First Adversary",
    "difficulty": "Extreme",
    "reset": "weekly",
@@ -569,6 +645,7 @@
   },
   {
    "id": "jupiter-hard",
+   "minLevel": 295,
    "boss": "Jupiter",
    "difficulty": "Hard",
    "reset": "weekly",
@@ -576,6 +653,7 @@
   },
   {
    "id": "kaling-extreme",
+   "minLevel": 275,
    "boss": "Kaling",
    "difficulty": "Extreme",
    "reset": "weekly",
@@ -583,6 +661,7 @@
   },
   {
    "id": "black-mage-extreme",
+   "minLevel": 255,
    "boss": "Black Mage",
    "difficulty": "Extreme",
    "reset": "monthly",
@@ -590,13 +669,14 @@
   },
   {
    "id": "kai-normal",
+   "minLevel": 235,
    "boss": "Kai",
    "difficulty": "Normal",
    "reset": "weekly",
    "price": 0,
    "noCrystal": true,
    "only": "challenger",
-   "note": "No crystal. Weekly, Challenger World only; clears count only toward the Challenger World and Item Burning Plus missions (Nexon, news id 47305)."
+   "note": "A mission clear, not a crystal boss. Challenger World only, Lv. 235+, solo. Clears count only toward the Challenger World mission and Item Burning Plus Stage 4, give nothing else, and do not use a weekly boss clear. Nexon lists entry only for characters who have not finished those missions, yet calls Kai weekly and gives 50 Challenge Crests for a solo clear: whether it still opens after both missions is not stated (Nexon, news id 47305, read 2026-11-27)."
   },
   {
    "id": "mayrin-normal",
@@ -628,7 +708,7 @@
    "price": 0,
    "noCrystal": true,
    "minLevel": 180,
-   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. A clear gives 10-20 Gollux Pennies for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27; amounts are the wiki's, not confirmed for GMS)."
   },
   {
    "id": "gollux-normal",
@@ -638,7 +718,7 @@
    "price": 0,
    "noCrystal": true,
    "minLevel": 180,
-   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. A clear gives 20-25 Gollux Pennies for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27; amounts are the wiki's, not confirmed for GMS)."
   },
   {
    "id": "gollux-hard",
@@ -648,7 +728,7 @@
    "price": 0,
    "noCrystal": true,
    "minLevel": 180,
-   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. A clear gives 15-20 Gollux Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27; amounts are the wiki's, not confirmed for GMS)."
   },
   {
    "id": "gollux-hell",
@@ -658,9 +738,9 @@
    "price": 0,
    "noCrystal": true,
    "minLevel": 180,
-   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. Gives Gollux Pennies or Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27)."
+   "note": "No crystal. One entry and one clear a day for all four difficulties, from Lv. 180; the difficulty comes from how many parts you destroy before the head. A clear gives 25-30 Gollux Coins for the Gollux shop (MapleStory Wiki, Gollux, page edited 18 Oct 2026; read 2026-11-27; amounts are the wiki's, not confirmed for GMS)."
   }
  ],
  "noCrystalNote": "The list is built from the Intense Power Crystal table, so a boss that drops no crystal is only here when added by hand, each with its source in its note: Kai and Mayrin (Nexon, news id 47305) and Gollux (MapleStory Wiki). Other bosses without a crystal are not listed yet.",
- "entryNote": "Entry fields: \"only\": \"challenger\" = offered only to Challenger World characters; \"minLevel\" = locked below that level. They restate rules this tracker's data already held, nothing new: Kai is Challenger World only (its note; Nexon, news id 47305); Mayrin is the Challenger World season boss from Lv. 270 (checklist.json w-mayrin, from the same notice); Hard Mayrin from Lv. 280 (its note). Added 2026-11-26."
+ "entryNote": "Entry fields: \"only\": \"challenger\" = offered only to Challenger World characters; \"minLevel\" = locked below that level. Kai is Challenger World only, from Lv. 235 (Nexon, news id 47305, Returning Boss: Kai, read 2026-11-27); Mayrin is the Challenger World season boss from Lv. 270 (checklist.json w-mayrin, from the same notice); Hard Mayrin from Lv. 280 (its note). Every other \"minLevel\" is the \"Entry Level\" from MapleStory Wiki, read 2026-11-27: the Bosses page's Level requirement table (https://maplestorywiki.net/w/Bosses) for all of them, and agreeing boss pages for Kalos the Guardian 265 (/w/Kalos/Monster), First Adversary 270 (/w/First_Adversary), Kaling 275 (/w/Kaling/Monster), Malefic Star 280 (/w/Malefic_Star), Limbo 285 (/w/Limbo/Monster), Baldrix 290 (/w/Baldrix/Monster), Jupiter 295 (/w/Jupiter/Monster), Chosen Seren 260 (/w/Chosen_Seren) and Black Mage 255 (/w/Black_Mage/Monster). Gollux 180 from its own page. Yakuza Boss, Gigatoad and Frenzied Gigatoad have no figure on the wiki and stay open at any level. The wiki is a community source. Added 2026-11-26, levels 2026-11-27."
 }
