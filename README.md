@@ -73,7 +73,8 @@ These change only with big patches. Each file says where it came from:
 | `site/data/bosses.json` | Boss crystal prices (Interactive; Heroic ×5), caps | MapleStory Wiki, Intense Power Crystal, GMS v.272 tab |
 | `site/data/symbols.json` | Symbol costs and Heroic daily amounts | MapleStory Wiki symbol pages |
 | `site/data/liberation.json` | Genesis and Destiny stages and per-boss amounts | MapleStory Wiki, Genesis/Destiny Weapon |
-| `site/data/ibp.json` | Item Burning Plus stages | Nexon v.272 event notice |
+| `site/data/ibp.json` | Item Burning Plus stages, rewards and crests per solo weekly boss | Nexon v.272 event notice (news id 47305) |
+| `site/data/bounty.json` | Shadow Bounties: coins per solo weekly boss, weekly caps, Wednesday reset | Nexon v.272 patch notes (news id 47132) |
 | `site/data/checklist.json` | Daily and weekly checklist | Nexon notices and community guides |
 | `site/data/items.json` | Equipment names, levels and slots for the Gear search (refreshed by the job) | maplestory.io community API; unofficial and may lag a patch or two |
 | `site/data/potential.json` | Potential lines per equipment group and tier, with values by item level | StrategyWiki, Potential System (page from Aug 2023; GMS values for Lv. 151+) |
@@ -81,7 +82,7 @@ These change only with big patches. Each file says where it came from:
 | `site/data/season.json` | Challenger World end-of-season deadlines and steps | Nexon's Challenger World notice (news id 47305) |
 | `site/data/gear.json`, `erda.json` | Gear tiers, targets, 6th-job order | Editable presets |
 | `site/data/flames.json` | Flame (Bonus Stats) tier odds, line rules, values per tier, the meso reset price, flame score weights | Odds: Nexon Korea's published probabilities (not published for GMS); values: MapleStory Wiki; weights are community values |
-| `site/data/shops.json` | Event coin shops: items, prices, limits. Written by the job from Nexon's patch notes; how coins are earned is typed in by hand where known | Nexon patch notes |
+| `site/data/shops.json` | Event coin shops: items, prices, limits. Written by the job from Nexon's patch notes; how coins are earned (`earn`, or `bounty` for the Bounty Coin shops) is typed in by hand where known, and the job keeps it | Nexon patch notes |
 | `site/data/pitched.json` | Pitched and Brilliant boss set items and where each drops | MapleStory Wiki set and item pages |
 | `site/data/bosscp.json` | Minimum Combat Power to enter each boss solo | MapleStory Wiki, Combat Power page (the game's entry table, listed for ChinaMS) |
 | `site/data/champions.json` | Legion Champion ranks, trials, slot rules, insignia | MapleStory Wiki; Nexon v.272 patch notes |

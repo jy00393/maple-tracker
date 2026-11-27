@@ -1,6 +1,7 @@
 import { html } from '../../vendor/htm-preact.mjs';
 import { update, activeCharacter, charSlice } from '../store.js';
-import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty, useClock } from '../ui.js';
+import { Card, PageHead, Seg, NumberInput, Stepper, Bar, Tile, Empty, useClock, Fold } from '../ui.js';
+import { bossCrests, crestWeeks } from '../calc/rewards.js';
 import { symbolPlan, liberationPlan, liberationCounted, liberationFromBosses, erdaNextSteps, erdaTemplateFor } from '../calc/progress.js';
 import { fmtMesos, shareKey } from '../calc/income.js';
 import { fmtDate, fmtDay, asOf, kstDays, dayWord, nextReset, DAY } from '../time.js';
@@ -155,7 +156,7 @@ function SixthJob({ data, char, entry, now, since }) {
   </div>`;
 }
 
-function ItemBurning({ data, char, entry, now, crestsAt }) {
+function ItemBurning({ data, char, entry, now, crestsAt, bossState }) {
   const done = entry.done || {};
   const crests = entry.crests || 0;
   const set = (fn) => update((s) => {
@@ -165,7 +166,12 @@ function ItemBurning({ data, char, entry, now, crestsAt }) {
   });
   const finished = data.ibp.stages.filter((st) => done[st.id]).length;
   const nextNeed = data.ibp.stages.find((st) => !done[st.id] && st.crests > crests);
-  const weeks = nextNeed ? Math.ceil((nextNeed.crests - crests) / data.ibp.weeklyCrests) : 0;
+  // Crests a week: the 5 hunts plus the Boss Defeat Mission crests of the solo weekly bosses picked on Bosses.
+  const hunts = Number(data.ibp.weeklyCrests) || 0;
+  const fromBosses = bossCrests(data.ibp, bossState, data.bossById || {});
+  const perWeek = hunts + fromBosses.total;
+  const weeks = nextNeed ? crestWeeks(nextNeed.crests - crests, perWeek) : 0;
+  const what = fromBosses.total ? 'of hunts and boss crests' : 'of hunts';
   // Crests come in with the Thursday reset; only the resets before the event ends can still pay out.
   const end = Date.parse(data.ibp.endsAt);
   const over = now > end;
@@ -173,23 +179,38 @@ function ItemBurning({ data, char, entry, now, crestsAt }) {
   const nextThu = nextReset('thu', now);
   const thursdaysLeft = over ? 0 : 1 + (nextThu > end ? 0 : Math.floor((end - nextThu) / (7 * DAY)) + 1);
   const gate = !nextNeed ? 'covered' : over ? 'the event has ended' : weeks > thursdaysLeft
-    ? `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · needs ~${weeks} weeks of hunts, ${thursdaysLeft} left before it ends: out of reach`
-    : `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · ~${weeks} week${weeks === 1 ? '' : 's'} of hunts`;
+    ? `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · needs ${Number.isFinite(weeks) ? `~${weeks} weeks ${what}` : 'crests, and none come in'}, ${thursdaysLeft} left before it ends: out of reach`
+    : `${nextNeed.crests.toLocaleString()} for stage ${nextNeed.id.slice(1)} · ~${weeks} week${weeks === 1 ? '' : 's'} ${what}`;
+  const named = (b) => `${b.difficulty} ${b.boss}`;
+  const crestTable = Object.entries(data.ibp.bossCrests || {}).map(([id, n]) => [(data.bossById || {})[id], n]).filter(([b]) => b);
   return html`<${Card} title="Item Burning Plus stages" meta=${`${finished} / ${data.ibp.stages.length} done`}>
     <div class="form-grid">
       <label class="field"><span>Challenge Crests held${crestsAt ? ` (${asOf(crestsAt, now)})` : ''}</span><${NumberInput} className="input" label="Challenge Crests" value=${crests} max=${99999} onChange=${(v) => set((e) => { e.crests = v || 0; })} /></label>
       <div class="field"><span>Next crest gate</span><b>${gate}</b></div>
     </div>
-    <p class="note">The crest count is the one you typed: hunts ticked on Checklist do not add to it. Retype it after each week's hunts.</p>
+    <p class="note">${fromBosses.total
+      ? `About ${perWeek.toLocaleString()} crests a week: ${hunts.toLocaleString()} from the 5 weekly hunts and ${fromBosses.total.toLocaleString()} from the solo weekly bosses picked on Bosses (${fromBosses.rows.map((r) => `${named(r.boss)} ${r.crests}`).join(', ')}).`
+      : `${hunts.toLocaleString()} crests a week from the 5 weekly hunts. Solo weekly bosses pay crests too: pick the ones you solo on Bosses to count them.`}</p>
+    ${fromBosses.party.length ? html`<p class="note">Party clears pay no crests: ${fromBosses.party.map(named).join(', ')} ${fromBosses.party.length === 1 ? 'is' : 'are'} set as a party on Bosses.</p>` : null}
+    ${fromBosses.unlisted.length ? html`<p class="note">${fromBosses.unlisted.map(named).join(', ')}: not in Nexon's crest table, so not counted. Check the mission in game.</p>` : null}
+    <p class="note">The crest count is the one you typed: hunts ticked on Checklist do not add to it, and nor do boss clears. Retype it after each week's hunts and bosses.</p>
     <div>
-      ${data.ibp.stages.map((st) => html`<div class=${'row' + (done[st.id] ? ' done' : '')}>
+      ${data.ibp.stages.map((st) => {
+        const reward = char.world === 'interactive' && st.rewardInteractive ? st.rewardInteractive : st.reward;
+        return html`<div class=${'row' + (done[st.id] ? ' done' : '')}>
         <input type="checkbox" id=${'ibp-' + st.id} checked=${Boolean(done[st.id])} onChange=${(e) => set((x) => { x.done[st.id] = e.currentTarget.checked; })} />
         <label class="lbl" for=${'ibp-' + st.id}>${st.id.slice(1)} · ${st.boss}</label>
         <div class="right"><span class="min">Lv. ${st.level}${st.crests ? ` · ${st.crests.toLocaleString()} crests` : ''}</span></div>
-        ${st.reward ? html`<p class="note">${st.reward}</p>` : null}
-      </div>`)}
+        ${reward ? html`<p class="note">${reward}</p>` : null}
+      </div>`;
+      })}
     </div>
-    <p class="note">${over ? `Item Burning Plus ended on ${fmtDate(end)}; its gear has expired.` : `Stages can be cleared in any order and cash in once Stage 1 is done. The Challenger gear expires ${fmtDate(end)}, so don't spend mesos or cubes on it.`}</p>
+    <p class="note">${over ? `Item Burning Plus ended on ${fmtDate(end)}; its gear has expired.` : `${data.ibp.stageNote || ''} The Challenger gear expires ${fmtDate(end)}, so don't spend mesos or cubes on it.`}</p>
+    ${crestTable.length ? html`<${Fold} title="Crests per boss" meta="solo, weekly">
+      <div class="tbl-wrap"><table class="tbl"><tbody>${crestTable.map(([b, n]) => html`<tr><td>${named(b)}</td><td class="num">${n}</td></tr>`)}</tbody></table></div>
+      ${data.ibp.bossCrestsNote ? html`<p class="note">${data.ibp.bossCrestsNote}</p>` : null}
+      <p class="note">${data.ibp.source}</p>
+    <//>` : null}
   <//>`;
 }
 
@@ -224,7 +245,7 @@ export function ProgressPage({ data, state }) {
   } else if (view === 'sixth') {
     body = html`<${SixthJob} data=${data} char=${char} entry=${state.erda[char.id] || {}} now=${now} since=${changedAt(state, part('erda'), now)} />`;
   } else {
-    body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} now=${now} crestsAt=${changedAt(state, part('ibp'), now)} />`;
+    body = html`<${ItemBurning} data=${data} char=${char} entry=${state.ibp[char.id] || {}} now=${now} crestsAt=${changedAt(state, part('ibp'), now)} bossState=${(state.bosses || {})[char.id]} />`;
   }
   return html`
     <${PageHead} title="Progress">${char.name}: level gates, symbols, weapon liberation, 6th job, Legion Champions and Item Burning.<//>
