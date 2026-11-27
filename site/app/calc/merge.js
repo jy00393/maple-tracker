@@ -57,7 +57,8 @@ const usedSlot = (s) => isObj(s) && Boolean((typeof s.name === 'string' && s.nam
 const CHECKLIST_PARTS = new Set(['items', 'resets', 'flags', 'history']);
 // activeId (which character is on screen) is each device's own choice, so it is neither stamped nor merged.
 // "cleared" belongs to one browser's storage (see store.js) and is never part of the entries.
-const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared']);
+// "asOf" (see liveAsOf) is change-time bookkeeping like the stamps: not an entry, merged on its own.
+const SKIP = new Set(['v', 'updatedAt', 'stamps', 'activeId', 'cleared', 'asOf']);
 // The same goes for which tab of a page is showing, and for the news read marker the Events page sets itself.
 const LOCAL_UI = new Set(['mesosView', 'progressView', 'eventsView', 'shopId', 'lastSeenNews']);
 const UI_MAPS = new Set(['seasonDone', 'hiddenEvents']);
@@ -632,7 +633,9 @@ export function mergeStates(a, b, now = Date.now()) {
     const p = `characters/${id}`;
     if (ua.has(p) === ub.has(p)) continue;
     const [src, read] = ub.has(p) ? [ub, rb] : [ua, ra];
-    const t = Math.max(ra(p), rb(p));
+    // Only a real removal on the other side lifts the parts (a side that never had the character, such as a new
+    // device, keeps each part's own time, which "as of" dates read).
+    const t = (ub.has(p) ? ra(p) : rb(p)) ? Math.max(ra(p), rb(p)) : 0;
     for (const [path, value] of src) {
       if (!ownedBy(path, id)) continue;
       setUnit(out, path, value);
@@ -689,6 +692,29 @@ export function mergeStates(a, b, now = Date.now()) {
   }
   out.stamps = stamps;
   out.updatedAt = Math.min(Math.max(a.updatedAt || 0, b.updatedAt || 0), now + DAY);
+  // Either side's "as of" times, kept where they still describe the merged stamp (see liveAsOf).
+  out.asOf = liveAsOf([a.asOf, b.asOf], stamps, now);
+  return out;
+}
+
+// state.asOf: { [path]: { t, s } }. An import or a restore stamps every part as changed now, so the import wins
+// over other devices (store.js replaceState); `t` keeps when the figure at `path` was really last changed, and
+// `s` the stamp the import gave it. The entry stands only while the part's stamp is still `s`: any later edit,
+// confirmation or winning change from another device moves the stamp, and the entry is then dropped. So there is
+// at most one entry per part, and only for parts changed by nothing but an import since.
+// `lists`: one or more asOf maps (two when merging); returns the entries that still stand.
+export function liveAsOf(lists, stamps, now = Date.now()) {
+  const out = {};
+  const read = stampReader(stamps, now);
+  for (const m of Array.isArray(lists) ? lists : [lists]) {
+    if (!isObj(m)) continue;
+    for (const path of keysOf(m)) {
+      const e = m[path];
+      if (!isObj(e) || !(e.t > 0) || !(e.s > 0) || e.t >= e.s || read(path) !== e.s) continue;
+      // Two devices that hold the same import agree; a different time for the same stamp: the earlier stands.
+      if (!Object.hasOwn(out, path) || e.t < out[path].t) out[path] = { t: e.t, s: e.s };
+    }
+  }
   return out;
 }
 

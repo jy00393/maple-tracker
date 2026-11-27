@@ -175,6 +175,9 @@ test('Bosses: "Use this list" keeps a crystal already earned on a boss it drops'
   at(t, FRI);
   const el = await show(t, BossesPage, (s) => {
     s.characters[0].cp = 2000000000;
+    // fixes7: suggestions skip bosses above the character's level; at Lv. 300 every boss is open, so the
+    // 14 best crystals leave Chaos Zakum out as before.
+    s.characters[0].level = 300;
     s.ui.bossMargin = 1;
     s.bosses = { a: { picks: solo('zakum-chaos'), clears: { 'zakum-chaos': { [week]: true } } } };
   });

@@ -1,75 +1,111 @@
 {
- "source": "Nexon 'Maplayer One Challenger World and Burning Events' notice (v.272) via the 23 Nov 2026 research report. Item Burning Plus missions reset Thursday 00:00 UTC (Nexon).",
+ "source": "Nexon 'Maplayer One Challenger World and Burning Events!' notice (v.272, news id 47305), Item Burning Plus section: stages, rewards, Weekly Hunting Mission and Boss Defeat Mission. Checked 2026-11-23; boss crests and stage rewards read from the notice 2026-11-27. Item Burning Plus missions and Challenge Crest records reset Thursday 00:00 UTC (Nexon).",
+ "sourceUrl": "https://www.nexon.com/maplestory/news/events/47305",
  "endsAt": "2027-02-09T23:59:00Z",
  "weeklyCrests": 500,
+ "weeklyNote": "Weekly Hunting Mission: 2,000 monsters within 20 levels for 100 crests, up to 5 times a week.",
+ "bossCrests": {
+  "lotus-normal": 50,
+  "lotus-hard": 150,
+  "damien-normal": 50,
+  "damien-hard": 150,
+  "guardian-angel-slime-normal": 50,
+  "guardian-angel-slime-chaos": 175,
+  "lucid-easy": 50,
+  "lucid-normal": 100,
+  "lucid-hard": 175,
+  "will-easy": 50,
+  "will-normal": 100,
+  "will-hard": 175,
+  "gloom-normal": 150,
+  "gloom-chaos": 200,
+  "darknell-normal": 150,
+  "darknell-hard": 200,
+  "verus-hilla-normal": 175,
+  "verus-hilla-hard": 200,
+  "kai-normal": 50,
+  "mayrin-normal": 200
+ },
+ "bossCrestsNote": "Boss Defeat Mission: only clears in a solo party count, and Practice Mode clears count (Nexon). Crest records reset every Thursday 00:00 UTC, so the tracker counts each boss once a week; the notice implies this but does not say it outright.",
+ "stageNote": "Stage objectives can be done early, but a stage only completes after all earlier stages. Stage bosses must be beaten solo; Practice Mode counts, and so does a higher difficulty (Nexon).",
  "stages": [
   {
    "id": "s1",
    "boss": "Normal Lotus",
    "level": 225,
    "crests": 0,
-   "reward": "18\u2605 armor and weapon, Unique armor Potential, 2 Challenger Keys"
+   "reward": "18★ armor and weapon, Unique armor Potential, 2 Challenger Keys"
   },
   {
    "id": "s2",
    "boss": "Easy Lucid",
    "level": 250,
-   "crests": 0
+   "crests": 0,
+   "reward": "Heroic: Potential stats raised (armor, weapon), 2 Challenger Keys",
+   "rewardInteractive": "Interactive: scroll stats raised (armor, weapon), Unique weapon and Epic armor Bonus Potential, 2 Challenger Keys"
   },
   {
    "id": "s3",
    "boss": "Easy Will",
    "level": 255,
-   "crests": 250
+   "crests": 250,
+   "reward": "Legendary weapon Potential, 2 Challenger Keys"
   },
   {
    "id": "s4",
    "boss": "Normal Kai",
    "level": 260,
-   "crests": 750
+   "crests": 750,
+   "reward": "Legendary hat Potential (main stat and cooldown lines can be changed once a day), 2 Challenger Keys"
   },
   {
    "id": "s5",
    "boss": "Normal Lucid",
    "level": 265,
-   "crests": 1500
+   "crests": 1500,
+   "reward": "19★ shoes, cape and gloves"
   },
   {
    "id": "s6",
    "boss": "Normal Darknell",
    "level": 265,
-   "crests": 2250
+   "crests": 2250,
+   "reward": "19★ hat, top, bottom and shoulder"
   },
   {
    "id": "s7",
    "boss": "Hard Damien",
    "level": 270,
-   "crests": 3000
+   "crests": 3000,
+   "reward": "20★ shoes, cape and gloves"
   },
   {
    "id": "s8",
    "boss": "Normal Verus Hilla",
    "level": 270,
-   "crests": 3750
+   "crests": 3750,
+   "reward": "20★ hat, top, bottom and shoulder"
   },
   {
    "id": "s9",
    "boss": "Chaos Guardian Angel Slime",
    "level": 275,
-   "crests": 4500
+   "crests": 4500,
+   "reward": "21★ shoes, cape and gloves"
   },
   {
    "id": "s10",
    "boss": "Chaos Gloom",
    "level": 275,
-   "crests": 5500
+   "crests": 5500,
+   "reward": "21★ hat, top, bottom and shoulder"
   },
   {
    "id": "s11",
    "boss": "Normal Mayrin",
    "level": 280,
    "crests": 6500,
-   "reward": "22\u2605 armor"
+   "reward": "22★ armor"
   }
  ]
 }

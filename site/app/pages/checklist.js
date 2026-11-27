@@ -86,7 +86,7 @@ export function Item({ item, group, cs, now, who }) {
   if (item.type === 'count') {
     left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
     right.push(html`<${Counter} value=${st.count} target=${item.target} label=${item.label}
-      onStep=${(d) => bumpCount(item, group, who, d)} />`);
+      disabled=${st.locked} onStep=${(d) => bumpCount(item, group, who, d)} />`);
   } else if (item.type === 'chips') {
     left = html`<span class=${'mark' + (st.done ? ' on' : '')} aria-hidden="true"></span>`;
     right.push(html`<span class="min">${st.on.filter(Boolean).length} / ${item.chips.length}</span>`);

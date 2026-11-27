@@ -81,13 +81,37 @@ export function resetOf(item, group, checklistState) {
   return RESET_CYCLE.includes(r) ? r : item.def || 'mon';
 }
 
+const FILED = ['daily', ...RESET_CYCLE];
+
+// True when tick `r` belongs to the running period `p` of reset `kind`. A tick filed under another reset day
+// (the item has since moved from "Reset day unconfirmed" to a fixed day) counts by the time it was made, when
+// that time agrees with the key it was filed under: the same rule moveResetDay applies when the pill moves.
+function isCurrent(r, kind, p, now) {
+  if (!r || typeof r !== 'object') return false;
+  if (r.p === p) return true;
+  return Number.isFinite(r.t) && r.t <= now && FILED.some((d) => r.p === periodKey(d, r.t)) && periodKey(kind, r.t) === p;
+}
+
 function record(checklistState, item, suffix, kind, now, w) {
   const p = periodKey(kind, now);
-  const r = checklistState.items[recordKey(item, w, suffix)];
-  if (r && r.p === p) return r;
+  const items = checklistState.items || {};
+  const r = items[recordKey(item, w, suffix)];
+  if (isCurrent(r, kind, p, now)) return r;
   if (w.id && item.scope !== 'account' && isOwner(checklistState, w)) {
-    const old = checklistState.items[item.id + suffix];
-    if (old && old.p === p) return old;
+    const old = items[item.id + suffix];
+    if (isCurrent(old, kind, p, now)) return old;
+  }
+  // An item that became account-wide: a tick a character made on it before still counts for its period, until
+  // the account's own tick for this period replaces it (the check above).
+  if (item.scope === 'account') {
+    const tail = `|${item.id}${suffix}`;
+    let best = null;
+    for (const [k, x] of Object.entries(items)) {
+      if (!k.endsWith(tail) || !isCurrent(x, kind, p, now)) continue;
+      const score = (y) => (typeof y.c === 'number' && Number.isFinite(y.c) ? y.c : 0) + (y.d ? 1e9 : 0);
+      if (!best || score(x) > score(best)) best = x;
+    }
+    if (best) return best;
   }
   return null;
 }

@@ -31,11 +31,22 @@ export function nexonAge(meta, now, refresh) {
 // sync: { state: 'off' | 'busy' | 'ok' | 'warn' | 'error', message } from sync.js; syncOn: a token is saved on this device.
 // meta: data/meta.json written by the refresh job (or null); tablesChecked: ISO date the game tables were last checked.
 // tokenExpires: 'YYYY-MM-DD' typed in by the user, or null. refresh: see nexonAge.
-export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenExpires, refresh }) {
+// storageOk: false when the browser refused the last save (store.js isStorageOk); missing counts as saving.
+// storageKept: what the browser says about keeping the saved entries (persist.js storageKept): true, false or null
+// (it can't tell). Only Settings passes it; when it is missing, nothing is said about it.
+// (Browser rules from MDN, "Storage quotas and eviction criteria".)
+export function appStatus({ syncOn, sync, meta, news, tablesChecked, now, tokenExpires, refresh, storageOk, storageKept }) {
   const parts = [];
+  if (storageOk === false) {
+    parts.push({ key: 'storage', level: 'error', short: 'Not saving', text: `This browser isn't letting the page save. Changes made now are lost when you close the tab.${syncOn ? ' Sync still sends them to your gist while the tab is open.' : ' Export a backup before you close it.'}` });
+  } else if (storageKept !== undefined) {
+    const elsewhere = syncOn ? 'Sync keeps a copy in your gist.' : 'This browser holds the only copy: connect Sync, or export a backup now and then.';
+    if (storageKept === true) parts.push({ key: 'storage', level: 'ok', short: 'Saved', text: `Saved in this browser, which has agreed to keep your entries until its data is cleared. ${elsewhere}` });
+    else parts.push({ key: 'storage', level: 'off', short: 'Saved', text: `Saved in this browser. ${storageKept === false ? 'The browser has not agreed to keep them for good' : "The browser can't say whether it keeps them for good"}: it may remove them by itself when the device runs low on space (Safari: after 7 days of use without a visit). Clearing the browser's data removes them too. ${elsewhere}` });
+  }
   if (!syncOn) parts.push({ key: 'sync', level: 'off', short: 'Sync off', text: 'Device sync is off. Your entries stay in this browser only.' });
   else if (sync && sync.state === 'error') parts.push({ key: 'sync', level: 'error', short: 'Sync error', text: `Device sync failed: ${sync.message || 'unknown error'}` });
-  else if (sync && sync.state === 'busy') parts.push({ key: 'sync', level: 'busy', short: 'Syncing…', text: 'Syncing your entries…' });
+  else if (sync && sync.state === 'busy') parts.push({ key: 'sync', level: 'busy', short: 'Syncing…', text: sync.message && sync.message !== 'Syncing…' ? sync.message : 'Syncing your entries…' });
   else if (sync && sync.state === 'warn') parts.push({ key: 'sync', level: 'warn', short: 'Check device clocks', text: sync.message || 'The clock on one of your devices is wrong.' });
   // A token is saved but no sync has finished in this tab yet: not "in sync" until one has.
   else if (!sync || sync.state !== 'ok') parts.push({ key: 'sync', level: 'busy', short: 'Not synced yet', text: 'Device sync is set up but has not run in this tab yet.' });

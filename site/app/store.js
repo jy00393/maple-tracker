@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from '../vendor/htm-preact.mjs';
-import { mergeStates, sameEntries, sameStamps, seedStamps, stampEdit, units } from './calc/merge.js';
+import { mergeStates, sameEntries, sameStamps, seedStamps, stampEdit, units, liveAsOf } from './calc/merge.js';
+import { carryAsOf } from './calc/asof.js';
 import { addBackup } from './calc/backups.js';
 import { hasSharedTicks } from './calc/checklist.js';
 import { dayKey } from './time.js';
@@ -10,6 +11,17 @@ import { dateTyped } from './calc/progress.js';
 const KEY = 'maple-tracker:v1';
 const listeners = new Set();
 let storageOk = true;
+// Told when the browser starts or stops refusing to save (every page then shows or hides its warning).
+const storageListeners = new Set();
+function setStorageOk(ok) {
+  if (ok === storageOk) return;
+  storageOk = ok;
+  storageListeners.forEach((fn) => { try { fn(ok); } catch { /* one listener must not stop the rest */ } });
+}
+export function onStorageStatus(fn) {
+  storageListeners.add(fn);
+  return () => storageListeners.delete(fn);
+}
 // The stored text this tab last read or wrote. When storage holds something else, another tab has saved since.
 let lastWritten = null;
 // When "Clear all data" was last pressed in this browser (0: never). It is saved next to the entries as "cleared"
@@ -44,6 +56,9 @@ export function blankState() {
     ui: { hideClassic: true, lastSeenNews: 0, eventsView: 'timeline', todaySales: false, hiddenEvents: {}, seasonDone: {} },
     // When each part last changed, so sync can merge two devices part by part (see calc/merge.js).
     stamps: {},
+    // Parts changed only by an import or a restore since: when they were really last changed, for "as of" dates
+    // (see liveAsOf in calc/merge.js and changedAt in calc/asof.js). Synced, so every device shows the same date.
+    asOf: {},
     updatedAt: 0
   };
 }
@@ -68,7 +83,15 @@ function normalise(raw) {
   if (dateTyped(out, Date.now())) datedOnLoad = true;
   // Copies saved before sync merged part by part have no stamps: date every part by the copy's own updatedAt.
   out.stamps = { ...seedStamps(out) };
+  // Only the "as of" times that still match their part's stamp stand (a copy written by the live version before
+  // this field existed has none).
+  out.asOf = liveAsOf(out.asOf, out.stamps);
   return out;
+}
+
+// Drops "as of" times an edit has made stale, so the map never outgrows the parts it is for.
+function pruneAsOf(s, now) {
+  if (s.asOf && Object.keys(s.asOf).length) s.asOf = liveAsOf(s.asOf, s.stamps, now);
 }
 
 function load() {
@@ -163,13 +186,30 @@ function writeNow() {
     // (After "Clear all data" in this tab, what another tab saved before that is ignored: see takeStored.)
     if (typeof stored === 'string' && stored !== lastWritten) changed = takeStored(stored).changed;
     const text = JSON.stringify({ ...state, cleared: clearedAt });
-    localStorage.setItem(KEY, text);
+    setItemMakingRoom(KEY, text);
     lastWritten = text;
-    storageOk = true;
+    setStorageOk(true);
   } catch {
-    storageOk = false;
+    setStorageOk(false);
   }
   if (changed) listeners.forEach((fn) => fn(state));
+}
+
+// The entries come before the daily safety copies: when the browser is out of room, the older copies are given up
+// (keeping the newest, then none) so the entries themselves can still be saved. Throws when even that fails.
+function setItemMakingRoom(key, text) {
+  try { localStorage.setItem(key, text); return; } catch (err) {
+    // (Storage that cannot even be read is blocked, not full: then this throws too, and nothing is removed.)
+    const held = localStorage.getItem(BACKUPS_KEY);
+    if (held === null) throw err;
+    let copies = null;
+    try { copies = JSON.parse(held); } catch { /* unreadable copies are removed below */ }
+    if (Array.isArray(copies) && copies.length > 1) {
+      try { localStorage.setItem(BACKUPS_KEY, JSON.stringify(copies.slice(-1))); localStorage.setItem(key, text); return; } catch { /* still no room */ }
+    }
+    localStorage.removeItem(BACKUPS_KEY);
+    localStorage.setItem(key, text);
+  }
 }
 
 function save() {
@@ -205,6 +245,17 @@ export function isStorageOk() {
   return storageOk;
 }
 
+// For a component: whether the browser is saving, redrawn when that changes.
+export function useStorageOk() {
+  const [, force] = useReducer((x) => x + 1, 0);
+  const drawn = storageOk;
+  useEffect(() => {
+    if (storageOk !== drawn) force();
+    return onStorageStatus(() => force());
+  }, []);
+  return storageOk;
+}
+
 // Every changed part gets its own time (stampEdit in calc/merge.js). (Moving the old whole-part "ui"/"mesos"
 // stamp as well was tried and dropped: it made entries added on another device, which have no stamp of their
 // own here, look older than any later edit, so the merge deleted them. A character's parts do move their
@@ -220,6 +271,7 @@ export function update(mutator) {
   mutator(next);
   const now = Date.now();
   stampEdit(next.stamps, state, next, now);
+  pruneAsOf(next, now);
   next.updatedAt = laterThan(state.updatedAt, now);
   state = next;
   save();
@@ -233,6 +285,7 @@ export function touch(path) {
   const next = structuredClone(state);
   const now = Date.now();
   stampEdit(next.stamps, state, next, now, new Set([path]));
+  pruneAsOf(next, now);
   next.updatedAt = laterThan(state.updatedAt, now);
   state = next;
   save();
@@ -244,9 +297,13 @@ export function replaceState(raw, keepTime = false) {
   const before = state;
   state = normalise(raw);
   if (!keepTime || !state.updatedAt) {
-    // An import or a reset replaces everything, so every part (kept, changed or removed) is stamped now.
+    // An import or a reset replaces everything, so every part (kept, changed or removed) is stamped now: the
+    // import then wins over other devices. The figures with an "as of" date keep the time the copy itself had
+    // for them (carryAsOf), so taking a backup back in does not make old figures look freshly typed.
     const now = Date.now();
-    state.stamps = stampEdit({}, before, state, now, new Set([...units(before).keys(), ...units(state).keys()]));
+    const copy = state;
+    const stamps = stampEdit({}, before, state, now, new Set([...units(before).keys(), ...units(state).keys()]));
+    state = { ...state, stamps, asOf: carryAsOf(copy, stamps, now) };
     state.updatedAt = laterThan(before.updatedAt, now);
   }
   save();
@@ -273,9 +330,9 @@ export function resetState() {
     const text = JSON.stringify({ ...state, cleared: clearedAt });
     localStorage.setItem(KEY, text);
     lastWritten = text;
-    storageOk = true;
+    setStorageOk(true);
   } catch {
-    storageOk = false;
+    setStorageOk(false);
   }
   listeners.forEach((fn) => fn(state));
 }

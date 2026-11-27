@@ -83,16 +83,18 @@ const GIST_GONE = 'The sync gist was not found on GitHub. Disconnect and connect
 // `missing`: what to say when GitHub answers 404 for this request.
 async function gh(path, token, opts = {}, missing = null) {
   let res;
+  const send = (o) => fetch(API + path, {
+    ...o,
+    headers: {
+      Accept: 'application/vnd.github+json',
+      Authorization: `Bearer ${token}`,
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(o.body ? { 'Content-Type': 'application/json' } : {})
+    }
+  });
   try {
-    res = await fetch(API + path, {
-      ...opts,
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-        ...(opts.body ? { 'Content-Type': 'application/json' } : {})
-      }
-    });
+    // A browser that refuses a "keepalive" request (some do for this kind of request) gets the plain one.
+    res = await (opts.keepalive ? send(opts).catch(() => send({ ...opts, keepalive: false })) : send(opts));
   } catch {
     throw new Error(OFFLINE);
   }
@@ -132,8 +134,15 @@ async function readRemote(c) {
   throw new Error(unreadable);
 }
 
+// A browser lets a request outlive the page only when it is small (the Fetch standard caps "keepalive" bodies at
+// 64 KiB, shared by all such requests of the page). Kept a little under that.
+export const KEEPALIVE_MAX = 60000;
 async function writeRemote(c) {
-  await gh(`/gists/${c.gistId}`, c.token, { method: 'PATCH', body: JSON.stringify({ files: { [FILE]: { content: JSON.stringify(getState()) } } }) }, GIST_GONE);
+  const body = JSON.stringify({ files: { [FILE]: { content: JSON.stringify(getState()) } } });
+  // While the page is being left, a small upload is marked to finish even if the page closes; a larger one goes
+  // out as usual and may be cut off (then it is sent on the next open: see sendBeforeLeaving).
+  const keepalive = !onScreen() && new TextEncoder().encode(body).length <= KEEPALIVE_MAX;
+  await gh(`/gists/${c.gistId}`, c.token, { method: 'PATCH', body, ...(keepalive ? { keepalive: true } : {}) }, GIST_GONE);
 }
 
 // One round trip: read the gist, merge it with this device part by part (calc/merge.js), then save whichever
@@ -178,7 +187,14 @@ async function syncOnce(quiet = false) {
 let queue = Promise.resolve();
 export function syncNow(quiet = false) {
   // A failure is recorded in the shared status, so the top-bar pill never sticks on "Syncing…".
-  const run = queue.then(() => syncOnce(quiet === true)).then((r) => { fails = 0; return r; }, (e) => { fails++; setStatus('error', e.message); throw e; });
+  let startedAt = 0;
+  const run = queue.then(() => { startedAt = Date.now(); return syncOnce(quiet === true); }).then((r) => {
+    fails = 0;
+    // A change noted as unsent before this round trip began is in the gist now.
+    const unsent = unsentSince();
+    if (unsent && unsent <= startedAt && syncConfig()) noteUnsent(false);
+    return r;
+  }, (e) => { fails++; setStatus('error', e.message); throw e; });
   queue = run.catch(() => {});
   return run;
 }
@@ -192,6 +208,26 @@ function auto(quiet = false) {
   syncNow(quiet).catch(() => {});
 }
 
+// A change made in the last seconds before the page is hidden or closed (tick, then lock the phone) is sent at
+// once instead of after the usual short wait, which a phone may never let happen. Best effort: the upload is a read
+// then a write, and the browser may stop the page before both are done. So the change is also noted here; the next
+// open of the tracker syncs first thing anyway (startSync) and says it is sending it.
+const UNSENT = 'maple-tracker:sync-unsent';
+function noteUnsent(on) {
+  try { if (on) localStorage.setItem(UNSENT, String(Date.now())); else localStorage.removeItem(UNSENT); } catch { /* no storage: nothing to note */ }
+}
+export function unsentSince() {
+  try { const v = Number(localStorage.getItem(UNSENT)); return Number.isFinite(v) && v > 0 ? v : 0; } catch { return 0; }
+}
+function sendBeforeLeaving() {
+  if (timer === null || !syncConfig()) return;
+  clearTimeout(timer);
+  timer = null;
+  noteUnsent(true);
+  if (Date.now() < holdUntil) return; // GitHub asked to wait: the next open sends it
+  push().catch((e) => setStatus('error', e.message));
+}
+
 function listen() {
   if (started) return;
   started = true;
@@ -199,11 +235,13 @@ function listen() {
     if (applying || !syncConfig()) return;
     clearTimeout(timer);
     // (While GitHub asked to wait, nothing is sent; the timed check sends it once the wait is over.)
-    timer = setTimeout(() => { if (Date.now() >= holdUntil) push().catch((e) => setStatus('error', e.message)); }, 4000);
+    timer = setTimeout(() => { timer = null; if (Date.now() >= holdUntil) push().catch((e) => setStatus('error', e.message)); }, 4000);
   });
   document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { sendBeforeLeaving(); return; }
     if (document.visibilityState === 'visible' && syncConfig() && Date.now() >= holdUntil) pull().catch((e) => setStatus('error', e.message));
   });
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') window.addEventListener('pagehide', sendBeforeLeaving);
   // Back online: catch up at once instead of waiting for the next timed check.
   if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') window.addEventListener('online', () => auto());
   // The timer only looks at the clock once a minute; a request goes out when pollDue says so.
@@ -268,6 +306,8 @@ export function onPendingPair(fn) { pendingListeners.add(fn); return () => pendi
 export function disconnect() {
   saveConfig(null);
   clearTimeout(timer);
+  timer = null;
+  noteUnsent(false);
   setStatus('off', 'Not connected');
 }
 
@@ -275,7 +315,7 @@ export function startSync() {
   if (!syncConfig()) return;
   listen();
   // Shown at once, so the status is never "not connected" while a token is saved.
-  setStatus('busy', 'Syncing…');
+  setStatus('busy', unsentSince() ? 'Sending the change you made just before leaving…' : 'Syncing…');
   pull().catch((e) => setStatus('error', e.message));
 }
 

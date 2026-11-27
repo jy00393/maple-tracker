@@ -1,5 +1,5 @@
 // Which bosses a character's Combat Power is enough for, from data/bosscp.json (the game's solo entry minimums).
-import { crystalValue, shareKey } from './income.js';
+import { crystalValue, shareKey, entryBlock } from './income.js';
 
 export function minCpFor(cpData, boss) {
   const v = cpData && cpData.minCp ? cpData.minCp[boss.id] : undefined;
@@ -25,8 +25,13 @@ export function reach(cpData, boss, cp, margin = 1) {
 // suggested. `keep` lists picks that stay as they are (party runs, bosses with no figure; a `party` field gives
 // the party size): their bosses are not suggested again, and each one takes a place in the cap only when its
 // crystal is among the best that sell, the way the week's income counts them.
-export function suggestBosses(bossesData, cpData, cp, margin, char, keep = []) {
+// A boss the character cannot enter (entryBlock: Challenger World only, or below its entry level) is never
+// suggested, the same rule the Bosses picker uses. `who` = { challenger, level } (the page passes the known level);
+// left out, it is read from `char`. An unknown level never locks. `locked` counts the difficulties left out that way
+// (their Combat Power is not checked), so `beyond` stays "harder than your Combat Power" among bosses you can enter.
+export function suggestBosses(bossesData, cpData, cp, margin, char, keep = [], who) {
   if (!(cp > 0)) return { ids: [], total: 0, list: [], beyond: 0 };
+  const entry = who || { challenger: Boolean(char && char.challenger), level: char && Number(char.level) > 0 ? Number(char.level) : undefined };
   const taken = new Set(keep.map((b) => b.boss));
   // Ranked by what the crystal is worth even for a character who can't sell it (Quanah), so the list still
   // picks the hardest difficulty within reach; the total then shows what is really earned.
@@ -42,8 +47,10 @@ export function suggestBosses(bossesData, cpData, cp, margin, char, keep = []) {
   const cap = bossesData.limits.weeklyPerCharacter;
   const best = new Map();
   let beyond = 0;
+  let locked = 0;
   for (const b of bossesData.bosses) {
     if (b.reset !== 'weekly' || b.noCrystal || taken.has(b.boss)) continue;
+    if (entryBlock(b, entry)) { locked++; continue; }
     const r = reach(cpData, b, cp, margin);
     if (r === 'no') beyond++;
     if (r !== 'yes') continue;
@@ -56,7 +63,7 @@ export function suggestBosses(bossesData, cpData, cp, margin, char, keep = []) {
     .sort((a, b) => b.rank - a.rank).slice(0, cap);
   const list = pool.filter((p) => p.x).map((p) => p.x);
   // reachable: bosses within reach at all, so the page can tell "none within reach" from "kept picks fill it".
-  return { ids: list.map((x) => x.boss.id), total: list.reduce((a, x) => a + x.value, 0), list, beyond, reachable: best.size };
+  return { ids: list.map((x) => x.boss.id), total: list.reduce((a, x) => a + x.value, 0), list, beyond, locked, reachable: best.size };
 }
 
 // Picked bosses that ask for more Combat Power than the character has (solo picks only: party minimums are not listed).

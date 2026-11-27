@@ -1,6 +1,8 @@
 import { html, render, useEffect, useRef, useState } from '../vendor/htm-preact.mjs';
 import { loadData, watchData } from './data.js';
-import { useStore, update, activeCharacter } from './store.js';
+import { useStore, update, activeCharacter, useStorageOk } from './store.js';
+import { askToKeepOnce } from './persist.js';
+import { StorageWarning } from './pages/storage.js';
 import { useClock, Logo } from './ui.js';
 import { fmtLeft, fmtUtcTime, kstParts, nextReset } from './time.js';
 import { TodayPage } from './pages/today.js';
@@ -64,11 +66,13 @@ function Clocks() {
   // Ticks on the second and at each reset, in step with the pages below it.
   const now = useClock({ every: 1000 });
   const k = kstParts(now);
+  // The weekly boss reset comes right after the daily one, so it is never the clock pushed furthest away.
+  // (On phones the pills wrap and the UTC half of the time is hidden: see .clocks in styles.css.)
   return html`<div class="clocks" aria-label="Server time and resets">
-    <span><b>${fmtUtcTime(now)}</b> · ${k.hh}:${k.mm} KST</span>
+    <span><b class="utc">${fmtUtcTime(now)} ·</b> ${k.hh}:${k.mm} KST</span>
     <span>Daily <b>${fmtLeft(nextReset('daily', now) - now)}</b></span>
-    <span>Wed <b>${fmtLeft(nextReset('wed', now) - now)}</b></span>
     <span>Thu bosses <b>${fmtLeft(nextReset('thu', now) - now)}</b></span>
+    <span>Wed <b>${fmtLeft(nextReset('wed', now) - now)}</b></span>
     <span>Mon <b>${fmtLeft(nextReset('mon', now) - now)}</b></span>
   </div>`;
 }
@@ -77,9 +81,10 @@ function Clocks() {
 function StatusPill({ data }) {
   const now = useClock({ every: 60000 });
   const [sync, setSync] = useState(syncStatus());
+  const storageOk = useStorageOk();
   // The pill starts listening a moment after it first draws; the status is read again so nothing in that gap is missed.
   useEffect(() => { const off = onSyncStatus(setSync); setSync(syncStatus()); return off; }, []);
-  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires, refresh: data.refresh });
+  const st = appStatus({ syncOn: Boolean(syncConfig()), sync, meta: data.meta, news: data.news.items, tablesChecked: data.tables && data.tables.checked, now, tokenExpires: syncConfig()?.expires, refresh: data.refresh, storageOk });
   const detail = st.parts.map((p) => p.text).join(' ');
   return html`<a class=${'status-pill ' + st.level} href="#settings" title=${detail} aria-label=${`Status: ${st.label}. ${detail}`}><i aria-hidden="true"></i>${st.label}</a>`;
 }
@@ -154,7 +159,7 @@ function App({ data }) {
       </div>
     </header>
     <${IncomeKeeper} data=${data} state=${state} />
-    <main id="main"><${Page} data=${data} state=${state} /></main>
+    <main id="main"><${StorageWarning} /><${Page} data=${data} state=${state} /></main>
     <${BottomNav} route=${route} newNews=${newNews} />`;
 }
 
@@ -176,6 +181,8 @@ async function boot() {
     root.textContent = '';
     render(html`<${Root} initial=${data} />`, root);
     startSync();
+    // Once per browser: ask it to keep the saved entries instead of removing them when space runs low (persist.js).
+    askToKeepOnce().catch(() => {});
   } catch (err) {
     root.innerHTML = '';
     const p = document.createElement('p');

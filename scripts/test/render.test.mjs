@@ -415,7 +415,7 @@ test('Events > Coin shop plans picks against coins, and hides items for the othe
   assert.match(t2, /Shop \(2 open\)/);
   assert.match(t2, /First Shop item/);
   assert.match(t2, /limit none/);
-  assert.match(t2, /How Test Coin is earned is not listed here/);
+  assert.match(t2, /How to earn Test Coin is not listed here/);
   assert.doesNotMatch(t2, /Challenger World Shop|Old Shop/);
   assert.equal(t2.match(BAD), null);
   const pick = el2.find((n) => n.attrs.id === 'shop-pick');
@@ -821,7 +821,8 @@ test('small wording fixes: Item Burning out of reach, last shop day, tiny flame 
   s.ibp = { main: { done: {}, crests: 0 } };
   store.replaceState(s, true);
   const soon = new Date(Date.now() + 10 * 86400000).toISOString();
-  let el = await show('progress', loadData({ ibp: { ...load('ibp'), endsAt: soon, weeklyCrests: 10 } }));
+  // No boss crests either: this state picks Hard Lucid solo, whose crests would bring the gate in reach.
+  let el = await show('progress', loadData({ ibp: { ...load('ibp'), endsAt: soon, weeklyCrests: 10, bossCrests: {} } }));
   assert.match(el.text.replace(/\s+/g, ' '), /left before it ends: out of reach/);
   close(el);
   const shops = JSON.parse(readFileSync(fileURLToPath(new URL('./fixtures/shops.json', import.meta.url)), 'utf8'));

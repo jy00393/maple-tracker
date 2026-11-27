@@ -29,7 +29,7 @@ const DAY = 86400000;
 const MAX_DETAIL_FETCHES = 30;
 const NEWS_KEEP = 150;
 // Raise this when the parser learns something new, so cached posts are read again (a few per run).
-const PARSER_VERSION = 5;
+const PARSER_VERSION = 6;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -132,7 +132,9 @@ async function updateNewsAndEvents(errors) {
   if (await writeJsonIfChanged('news.json', { feedCount: nextFeedCount(baseline, list.length), items: news })) changed.push('news');
   if (await writeJsonIfChanged('posts.json', { posts })) changed.push('posts');
   if (await writeJsonIfChanged('events.json', { events, sunny })) changed.push('events');
-  if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now))) changed.push('calendar');
+  // The calendar also carries Sunny Sundays and the hand-typed dates (upcoming.json, season.json deadlines).
+  const calExtra = { sunny, upcoming: await readJson('upcoming.json', {}), season: await readJson('season.json', {}) };
+  if (await writeTextIfChanged('calendar.ics', buildCalendar(events, now, calExtra))) changed.push('calendar');
   return { changed, fetched, posts: list.length, events: events.length, shops: shops.shops.length };
 }
 

@@ -277,3 +277,14 @@ export function erdaCost(perLevel, from, to) {
   }
   return { sol, frag };
 }
+
+// The most Sol Erda a character of `level` can hold, from a [[fromLevel, cap], ...] table (upgrades.json
+// erda.holdCap). Null below the first row, for an unknown level, or without a table.
+export function solErdaCap(level, table) {
+  if (!Number.isFinite(level) || !Array.isArray(table)) return null;
+  let cap = null;
+  for (const row of table) {
+    if (Array.isArray(row) && Number.isFinite(row[0]) && Number.isFinite(row[1]) && level >= row[0]) cap = row[1];
+  }
+  return cap;
+}

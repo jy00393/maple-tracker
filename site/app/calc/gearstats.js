@@ -31,10 +31,12 @@ export function flameLabel(flame, mainStat = 'STR') {
   return parts.join(' · ');
 }
 
-// Sum over equipped (non-empty) slots.
-export function flameTotals(slots, gearState) {
+// Sum over equipped (non-empty) slots. Slots listed in `exclude` (flames.json noFlameSlots: they cannot have flames)
+// are skipped, so a number typed there by mistake is not counted.
+export function flameTotals(slots, gearState, exclude = []) {
   const out = { main: 0, sub: 0, att: 0, allstat: 0, boss: 0, dmg: 0, items: 0 };
   for (const slot of slots || []) {
+    if ((exclude || []).includes(slot.id)) continue;
     const e = ((gearState && gearState.slots) || {})[slot.id];
     if (!e || !e.tier) continue;
     const f = cleanFlame(e.flame);

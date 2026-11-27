@@ -1,5 +1,5 @@
 {
- "source": "Nexon patch notes (news ids 47132, 47305), read by the 6-hourly job. How coins are earned (\"earn\"), \"scope\" and \"useBy\" are typed in by hand where present.",
+ "source": "Nexon patch notes (news ids 47132, 47305), read by the 6-hourly job. How coins are earned (Shadow Bounty coins per boss too), who shares them and when items must be used are added by hand where shown.",
  "sourceUrl": "https://www.nexon.com/maplestory/news/update/47132",
  "shops": [
   {
@@ -227,6 +227,11 @@
    "id": "bounty-coin-shop-advanced-bounty-coin",
    "name": "Bounty Coin Shop: Advanced Bounty Coin",
    "currency": "Advanced Bounty Coin",
+   "scope": "Per world: Bounty Coins can only be used in the world where they were earned (v.272 notes).",
+   "bounty": {
+    "coin": "advanced",
+    "checklistItem": "w-bounty-earn"
+   },
    "start": "2026-11-11T00:00:00.000Z",
    "end": "2027-02-09T23:59:00.000Z",
    "items": [
@@ -288,6 +293,11 @@
    "id": "bounty-coin-shop-basic-bounty-coin",
    "name": "Bounty Coin Shop: Basic Bounty Coin",
    "currency": "Basic Bounty Coin",
+   "scope": "Per world: Bounty Coins can only be used in the world where they were earned (v.272 notes).",
+   "bounty": {
+    "coin": "basic",
+    "checklistItem": "w-bounty-earn"
+   },
    "start": "2026-11-11T00:00:00.000Z",
    "end": "2027-02-09T23:59:00.000Z",
    "items": [
@@ -344,6 +354,11 @@
    "id": "bounty-coin-shop-intermediate-bounty-coin",
    "name": "Bounty Coin Shop: Intermediate Bounty Coin",
    "currency": "Intermediate Bounty Coin",
+   "scope": "Per world: Bounty Coins can only be used in the world where they were earned (v.272 notes).",
+   "bounty": {
+    "coin": "intermediate",
+    "checklistItem": "w-bounty-earn"
+   },
    "start": "2026-11-11T00:00:00.000Z",
    "end": "2027-02-09T23:59:00.000Z",
    "items": [
@@ -432,6 +447,142 @@
    "currency": "Challenger Coins",
    "start": "2026-11-11T00:00:00.000Z",
    "end": "2027-02-09T23:59:00.000Z",
+   "earn": {
+    "name": "Weekly Progression Mission",
+    "checklistItem": "w-cwprog",
+    "perClaim": 1500,
+    "perWeek": 1,
+    "max": 13,
+    "note": "Do one of three each week: 5,000 monsters near your level, Monster Park 6 times, or 12 Symbol daily quests, then press Complete in the Challenger World window. Doing all three still pays 1,500. 13 weeks run from 11 Nov to 9 Feb.",
+    "extra": "Seasonal missions (Ability, symbol levels, a Legendary emblem or secondary, Combat Power and more) and boss missions also pay coins, once each. Boss missions count solo clears, Practice Mode too: for example Normal Lotus 200, Normal Kai 300, Hard Lucid 600.",
+    "levels": [
+     [
+      260,
+      3000
+     ],
+     [
+      261,
+      300
+     ],
+     [
+      262,
+      300
+     ],
+     [
+      263,
+      300
+     ],
+     [
+      264,
+      300
+     ],
+     [
+      265,
+      300
+     ],
+     [
+      266,
+      300
+     ],
+     [
+      267,
+      300
+     ],
+     [
+      268,
+      300
+     ],
+     [
+      269,
+      300
+     ],
+     [
+      270,
+      600
+     ],
+     [
+      271,
+      600
+     ],
+     [
+      272,
+      600
+     ],
+     [
+      273,
+      600
+     ],
+     [
+      274,
+      600
+     ],
+     [
+      275,
+      900
+     ],
+     [
+      276,
+      900
+     ],
+     [
+      277,
+      900
+     ],
+     [
+      278,
+      900
+     ],
+     [
+      279,
+      900
+     ],
+     [
+      280,
+      1200
+     ],
+     [
+      281,
+      1200
+     ],
+     [
+      282,
+      1200
+     ],
+     [
+      283,
+      1200
+     ],
+     [
+      284,
+      1200
+     ],
+     [
+      285,
+      1500
+     ],
+     [
+      286,
+      1500
+     ],
+     [
+      287,
+      1500
+     ],
+     [
+      288,
+      1500
+     ],
+     [
+      289,
+      1500
+     ],
+     [
+      290,
+      2500
+     ]
+    ],
+    "source": "How Challenger Coins are earned: Nexon's Challenger World notice (news id 47305: Weekly Progression Missions, Leveling Missions, Boss Missions, Seasonal Mission), read 2026-11-27."
+   },
    "items": [
     {
      "id": "frozen-secondary-weapon-box",

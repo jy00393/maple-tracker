@@ -1,5 +1,6 @@
 {
- "source": "MapleStory Wiki symbol pages (Arcane Symbol: <area>, Sacred Symbol: <area>), checked 23 Nov 2026. Daily amounts are the Heroic-world values listed there.",
+ "source": "MapleStory Wiki: the Arcane Symbol and Sacred Symbol page for each area, checked 23 Nov 2026. Daily amounts are the Heroic-world values listed there. Arcane weekly quests: Nexon v.272 patch notes (news 47132, read 27 Nov 2026).",
+ "relicBonus": {"arcane": 4, "sacred": 3, "until": "2027-02-09T23:59:00Z", "source": "Operation Ultima, Etherion Relics: the first weekly completion adds 4 Arcane and 3 Sacred symbols a day to each area's daily quest, per character, for dailies done after it is active (Nexon v.272 patch notes, news 47132, read 27 Nov 2026)."},
  "arcane": {
   "maxLevel": 20,
   "powerPerLevel": 10,
@@ -32,7 +33,7 @@
     "unlockLevel": 200,
     "daily": 20,
     "weekly": 0,
-    "note": "Daily rises to 40 after [Reverse City] Surviving in the Reversed City. Erda Spectrum also gives symbols weekly.",
+    "note": "Daily rises to 40 after [Reverse City] Surviving in the Reversed City. Its weekly (Erda Spectrum) is left at 0: v.272 gives 240 for the weekly quest of each region, but no source read names Vanishing Journey. Check in game and type it into Per week.",
     "mesos": [
      970000,
      1230000,
@@ -61,7 +62,7 @@
     "unlockLevel": 210,
     "daily": 20,
     "weekly": 240,
-    "note": "Daily rises to 40 after [Yum Yum] The Traveler and the Follower. Hungry Muto: 80 per clear, up to 3 a week.",
+    "note": "Daily rises to 40 after [Yum Yum] The Traveler and the Follower. Weekly quest (Hungry Muto): one completion a week for 240 symbols since v.272 (Nexon patch notes, news 47132, read 27 Nov 2026).",
     "mesos": [
      1210000,
      1530000,
@@ -90,7 +91,7 @@
     "unlockLevel": 220,
     "daily": 40,
     "weekly": 240,
-    "note": "Midnight Chaser: 80 per clear, up to 3 a week.",
+    "note": "Weekly quest (Midnight Chaser): one completion a week for 240 symbols since v.272 (Nexon patch notes, news 47132, read 27 Nov 2026).",
     "mesos": [
      1450000,
      1830000,
@@ -119,7 +120,7 @@
     "unlockLevel": 225,
     "daily": 40,
     "weekly": 240,
-    "note": "Spirit Savior: 80 per clear, up to 3 a week.",
+    "note": "Weekly quest (Spirit Savior): one completion a week for 240 symbols since v.272 (Nexon patch notes, news 47132, read 27 Nov 2026).",
     "mesos": [
      1690000,
      2130000,
@@ -148,7 +149,7 @@
     "unlockLevel": 230,
     "daily": 40,
     "weekly": 240,
-    "note": "Ranheim Defense: 80 per clear, up to 3 a week.",
+    "note": "Weekly quest (Ranheim Defense): one completion a week for 240 symbols since v.272 (Nexon patch notes, news 47132, read 27 Nov 2026).",
     "mesos": [
      1930000,
      2430000,
@@ -177,7 +178,7 @@
     "unlockLevel": 235,
     "daily": 40,
     "weekly": 240,
-    "note": "Esfera Guardian: 80 per clear, up to 3 a week.",
+    "note": "Weekly quest (Esfera Guardian): one completion a week for 240 symbols since v.272 (Nexon patch notes, news 47132, read 27 Nov 2026).",
     "mesos": [
      2170000,
      2730000,

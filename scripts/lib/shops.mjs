@@ -227,7 +227,7 @@ export function findShops(body, post) {
 
 // Builds data/shops.json from what the job parsed, keeping what a person added to the existing file.
 // - A parsed shop that is the same shop as one in the file keeps that one's id (saved picks are keyed by it) and
-//   any field the parser does not produce (earn, scope, useBy, event). "The same shop" is decided in this order,
+//   any field the parser does not produce (earn, bounty, scope, useBy, event). "The same shop" is decided in this order,
 //   each shop being used once:
 //   1. same post, same coin, same dates and mostly the same items, under the same name;
 //   2. the same under another name: two shops with the same heading in one post are named by their order, so
@@ -297,7 +297,7 @@ export function mergeShops(existing, parsed, now) {
   out.sort((a, b) => Date.parse(a.end) - Date.parse(b.end) || (a.name < b.name ? -1 : 1));
   const posts = [...new Set(out.map((s) => s.postId).filter(Boolean))];
   return {
-    source: `Nexon patch notes${posts.length ? ` (news ${posts.length === 1 ? 'id' : 'ids'} ${posts.join(', ')})` : ''}, read by the 6-hourly job. How coins are earned ("earn"), "scope" and "useBy" are typed in by hand where present.`,
+    source: `Nexon patch notes${posts.length ? ` (news ${posts.length === 1 ? 'id' : 'ids'} ${posts.join(', ')})` : ''}, read by the 6-hourly job. How coins are earned (Shadow Bounty coins per boss too), who shares them and when items must be used are added by hand where shown.`,
     sourceUrl: (out.find((s) => s.url) || {}).url || (existing && existing.sourceUrl) || '',
     shops: out
   };

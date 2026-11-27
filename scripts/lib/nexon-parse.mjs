@@ -487,7 +487,9 @@ export function parsePost(post, body) {
     let id = base;
     for (let n = 2; ids.has(id); n++) id = `${base}-${n}`;
     ids.add(id);
-    events.push({ ...toEvent(post, block.heading, range, findResetNotes(block.text)), id });
+    const ev = { ...toEvent(post, block.heading, range, findResetNotes(block.text)), id };
+    if (isMesoOffer(post, block.text)) ev.mesos = true;
+    events.push(ev);
   }
   if (events.length === 0) {
     const text = allText();
@@ -495,6 +497,14 @@ export function parsePost(post, body) {
     if (range) events.push(toEvent(post, post.name, range, findResetNotes(text)));
   }
   return events;
+}
+
+// A section of a sale post priced in mesos and not in NX (Black Friday's Heroic cube packs: "Price: 360,000,000
+// mesos 270,000,000 mesos"): an in-game meso offer, which the site must not hide with the Cash Shop sales.
+export function isMesoOffer(post, text) {
+  if (!post || post.category !== 'sale') return false;
+  const t = String(text || '');
+  return /\d[\d,]*\s*mesos\b/i.test(t) && !/\bNX\b/.test(t) && !/\bMaple Points?\b/i.test(t);
 }
 
 function toEvent(post, title, range, resets) {
